@@ -1,16 +1,19 @@
 import React, { useState, useEffect } from 'react';
-
-interface ProjectSelectProps {
-  value: string;
-  onChange: (value: string) => void;
-}
+import { useCustomProjectTypes } from '../hooks/useCustomProjectTypes';
+import { useAuth } from '../contexts/AuthContext';
 
 interface ProjectOption {
   value: string;
   label: string;
 }
 
-const projectOptions: ProjectOption[] = [
+interface ProjectSelectProps {
+  value: string;
+  onChange: (value: string) => void;
+}
+
+// Стандартные типы работ
+const standardProjectOptions: ProjectOption[] = [
   { value: 'development', label: 'Веб-разработка' },
   { value: 'design', label: 'Дизайн' },
   { value: 'marketing', label: 'Маркетинг' },
@@ -19,50 +22,32 @@ const projectOptions: ProjectOption[] = [
   { value: 'new', label: '+ Добавить новый тип' },
 ];
 
-// Ключ для хранения пользовательских типов в localStorage
-const STORAGE_KEY = 'timetracker-custom-types';
-
 export default function ProjectSelect({ value, onChange }: ProjectSelectProps) {
+  const { user } = useAuth();
+  const { projectTypes, isLoading, addProjectType } = useCustomProjectTypes(user?.id);
+  
   const [isAddingNewType, setIsAddingNewType] = useState(false);
   const [newTypeValue, setNewTypeValue] = useState('');
-  const [customTypes, setCustomTypes] = useState<ProjectOption[]>([]);
   
-  // Загружаем сохраненные пользовательские типы при монтировании компонента
-  useEffect(() => {
-    const loadCustomTypes = () => {
-      try {
-        const savedTypesStr = localStorage.getItem(STORAGE_KEY);
-        if (savedTypesStr) {
-          const savedTypes = JSON.parse(savedTypesStr);
-          if (Array.isArray(savedTypes)) {
-            setCustomTypes(savedTypes);
-          }
-        }
-      } catch (e) {
-        console.error('Error loading custom types from localStorage:', e);
-      }
-    };
-    
-    loadCustomTypes();
-  }, []);
-  
-  // Сохраняем пользовательские типы при их изменении
-  useEffect(() => {
-    if (customTypes.length > 0) {
-      try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(customTypes));
-      } catch (e) {
-        console.error('Error saving custom types to localStorage:', e);
-      }
-    }
-  }, [customTypes]);
+  // Преобразуем пользовательские типы из Supabase в формат для селекта
+  const customOptions: ProjectOption[] = projectTypes.map(type => ({
+    value: type.id as string,
+    label: type.name
+  }));
   
   // Создаем полный список опций, включая пользовательские типы
   const allOptions = [
-    ...projectOptions.slice(0, -1), // Исключаем последний пункт "Добавить новый тип"
-    ...customTypes,
-    projectOptions[projectOptions.length - 1] // Добавляем "Добавить новый тип" в конец
+    ...standardProjectOptions.slice(0, -1), // Исключаем последний пункт "Добавить новый тип"
+    ...customOptions,
+    standardProjectOptions[standardProjectOptions.length - 1] // Добавляем "Добавить новый тип" в конец
   ];
+
+  // Если выбранный тип отсутствует в списке опций, сбрасываем на development
+  useEffect(() => {
+    if (!isLoading && value !== 'new' && !allOptions.some(option => option.value === value)) {
+      onChange('development');
+    }
+  }, [isLoading, value, allOptions, onChange]);
 
   const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedValue = e.target.value;
@@ -80,25 +65,24 @@ export default function ProjectSelect({ value, onChange }: ProjectSelectProps) {
     setNewTypeValue(e.target.value);
   };
 
-  const handleNewTypeSubmit = (e: React.FormEvent) => {
+  const handleNewTypeSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!newTypeValue.trim()) return;
+    if (!newTypeValue.trim() || !user) return;
     
-    // Создаем новый тип с уникальным id и названием
-    const newTypeId = `custom-${Date.now()}`;
-    const newType: ProjectOption = {
-      value: newTypeId,
-      label: newTypeValue.trim()
-    };
-    
-    // Добавляем новый тип в список кастомных типов
-    setCustomTypes(prev => [...prev, newType]);
-    
-    // Выбираем новый тип
-    onChange(newTypeId);
-    setIsAddingNewType(false);
-    setNewTypeValue('');
+    try {
+      const newType = await addProjectType(newTypeValue.trim(), user.id);
+      
+      if (newType && newType.id) {
+        // Выбираем новый тип
+        onChange(newType.id);
+      }
+      
+      setIsAddingNewType(false);
+      setNewTypeValue('');
+    } catch (error) {
+      console.error('Ошибка при добавлении типа:', error);
+    }
   };
 
   const handleCancelNewType = () => {

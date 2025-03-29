@@ -5,6 +5,7 @@ import NavBar from '../../components/NavBar';
 import ProtectedRoute from '../../components/ProtectedRoute';
 import { useAuth } from '../../contexts/AuthContext';
 import { settingsService, AllSettings } from '../../lib/settingsService';
+import WorkTypeManager from '../../components/WorkTypeManager';
 
 function SettingsPage() {
   const { user } = useAuth();
@@ -359,6 +360,13 @@ function SettingsPage() {
               Удаляет все записи старше выбранного срока хранения
             </div>
           </div>
+        </div>
+        
+        <div className="settings-section slide-up">
+          <h2 className="settings-section-title">Типы работ</h2>
+          <p className="settings-section-desc">Управление списком типов работ</p>
+          
+          {user && <WorkTypeManager userId={user.id} />}
         </div>
         
         <div className="settings-section slide-up">
