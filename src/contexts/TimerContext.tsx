@@ -19,6 +19,7 @@ interface TimerContextType {
   setProject: (project: string) => void;
   setProjectText: (text: string) => void;
   toggleTimer: () => Promise<void>;
+  switchProject: (newProject: string, newProjectText: string) => Promise<void>;
   formatTime: (milliseconds: number) => string;
 }
 
@@ -165,6 +166,79 @@ export function TimerProvider({ children }: { children: React.ReactNode }) {
     };
     localStorage.setItem('timetracker-timer-state', JSON.stringify(timerState));
   };
+
+  // Сохранение текущей записи и обновление суммарного времени
+  const saveCurrentEntry = async (): Promise<void> => {
+    // Если таймер не запущен или нет прошедшего времени, ничего не делаем
+    if (!isRunning || elapsedTime === 0) return;
+    
+    const now = new Date();
+    const entryData = {
+      user_id: userId,
+      project_type: project,
+      start_time: new Date(startTime),
+      end_time: now,
+      duration: elapsedTime
+    };
+    
+    try {
+      await addTimeEntry(entryData);
+      
+      // Обновляем суммарное время за день
+      const todayEntries = await getTodayEntries();
+      const totalMilliseconds = todayEntries.reduce(
+        (total, entry) => total + entry.duration, 
+        0
+      );
+      setDailyTotal(formatTime(totalMilliseconds));
+      
+      // Воспроизводим звук завершения работы
+      if (workCompleteAudioRef.current) {
+        workCompleteAudioRef.current.currentTime = 0;
+        workCompleteAudioRef.current.play().catch(err => {
+          console.error('Ошибка воспроизведения звука завершения работы:', err);
+        });
+      }
+    } catch (err) {
+      console.error('Ошибка при сохранении записи:', err);
+    }
+  };
+  
+  // Переключение между проектами
+  const switchProject = async (newProject: string, newProjectText: string): Promise<void> => {
+    // Если текущий проект совпадает с новым, ничего не делаем
+    if (project === newProject) return;
+    
+    // Сохраняем текущую запись, если таймер запущен
+    await saveCurrentEntry();
+    
+    // Обновляем проект
+    setProject(newProject);
+    setProjectText(newProjectText);
+    
+    // Сбрасываем таймер
+    setStartTime(Date.now());
+    setElapsedTime(0);
+    setTimerValue('00:00:00');
+    
+    // Если таймер был запущен, продолжаем отсчет для нового проекта
+    if (isRunning) {
+      setTimerStatus('Идет отсчет');
+      setLastHourMark(0);
+      
+      // Сохраняем состояние таймера в localStorage с новым проектом
+      const timerState = {
+        isRunning,
+        project: newProject,
+        projectText: newProjectText,
+        startTime: Date.now(),
+        lastHourMark: 0
+      };
+      localStorage.setItem('timetracker-timer-state', JSON.stringify(timerState));
+    } else {
+      setTimerStatus('Готов');
+    }
+  };
   
   // Запуск и остановка таймера
   const toggleTimer = async () => {
@@ -173,40 +247,11 @@ export function TimerProvider({ children }: { children: React.ReactNode }) {
       setIsRunning(false);
       setTimerStatus('Приостановлен');
       
-      // Сохраняем запись в БД
-      const now = new Date();
-      const entryData = {
-        user_id: userId,
-        project_type: project,
-        start_time: new Date(startTime),
-        end_time: now,
-        duration: elapsedTime
-      };
+      // Сохраняем запись
+      await saveCurrentEntry();
       
-      try {
-        await addTimeEntry(entryData);
-        
-        // Воспроизводим звук завершения работы
-        if (workCompleteAudioRef.current) {
-          workCompleteAudioRef.current.currentTime = 0;
-          workCompleteAudioRef.current.play().catch(err => {
-            console.error('Ошибка воспроизведения звука завершения работы:', err);
-          });
-        }
-        
-        // Обновляем суммарное время за день
-        const todayEntries = await getTodayEntries();
-        const totalMilliseconds = todayEntries.reduce(
-          (total, entry) => total + entry.duration, 
-          0
-        );
-        setDailyTotal(formatTime(totalMilliseconds));
-        
-        // Удаляем состояние таймера из localStorage
-        localStorage.removeItem('timetracker-timer-state');
-      } catch (err) {
-        console.error('Ошибка при сохранении записи:', err);
-      }
+      // Удаляем состояние таймера из localStorage
+      localStorage.removeItem('timetracker-timer-state');
     } else {
       // Запуск таймера
       const now = Date.now();
@@ -261,6 +306,7 @@ export function TimerProvider({ children }: { children: React.ReactNode }) {
         setProject,
         setProjectText,
         toggleTimer,
+        switchProject,
         formatTime
       }}
     >

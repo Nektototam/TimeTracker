@@ -26,7 +26,7 @@ const standardProjectOptions: ProjectOption[] = [
 export default function ProjectSelect({ value, onChange }: ProjectSelectProps) {
   const { user } = useAuth();
   const { projectTypes, isLoading, addProjectType } = useCustomProjectTypes(user?.id);
-  const { setProjectText } = useTimer();
+  const { switchProject } = useTimer();
   
   const [isAddingNewType, setIsAddingNewType] = useState(false);
   const [newTypeValue, setNewTypeValue] = useState('');
@@ -51,35 +51,30 @@ export default function ProjectSelect({ value, onChange }: ProjectSelectProps) {
     }
   }, [isLoading, value, allOptions, onChange]);
 
-  // Обновляем текст для отображения проекта
-  useEffect(() => {
-    if (value === 'new') return;
-    
-    // Находим опцию по значению
-    const option = allOptions.find(opt => opt.value === value);
-    if (option) {
-      setProjectText(option.label);
-    } else {
-      // Если опция не найдена, устанавливаем стандартный текст по типу
-      const standardOption = standardProjectOptions.find(opt => opt.value === value);
-      if (standardOption) {
-        setProjectText(standardOption.label);
-      } else {
-        setProjectText('Неизвестный тип');
-      }
-    }
-  }, [value, allOptions, setProjectText]);
-
-  const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const selectedValue = e.target.value;
-    
+  // Обработчик изменения типа проекта
+  const handleProjectChange = async (selectedValue: string) => {
     if (selectedValue === 'new') {
       setIsAddingNewType(true);
       return;
     }
     
     setIsAddingNewType(false);
-    onChange(selectedValue);
+    
+    // Находим выбранную опцию для получения текста
+    const selectedOption = allOptions.find(opt => opt.value === selectedValue);
+    if (selectedOption) {
+      // Используем switchProject для переключения на новый тип работы
+      await switchProject(selectedValue, selectedOption.label);
+      // Обновляем выбранное значение в селекте
+      onChange(selectedValue);
+    } else {
+      onChange(selectedValue);
+    }
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const selectedValue = e.target.value;
+    handleProjectChange(selectedValue);
   };
 
   const handleNewTypeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -95,9 +90,9 @@ export default function ProjectSelect({ value, onChange }: ProjectSelectProps) {
       const newType = await addProjectType(newTypeValue.trim(), user.id);
       
       if (newType && newType.id) {
-        // Выбираем новый тип
+        // Переключаемся на новый тип
+        await switchProject(newType.id, newType.name);
         onChange(newType.id);
-        setProjectText(newType.name);
       }
       
       setIsAddingNewType(false);

@@ -111,6 +111,8 @@ class ReportService {
   ): Promise<ReportData> {
     try {
       const { start, end } = this.getDateRange(period, startDate, endDate);
+      
+      // Получаем записи времени
       const { data, error } = await supabase
         .from('time_entries')
         .select('*')
@@ -137,31 +139,69 @@ class ReportService {
           totalDuration += entry.duration;
         });
       }
-
-      // Преобразуем группы в массив сводных данных
-      const projectSummaries: ProjectSummary[] = [];
       
-      // Собираем все промисы для получения названий проектов
-      const projectNamePromises = Object.keys(projectGroups).map(async (projectType) => {
+      // Соберем все уникальные типы проектов
+      const projectTypes = Object.keys(projectGroups);
+      
+      // Получаем все имена пользовательских типов проектов из базы данных
+      const customTypes = projectTypes.filter(type => 
+        type !== 'development' && 
+        type !== 'design' && 
+        type !== 'marketing' && 
+        type !== 'meeting' && 
+        type !== 'other'
+      );
+      
+      // Если есть пользовательские типы, загружаем их имена
+      let customTypeNames: { [key: string]: string } = {};
+      
+      if (customTypes.length > 0) {
+        const { data: customTypesData } = await supabase
+          .from('custom_project_types')
+          .select('id, name')
+          .in('id', customTypes);
+          
+        if (customTypesData) {
+          customTypesData.forEach(item => {
+            customTypeNames[item.id] = item.name;
+          });
+        }
+      }
+      
+      // Создаем сводки по проектам
+      const projectSummaries: ProjectSummary[] = projectTypes.map(projectType => {
         const entries = projectGroups[projectType];
         const projectDuration = entries.reduce((sum, entry) => sum + entry.duration, 0);
         const percentage = totalDuration > 0 ? (projectDuration / totalDuration) * 100 : 0;
         
-        // Асинхронно получаем название проекта
-        const projectName = await this.getProjectName(projectType);
+        // Определяем название проекта
+        let projectName = 'Неизвестный тип';
+        
+        // Для стандартных типов
+        switch (projectType) {
+          case 'development': projectName = 'Веб-разработка'; break;
+          case 'design': projectName = 'Дизайн'; break;
+          case 'marketing': projectName = 'Маркетинг'; break;
+          case 'meeting': projectName = 'Совещание'; break;
+          case 'other': projectName = 'Другое'; break;
+        }
+        
+        // Для пользовательских типов
+        if (customTypeNames[projectType]) {
+          projectName = customTypeNames[projectType];
+        }
         
         return {
           project_type: projectType,
           project_name: projectName,
           total_duration: projectDuration,
           percentage: parseFloat(percentage.toFixed(1)),
-          entries: entries
+          entries
         };
       });
       
-      // Ждем все промисы и сортируем результаты по убыванию длительности
-      const resolvedSummaries = await Promise.all(projectNamePromises);
-      projectSummaries.push(...resolvedSummaries.sort((a, b) => b.total_duration - a.total_duration));
+      // Сортируем по убыванию длительности
+      projectSummaries.sort((a, b) => b.total_duration - a.total_duration);
 
       return {
         startDate: start,
