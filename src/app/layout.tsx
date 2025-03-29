@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import { AuthProvider } from '../contexts/AuthContext';
 import { TimerProvider } from '../contexts/TimerContext';
+import { PomodoroProvider } from '../contexts/PomodoroContext';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -21,7 +22,9 @@ export default function RootLayout({
       <body className={inter.className}>
         <AuthProvider>
           <TimerProvider>
-            {children}
+            <PomodoroProvider>
+              {children}
+            </PomodoroProvider>
           </TimerProvider>
         </AuthProvider>
       </body>
