@@ -24,6 +24,7 @@ CREATE TABLE IF NOT EXISTS user_settings (
   notifications_enabled BOOLEAN NOT NULL DEFAULT TRUE,
   notification_sound TEXT DEFAULT 'default',
   theme TEXT DEFAULT 'light',
+  data_retention_period INTEGER NOT NULL DEFAULT 3, -- срок хранения данных в месяцах (по умолчанию 3 месяца)
   created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT now()
 );

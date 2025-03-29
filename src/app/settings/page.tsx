@@ -18,6 +18,7 @@ function SettingsPage() {
     auto_start: false,
     round_times: 'off',
     language: 'ru',
+    data_retention_period: 3, // По умолчанию 3 месяца
     // Локальные настройки
     theme: 'light',
     timeFormat: '24h',
@@ -27,6 +28,7 @@ function SettingsPage() {
   
   const [isLoading, setIsLoading] = useState(true);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'success' | 'error'>('idle');
+  const [cleaningStatus, setCleaningStatus] = useState<'idle' | 'cleaning' | 'success' | 'error'>('idle');
   
   // Загрузка настроек при монтировании компонента
   useEffect(() => {
@@ -113,10 +115,28 @@ function SettingsPage() {
     alert('Функция экспорта данных будет доступна в следующем обновлении');
   };
   
-  // Очистка истории
-  const clearHistory = () => {
-    if (confirm('Вы уверены, что хотите очистить всю историю активности? Это действие необратимо.')) {
-      alert('Функция очистки истории будет доступна в следующем обновлении');
+  // Очистка старых записей
+  const cleanOldRecords = async () => {
+    if (isLoading) return;
+    
+    if (confirm('Вы уверены, что хотите очистить все записи старше установленного срока хранения? Это действие необратимо.')) {
+      setCleaningStatus('cleaning');
+      try {
+        const success = await settingsService.cleanOldTimeEntries();
+        
+        if (success) {
+          setCleaningStatus('success');
+          // Сбрасываем статус успеха через 3 секунды
+          setTimeout(() => {
+            setCleaningStatus('idle');
+          }, 3000);
+        } else {
+          setCleaningStatus('error');
+        }
+      } catch (error) {
+        console.error('Ошибка очистки старых записей:', error);
+        setCleaningStatus('error');
+      }
     }
   };
   
@@ -304,6 +324,44 @@ function SettingsPage() {
         </div>
         
         <div className="settings-section slide-up">
+          <h2 className="settings-section-title">Данные и хранение</h2>
+          <p className="settings-section-desc">Настройки хранения данных</p>
+          
+          <div className="settings-item">
+            <div className="settings-item-label">Срок хранения данных</div>
+            <select
+              className="settings-select"
+              value={settings.data_retention_period}
+              onChange={(e) => updateSettings('data_retention_period', Number(e.target.value))}
+              disabled={isLoading}
+            >
+              <option value={1}>1 месяц</option>
+              <option value={2}>2 месяца</option>
+              <option value={3}>3 месяца</option>
+              <option value={6}>6 месяцев</option>
+              <option value={12}>1 год</option>
+            </select>
+          </div>
+          
+          <div className="settings-item">
+            <div className="settings-item-label">Очистка старых записей</div>
+            <button
+              className={`settings-button ${cleaningStatus === 'cleaning' ? 'settings-button-loading' : ''} ${cleaningStatus === 'success' ? 'settings-button-success' : ''} ${cleaningStatus === 'error' ? 'settings-button-error' : ''}`}
+              onClick={cleanOldRecords}
+              disabled={isLoading || cleaningStatus === 'cleaning'}
+            >
+              {cleaningStatus === 'idle' && 'Очистить старые записи'}
+              {cleaningStatus === 'cleaning' && 'Очистка...'}
+              {cleaningStatus === 'success' && 'Очищено!'}
+              {cleaningStatus === 'error' && 'Ошибка очистки'}
+            </button>
+            <div className="settings-item-description">
+              Удаляет все записи старше выбранного срока хранения
+            </div>
+          </div>
+        </div>
+        
+        <div className="settings-section slide-up">
           <h2 className="settings-section-title">Данные</h2>
           
           <div className="settings-buttons">
@@ -315,27 +373,19 @@ function SettingsPage() {
               <span className="settings-button-icon">📥</span>
               <span className="settings-button-text">Экспорт данных</span>
             </button>
-            <button 
-              className="settings-button" 
-              onClick={clearHistory}
-              disabled={isLoading}
-            >
-              <span className="settings-button-icon">🗑️</span>
-              <span className="settings-button-text">Очистить историю</span>
-            </button>
           </div>
         </div>
         
         <div className="settings-save-section">
-          <button 
-            className={`settings-save-button ${saveStatus}`}
+          <button
+            className={`settings-save-button ${saveStatus === 'saving' ? 'settings-saving' : ''} ${saveStatus === 'success' ? 'settings-save-success' : ''} ${saveStatus === 'error' ? 'settings-save-error' : ''}`}
             onClick={saveSettings}
             disabled={isLoading || saveStatus === 'saving'}
           >
             {saveStatus === 'idle' && 'Сохранить настройки'}
             {saveStatus === 'saving' && 'Сохранение...'}
-            {saveStatus === 'success' && 'Настройки сохранены!'}
-            {saveStatus === 'error' && 'Ошибка сохранения!'}
+            {saveStatus === 'success' && 'Сохранено!'}
+            {saveStatus === 'error' && 'Ошибка сохранения'}
           </button>
           
           {saveStatus === 'error' && (

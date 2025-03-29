@@ -8,6 +8,7 @@ export interface DBSettings {
   auto_start: boolean;
   round_times: string;
   language: string;
+  data_retention_period: number; // срок хранения данных в месяцах
 }
 
 // Интерфейс для настроек, хранящихся локально
@@ -28,7 +29,8 @@ const defaultDBSettings: DBSettings = {
   pomodoro_long_rest_time: 15,
   auto_start: false,
   round_times: 'off',
-  language: 'ru'
+  language: 'ru',
+  data_retention_period: 3 // По умолчанию 3 месяца
 };
 
 const defaultLocalSettings: LocalSettings = {
@@ -79,7 +81,8 @@ class SettingsService {
         pomodoro_long_rest_time: settings.pomodoro_long_rest_time,
         auto_start: settings.auto_start,
         round_times: settings.round_times,
-        language: settings.language
+        language: settings.language,
+        data_retention_period: settings.data_retention_period || defaultDBSettings.data_retention_period
       };
     } catch (error) {
       console.error('Ошибка загрузки настроек из БД:', error);
@@ -138,7 +141,8 @@ class SettingsService {
           pomodoro_long_rest_time: settings.pomodoro_long_rest_time,
           auto_start: settings.auto_start,
           round_times: settings.round_times,
-          language: settings.language
+          language: settings.language,
+          data_retention_period: settings.data_retention_period
         })
         .eq('user_id', userId);
       
@@ -239,7 +243,8 @@ class SettingsService {
       pomodoro_long_rest_time: settings.pomodoro_long_rest_time,
       auto_start: settings.auto_start,
       round_times: settings.round_times,
-      language: settings.language
+      language: settings.language,
+      data_retention_period: settings.data_retention_period
     };
     
     const localSettings: LocalSettings = {
@@ -249,10 +254,48 @@ class SettingsService {
       browserNotifications: settings.browserNotifications
     };
     
-    const dbSuccess = await this.saveDBSettings(dbSettings);
-    const localSuccess = this.saveLocalSettings(localSettings);
+    const dbResult = await this.saveDBSettings(dbSettings);
+    const localResult = this.saveLocalSettings(localSettings);
     
-    return dbSuccess && localSuccess;
+    return dbResult && localResult;
+  }
+  
+  // Очистить устаревшие записи о времени
+  async cleanOldTimeEntries(): Promise<boolean> {
+    try {
+      const { data: userData } = await supabase.auth.getUser();
+      const userId = userData.user?.id;
+      
+      if (!userId) {
+        console.error('Пользователь не авторизован');
+        return false;
+      }
+      
+      // Загружаем настройки пользователя для определения срока хранения
+      const dbSettings = await this.loadDBSettings();
+      const retentionPeriodMonths = dbSettings.data_retention_period;
+      
+      // Расчитываем дату, старше которой записи будут удалены
+      const cutoffDate = new Date();
+      cutoffDate.setMonth(cutoffDate.getMonth() - retentionPeriodMonths);
+      
+      // Удаляем записи старше cutoffDate
+      const { error } = await supabase
+        .from('time_entries')
+        .delete()
+        .eq('user_id', userId)
+        .lt('start_time', cutoffDate.toISOString());
+      
+      if (error) {
+        console.error('Ошибка при очистке старых записей:', error);
+        return false;
+      }
+      
+      return true;
+    } catch (error) {
+      console.error('Ошибка при очистке старых записей:', error);
+      return false;
+    }
   }
 }
 
