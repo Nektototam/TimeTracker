@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import NavBar from '../../components/NavBar';
 import ProtectedRoute from '../../components/ProtectedRoute';
 import ActivityChart from '../../components/ActivityChart';
+import DailyTimelineView from '../../components/DailyTimelineView';
 import { reportService, ReportData, ProjectSummary, PeriodType } from '../../lib/reportService';
 import { useAuth } from '../../contexts/AuthContext';
 
@@ -16,6 +17,9 @@ function ReportsPage() {
   const [periodType, setPeriodType] = useState<PeriodType>('week');
   const [currentDate, setCurrentDate] = useState(new Date());
   const [dateRange, setDateRange] = useState('');
+  
+  // Состояние для типа отображения (summary или daily)
+  const [viewType, setViewType] = useState<'summary' | 'daily'>('summary');
   
   // Загрузка данных отчета
   const loadReportData = async () => {
@@ -234,72 +238,99 @@ function ReportsPage() {
           <button className="date-nav next" onClick={goToNextPeriod}>▶</button>
         </div>
         
+        <div className="view-type-selector slide-up">
+          <button 
+            className={`view-type-button ${viewType === 'summary' ? 'active' : ''}`}
+            onClick={() => setViewType('summary')}
+          >
+            Суммарный отчет
+          </button>
+          <button 
+            className={`view-type-button ${viewType === 'daily' ? 'active' : ''}`}
+            onClick={() => setViewType('daily')}
+          >
+            По дням
+          </button>
+        </div>
+        
         {isLoading ? (
           <div className="loading-state">Загрузка отчета...</div>
         ) : (
-          <>
-            <div className="chart-container slide-up">
-              <div className="chart-title">Активность по дням</div>
-              <ActivityChart 
-                data={reportData?.dailySummaries || []} 
-                height={180}
-                barColor="var(--primary-color)"
+          viewType === 'summary' ? (
+            // Суммарный отчет
+            <>
+              <div className="chart-container slide-up">
+                <div className="chart-title">Активность по дням</div>
+                <ActivityChart 
+                  data={reportData?.dailySummaries || []} 
+                  height={180}
+                  barColor="var(--primary-color)"
+                />
+              </div>
+              
+              <div className="project-summary">
+                <h2 className="project-summary-title">Проекты</h2>
+                <div className="project-list">
+                  {reportData && reportData.projectSummaries.map((project, index) => (
+                    <div key={project.project_type} className="project-item">
+                      <div className="project-item-info">
+                        <span className="project-item-name">{reportService.getProjectName(project.project_type)}</span>
+                        <span className="project-item-time">{reportService.formatTime(project.total_duration)}</span>
+                      </div>
+                      <div className="project-item-bar">
+                        <div 
+                          className="project-item-progress" 
+                          style={{
+                            width: `${project.percentage}%`, 
+                            backgroundColor: index === 0 ? 'var(--primary-color)' : 
+                                            index === 1 ? 'var(--success-color)' : 
+                                            index === 2 ? 'var(--warning-color)' : 
+                                            'var(--info-color)'
+                          }}
+                        ></div>
+                      </div>
+                    </div>
+                  ))}
+                  
+                  {reportData && reportData.projectSummaries.length === 0 && (
+                    <div className="empty-state">Нет данных о проектах за выбранный период</div>
+                  )}
+                </div>
+              </div>
+            </>
+          ) : (
+            // Подробный отчет по дням
+            <div className="daily-view slide-up">
+              <DailyTimelineView 
+                entries={reportData?.entries || []} 
+                getProjectName={reportService.getProjectName}
+                formatTime={reportService.formatTime}
               />
             </div>
-            
-            <div className="project-summary">
-              <h2 className="project-summary-title">Проекты</h2>
-              <div className="project-list">
-                {reportData && reportData.projectSummaries.map((project, index) => (
-                  <div key={project.project_type} className="project-item">
-                    <div className="project-item-info">
-                      <span className="project-item-name">{reportService.getProjectName(project.project_type)}</span>
-                      <span className="project-item-time">{reportService.formatTime(project.total_duration)}</span>
-                    </div>
-                    <div className="project-item-bar">
-                      <div 
-                        className="project-item-progress" 
-                        style={{
-                          width: `${project.percentage}%`, 
-                          backgroundColor: index === 0 ? 'var(--primary-color)' : 
-                                          index === 1 ? 'var(--success-color)' : 
-                                          index === 2 ? 'var(--warning-color)' : 
-                                          'var(--info-color)'
-                        }}
-                      ></div>
-                    </div>
-                  </div>
-                ))}
-                
-                {reportData && reportData.projectSummaries.length === 0 && (
-                  <div className="empty-state">Нет данных о проектах за выбранный период</div>
-                )}
-              </div>
-            </div>
-            
-            <div className="report-total slide-up">
-              <div className="report-total-label">Всего за период</div>
-              <div className="report-total-value">
-                {reportData ? reportService.formatFullTime(reportData.totalDuration) : '00:00:00'}
-              </div>
-            </div>
-            
-            <div className="report-actions slide-up">
-              <button className="report-action" onClick={handlePrint}>
-                <span className="report-action-icon">🖨️</span>
-                <span className="report-action-text">Печать</span>
-              </button>
-              <button className="report-action" onClick={handleCopy}>
-                <span className="report-action-icon">📋</span>
-                <span className="report-action-text">Копировать</span>
-              </button>
-              <button className="report-action" onClick={handleExport}>
-                <span className="report-action-icon">📤</span>
-                <span className="report-action-text">Экспорт</span>
-              </button>
-            </div>
-          </>
+          )
         )}
+        
+        <div className="report-total slide-up">
+          <div className="report-total-label">Всего за период</div>
+          <div className="report-total-value">
+            {reportData ? reportService.formatFullTime(reportData.totalDuration) : '00:00:00'}
+          </div>
+        </div>
+        
+        <div className="report-actions slide-up">
+          <button className="report-action" onClick={handlePrint}>
+            <span className="report-action-icon">🖨️</span>
+            <span className="report-action-text">Печать</span>
+          </button>
+          <button className="report-action" onClick={handleCopy}>
+            <span className="report-action-icon">📋</span>
+            <span className="report-action-text">Копировать</span>
+          </button>
+          <button className="report-action" onClick={handleExport}>
+            <span className="report-action-icon">📤</span>
+            <span className="report-action-text">Экспорт</span>
+          </button>
+        </div>
         
         <NavBar />
       </div>

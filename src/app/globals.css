@@ -1215,3 +1215,229 @@ select:disabled {
   opacity: 0.6;
   cursor: not-allowed;
 }
+
+/* Стили для DailyTimelineView */
+.daily-timeline-view {
+  margin-top: 20px;
+  width: 100%;
+}
+
+.day-container {
+  background-color: #f8f9fa;
+  border-radius: 10px;
+  margin-bottom: 20px;
+  padding: 15px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.day-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.day-date {
+  font-weight: 600;
+  font-size: 16px;
+  color: #333;
+}
+
+.day-total {
+  font-weight: 500;
+  color: #555;
+  font-size: 14px;
+}
+
+.timeline-container {
+  position: relative;
+  height: 70px;
+  margin-bottom: 15px;
+  background-color: #fff;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.timeline-hours {
+  display: flex;
+  height: 100%;
+  position: relative;
+  border-top: 1px solid #e9ecef;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.hour-marker {
+  flex: 1;
+  position: relative;
+  border-right: 1px solid #e9ecef;
+}
+
+.hour-marker:first-child {
+  border-left: 1px solid #e9ecef;
+}
+
+.hour-label {
+  position: absolute;
+  bottom: -20px;
+  left: 0;
+  font-size: 10px;
+  color: #6c757d;
+  width: 100%;
+  text-align: center;
+}
+
+.timeline-blocks {
+  position: absolute;
+  top: 10px;
+  left: 0;
+  right: 0;
+  height: 50px;
+}
+
+.timeline-block {
+  position: absolute;
+  height: 30px;
+  border-radius: 4px;
+  top: 0;
+  overflow: hidden;
+  color: white;
+  font-size: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: height 0.2s;
+}
+
+.timeline-block:hover {
+  height: 40px;
+  z-index: 10;
+}
+
+.block-content {
+  padding: 0 5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
+  text-align: center;
+}
+
+.block-time {
+  font-size: 9px;
+  opacity: 0.9;
+}
+
+.block-project {
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.day-entries {
+  margin-top: 30px;
+}
+
+.day-entry {
+  display: flex;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid #eee;
+}
+
+.day-entry:last-child {
+  border-bottom: none;
+}
+
+.entry-time {
+  flex: 2;
+  font-size: 14px;
+  color: #333;
+}
+
+.entry-type {
+  flex: 3;
+  margin: 0 10px;
+  font-size: 13px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.entry-duration {
+  flex: 1;
+  text-align: right;
+  font-size: 14px;
+  font-weight: 500;
+  color: #555;
+}
+
+.daily-timeline-empty {
+  text-align: center;
+  padding: 30px;
+  color: #6c757d;
+  font-size: 16px;
+}
+
+/* Медиа-запросы для адаптивности */
+@media screen and (max-width: 768px) {
+  .day-entry {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 10px 0;
+  }
+  
+  .entry-time, .entry-type, .entry-duration {
+    width: 100%;
+    margin: 3px 0;
+  }
+  
+  .entry-duration {
+    text-align: left;
+  }
+  
+  .timeline-block {
+    height: 20px;
+  }
+  
+  .timeline-block:hover {
+    height: 25px;
+  }
+  
+  .block-time, .block-project {
+    font-size: 8px;
+  }
+}
+
+/* Стили для селектора типа отображения */
+.view-type-selector {
+  display: flex;
+  justify-content: center;
+  margin: 15px 0;
+  gap: 10px;
+}
+
+.view-type-button {
+  padding: 8px 15px;
+  background-color: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-radius: 5px;
+  color: #495057;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.view-type-button.active {
+  background-color: var(--primary-color);
+  color: white;
+  border-color: var(--primary-color);
+}
+
+.view-type-button:hover:not(.active) {
+  background-color: #e9ecef;
+}
+
+.daily-view {
+  margin-top: 15px;
+}
