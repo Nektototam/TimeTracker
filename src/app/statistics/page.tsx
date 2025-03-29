@@ -14,7 +14,13 @@ function StatisticsPage() {
   const [monthData, setMonthData] = useState<ReportData | null>(null);
   const [allTimeData, setAllTimeData] = useState<ReportData | null>(null);
   const [recentEntries, setRecentEntries] = useState<any[]>([]);
+  const [isClient, setIsClient] = useState(false);
 
+  // Устанавливаем флаг клиентского рендеринга
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+  
   // Загрузка данных при монтировании компонента
   useEffect(() => {
     const loadData = async () => {
@@ -23,18 +29,22 @@ function StatisticsPage() {
       setIsLoading(true);
       try {
         // Загружаем данные за неделю
-        const weekReport = await reportService.getWeekReport();
+        const weekReport = await reportService.getWeeklyReport(user.id);
         setWeekData(weekReport);
         
         // Загружаем данные за месяц
-        const monthReport = await reportService.getMonthReport();
+        const monthReport = await reportService.getMonthlyReport(user.id);
         setMonthData(monthReport);
         
         // Загружаем данные за все время
         // Используем большой диапазон для "всего времени"
         const startAllTime = new Date(2000, 0, 1);
         const endAllTime = new Date(2100, 0, 1);
-        const allTimeReport = await reportService.getReportData(startAllTime, endAllTime);
+        const allTimeReport = await reportService.getCustomReport(
+          user.id,
+          startAllTime.toISOString(),
+          endAllTime.toISOString()
+        );
         setAllTimeData(allTimeReport);
         
         // Устанавливаем недавние записи
@@ -72,6 +82,43 @@ function StatisticsPage() {
     }
   };
 
+  // Форматирование времени
+  const formatTime = (milliseconds: number): string => {
+    const totalSeconds = Math.floor(milliseconds / 1000);
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    
+    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+  };
+
+  // Получение названия проекта
+  const getProjectName = (projectType: string): string => {
+    // Стандартные типы
+    switch (projectType) {
+      case 'development': return 'Веб-разработка';
+      case 'design': return 'Дизайн';
+      case 'marketing': return 'Маркетинг';
+      case 'meeting': return 'Совещание';
+      case 'other': return 'Другое';
+      default: return 'Пользовательский тип';
+    }
+  };
+
+  // Если страница еще не гидратирована, показываем скелетон загрузки
+  if (!isClient) {
+    return (
+      <div className="app-container">
+        <div id="stats-screen" className="screen">
+          <div className="stats-header">
+            <h1>Статистика</h1>
+          </div>
+          <div className="loading-state">Загрузка статистики...</div>
+          <NavBar />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="app-container">
       <div id="stats-screen" className="screen">
@@ -86,19 +133,19 @@ function StatisticsPage() {
             <div className="stats-total slide-up">
               <div className="stats-total-item">
                 <span className="stats-total-value">
-                  {weekData ? reportService.formatTime(weekData.totalDuration) : '00:00'}
+                  {weekData ? formatTime(weekData.totalDuration) : '00:00'}
                 </span>
                 <span className="stats-total-label">За неделю</span>
               </div>
               <div className="stats-total-item">
                 <span className="stats-total-value">
-                  {monthData ? reportService.formatTime(monthData.totalDuration) : '00:00'}
+                  {monthData ? formatTime(monthData.totalDuration) : '00:00'}
                 </span>
                 <span className="stats-total-label">За месяц</span>
               </div>
               <div className="stats-total-item">
                 <span className="stats-total-value">
-                  {allTimeData ? reportService.formatTime(allTimeData.totalDuration) : '00:00'}
+                  {allTimeData ? formatTime(allTimeData.totalDuration) : '00:00'}
                 </span>
                 <span className="stats-total-label">Всего</span>
               </div>
@@ -107,7 +154,20 @@ function StatisticsPage() {
             <div className="chart-container slide-up">
               <div className="chart-title">Активность за неделю</div>
               <ActivityChart 
-                data={weekData?.dailySummaries || []} 
+                data={weekData?.entries ? 
+                  weekData.entries.reduce((acc, entry) => {
+                    const date = new Date(entry.start_time).toISOString().split('T')[0];
+                    const existingDay = acc.find(day => day.date === date);
+                    
+                    if (existingDay) {
+                      existingDay.total_duration += entry.duration;
+                    } else {
+                      acc.push({ date, total_duration: entry.duration });
+                    }
+                    
+                    return acc;
+                  }, [] as {date: string, total_duration: number}[]) 
+                : []} 
                 height={180}
                 barColor="var(--primary-color)"
               />
@@ -119,8 +179,8 @@ function StatisticsPage() {
                 {weekData && weekData.projectSummaries.map((project: ProjectSummary, index) => (
                   <div key={project.project_type} className="project-item">
                     <div className="project-item-info">
-                      <span className="project-item-name">{reportService.getProjectName(project.project_type)}</span>
-                      <span className="project-item-time">{reportService.formatTime(project.total_duration)}</span>
+                      <span className="project-item-name">{project.project_name}</span>
+                      <span className="project-item-time">{formatTime(project.total_duration)}</span>
                     </div>
                     <div className="project-item-bar">
                       <div 
@@ -150,9 +210,9 @@ function StatisticsPage() {
                 <div key={entry.id} className="activity-item">
                   <div className="activity-item-header">
                     <span className="activity-item-date">{formatDate(entry.date)}</span>
-                    <span className="activity-item-duration">{reportService.formatTime(entry.duration)}</span>
+                    <span className="activity-item-duration">{formatTime(entry.duration)}</span>
                   </div>
-                  <div className="activity-item-name">{reportService.getProjectName(entry.projectType)}</div>
+                  <div className="activity-item-name">{getProjectName(entry.projectType)}</div>
                 </div>
               ))}
               

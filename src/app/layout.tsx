@@ -2,6 +2,8 @@ import './globals.css';
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import { AuthProvider } from '../contexts/AuthContext';
+import { TimerProvider } from '../contexts/TimerContext';
+import { PomodoroProvider } from '../contexts/PomodoroContext';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -16,10 +18,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="ru">
+    <html lang="ru" suppressHydrationWarning>
       <body className={inter.className}>
         <AuthProvider>
-          {children}
+          <TimerProvider>
+            <PomodoroProvider>
+              {children}
+            </PomodoroProvider>
+          </TimerProvider>
         </AuthProvider>
       </body>
     </html>

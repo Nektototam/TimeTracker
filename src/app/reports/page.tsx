@@ -8,6 +8,24 @@ import DailyTimelineView from '../../components/DailyTimelineView';
 import { reportService, ReportData, ProjectSummary, PeriodType } from '../../lib/reportService';
 import { useAuth } from '../../contexts/AuthContext';
 
+// Вспомогательные функции для форматирования времени
+const formatTime = (milliseconds: number): string => {
+  const totalSeconds = Math.floor(milliseconds / 1000);
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  
+  return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+};
+
+const formatFullTime = (milliseconds: number): string => {
+  const totalSeconds = Math.floor(milliseconds / 1000);
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+  
+  return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+};
+
 function ReportsPage() {
   const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(true);
@@ -32,23 +50,37 @@ function ReportsPage() {
       // Загружаем данные в зависимости от периода
       switch (periodType) {
         case 'week':
-          data = await reportService.getWeekReport(currentDate);
+          data = await reportService.getWeeklyReport(user.id);
           break;
         case 'month':
-          data = await reportService.getMonthReport(currentDate);
+          data = await reportService.getMonthlyReport(user.id);
           break;
         case 'quarter':
-          data = await reportService.getQuarterReport(currentDate);
+          data = await reportService.getQuarterlyReport(user.id);
           break;
         case 'custom':
           // Для примера используем месяц, потом можно реализовать выбор произвольного периода
-          data = await reportService.getMonthReport(currentDate);
+          const startDate = new Date();
+          startDate.setDate(1);
+          const endDate = new Date();
+          endDate.setMonth(endDate.getMonth() + 1, 0);
+          
+          data = await reportService.getCustomReport(
+            user.id, 
+            startDate.toISOString(), 
+            endDate.toISOString()
+          );
           break;
         default:
-          data = await reportService.getWeekReport(currentDate);
+          data = await reportService.getWeeklyReport(user.id);
       }
       
       setReportData(data);
+      
+      // Обновляем отображаемый диапазон дат на основе полученных данных
+      if (data) {
+        updateDateRangeFromData(data.startDate, data.endDate);
+      }
     } catch (error) {
       console.error('Ошибка загрузки отчета:', error);
     } finally {
@@ -56,57 +88,19 @@ function ReportsPage() {
     }
   };
   
-  // Обновляем дату при смене периода или даты
+  // Обновляем отчет при изменении периода или пользователя
   useEffect(() => {
     loadReportData();
-    updateDateRange();
   }, [user, periodType, currentDate]);
   
-  // Обновляем отображаемый диапазон дат
-  const updateDateRange = () => {
+  // Обновляем отображаемый диапазон дат на основе полученных данных
+  const updateDateRangeFromData = (startDate: Date, endDate: Date) => {
     // Форматтер для дат
     const formatDate = (date: Date) => {
       return `${date.getDate()} ${date.toLocaleString('ru-RU', { month: 'short' })} ${date.getFullYear()}`;
     };
     
-    switch (periodType) {
-      case 'week': {
-        // Получаем первый день недели (понедельник) и последний (воскресенье)
-        const day = currentDate.getDay() || 7; // Преобразуем 0 (воскресенье) в 7
-        const diff = currentDate.getDate() - day + 1; // Получаем понедельник
-        
-        const startDate = new Date(currentDate);
-        startDate.setDate(diff);
-        
-        const endDate = new Date(startDate);
-        endDate.setDate(startDate.getDate() + 6);
-        
-        setDateRange(`${formatDate(startDate)} - ${formatDate(endDate)}`);
-        break;
-      }
-      case 'month': {
-        // Получаем первый и последний день месяца
-        const startDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
-        const endDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
-        
-        setDateRange(`${formatDate(startDate)} - ${formatDate(endDate)}`);
-        break;
-      }
-      case 'quarter': {
-        // Получаем первый день квартала
-        const quarter = Math.floor(currentDate.getMonth() / 3);
-        const startDate = new Date(currentDate.getFullYear(), quarter * 3, 1);
-        
-        // Получаем последний день квартала
-        const endDate = new Date(currentDate.getFullYear(), (quarter + 1) * 3, 0);
-        
-        setDateRange(`${formatDate(startDate)} - ${formatDate(endDate)}`);
-        break;
-      }
-      case 'custom':
-        setDateRange('Произвольный период');
-        break;
-    }
+    setDateRange(`${formatDate(startDate)} - ${formatDate(endDate)}`);
   };
   
   // Перемещение на предыдущий период
@@ -147,55 +141,81 @@ function ReportsPage() {
     setCurrentDate(newDate);
   };
   
-  // Обработчик экспорта отчета
-  const handleExport = () => {
-    if (!reportData) return;
+  // Подготовка данных для графика активности
+  const getDailyChartData = () => {
+    if (!reportData || !reportData.entries) return [];
     
-    // Генерируем CSV строку
-    let csv = 'Дата,Тип проекта,Длительность (часы)\n';
+    // Группируем записи по дням
+    const dailyMap = new Map<string, number>();
     
     reportData.entries.forEach(entry => {
-      const date = new Date(entry.start_time).toLocaleDateString('ru-RU');
-      const projectName = reportService.getProjectName(entry.project_type);
-      const duration = (entry.duration / 3600000).toFixed(2); // Переводим в часы
-      
-      csv += `${date},"${projectName}",${duration}\n`;
+      const date = new Date(entry.start_time).toISOString().split('T')[0];
+      const current = dailyMap.get(date) || 0;
+      dailyMap.set(date, current + entry.duration);
     });
     
-    // Создаем блоб и ссылку для скачивания
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
+    // Преобразуем в массив объектов для графика
+    const dailyData = Array.from(dailyMap.entries()).map(([date, duration]) => ({
+      date,
+      total_duration: duration
+    }));
     
-    link.setAttribute('href', url);
-    link.setAttribute('download', `timetracker_report_${new Date().toISOString().split('T')[0]}.csv`);
-    link.style.visibility = 'hidden';
-    
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    // Сортируем по дате
+    return dailyData.sort((a, b) => a.date.localeCompare(b.date));
   };
   
-  // Обработчик печати
+  // Обработчики для действий с отчетом
   const handlePrint = () => {
     window.print();
   };
   
-  // Обработчик копирования
   const handleCopy = () => {
+    // Функция копирования данных в буфер обмена
     if (!reportData) return;
     
-    let text = `Отчет за период: ${dateRange}\n\n`;
-    text += `Общее время: ${reportService.formatFullTime(reportData.totalDuration)}\n\n`;
-    text += `Проекты:\n`;
+    let text = `Отчет по времени за период ${dateRange}\n\n`;
     
+    text += "Проекты:\n";
     reportData.projectSummaries.forEach(project => {
-      text += `${reportService.getProjectName(project.project_type)}: ${reportService.formatTime(project.total_duration)} (${project.percentage.toFixed(1)}%)\n`;
+      text += `${project.project_name}: ${formatTime(project.total_duration)} (${project.percentage}%)\n`;
     });
     
-    navigator.clipboard.writeText(text)
-      .then(() => alert('Отчет скопирован в буфер обмена'))
-      .catch(err => console.error('Не удалось скопировать: ', err));
+    text += `\nВсего: ${formatFullTime(reportData.totalDuration)}`;
+    
+    navigator.clipboard.writeText(text).then(() => {
+      alert("Отчет скопирован в буфер обмена");
+    }).catch(err => {
+      console.error('Ошибка при копировании', err);
+      alert("Не удалось скопировать отчет");
+    });
+  };
+  
+  const handleExport = () => {
+    // Функция экспорта данных в CSV
+    if (!reportData) return;
+    
+    const rows = [
+      ['Тип проекта', 'Название', 'Длительность (мин)', 'Процент'],
+      ...reportData.projectSummaries.map(project => [
+        project.project_type,
+        project.project_name,
+        (project.total_duration / 60000).toFixed(2),
+        project.percentage.toString()
+      ]),
+      [],
+      ['Всего (часы:минуты:секунды)', formatFullTime(reportData.totalDuration)]
+    ];
+    
+    const csvContent = "data:text/csv;charset=utf-8," + 
+      rows.map(row => row.join(',')).join('\n');
+    
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `timetracker-report-${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
   
   return (
@@ -262,7 +282,7 @@ function ReportsPage() {
               <div className="chart-container slide-up">
                 <div className="chart-title">Активность по дням</div>
                 <ActivityChart 
-                  data={reportData?.dailySummaries || []} 
+                  data={getDailyChartData()} 
                   height={180}
                   barColor="var(--primary-color)"
                 />
@@ -274,8 +294,8 @@ function ReportsPage() {
                   {reportData && reportData.projectSummaries.map((project, index) => (
                     <div key={project.project_type} className="project-item">
                       <div className="project-item-info">
-                        <span className="project-item-name">{reportService.getProjectName(project.project_type)}</span>
-                        <span className="project-item-time">{reportService.formatTime(project.total_duration)}</span>
+                        <span className="project-item-name">{project.project_name}</span>
+                        <span className="project-item-time">{formatTime(project.total_duration)}</span>
                       </div>
                       <div className="project-item-bar">
                         <div 
@@ -303,8 +323,7 @@ function ReportsPage() {
             <div className="daily-view slide-up">
               <DailyTimelineView 
                 entries={reportData?.entries || []} 
-                getProjectName={reportService.getProjectName}
-                formatTime={reportService.formatTime}
+                formatTime={formatTime}
               />
             </div>
           )
@@ -313,7 +332,7 @@ function ReportsPage() {
         <div className="report-total slide-up">
           <div className="report-total-label">Всего за период</div>
           <div className="report-total-value">
-            {reportData ? reportService.formatFullTime(reportData.totalDuration) : '00:00:00'}
+            {reportData ? formatFullTime(reportData.totalDuration) : '00:00:00'}
           </div>
         </div>
         

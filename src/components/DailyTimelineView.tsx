@@ -1,7 +1,8 @@
 "use client";
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { TimeEntry } from '../lib/reportService';
+import { supabase } from '../lib/supabase';
 
 interface TimeBlock {
   id: string;
@@ -20,15 +21,73 @@ interface DayData {
 
 interface DailyTimelineViewProps {
   entries: TimeEntry[];
-  getProjectName: (type: string) => string;
   formatTime: (ms: number) => string;
 }
 
 const DailyTimelineView: React.FC<DailyTimelineViewProps> = ({ 
   entries, 
-  getProjectName,
   formatTime
 }) => {
+  const [projectNames, setProjectNames] = useState<{[key: string]: string}>({});
+  
+  // Загружаем названия проектов
+  useEffect(() => {
+    const loadProjectNames = async () => {
+      const projectTypes = [...new Set(entries.map(entry => entry.project_type))];
+      const names: {[key: string]: string} = {};
+      
+      // Добавляем стандартные типы
+      const standardTypes: {[key: string]: string} = {
+        'development': 'Веб-разработка',
+        'design': 'Дизайн',
+        'marketing': 'Маркетинг',
+        'meeting': 'Совещание',
+        'other': 'Другое'
+      };
+      
+      // Сначала устанавливаем стандартные типы
+      projectTypes.forEach(type => {
+        if (standardTypes[type]) {
+          names[type] = standardTypes[type];
+        }
+      });
+      
+      // Затем загружаем пользовательские типы
+      const customTypes = projectTypes.filter(type => !standardTypes[type]);
+      
+      if (customTypes.length > 0) {
+        const { data } = await supabase
+          .from('custom_project_types')
+          .select('id, name')
+          .in('id', customTypes);
+          
+        if (data) {
+          data.forEach(item => {
+            names[item.id] = item.name;
+          });
+        }
+      }
+      
+      // Для типов без названий устанавливаем значение по умолчанию
+      projectTypes.forEach(type => {
+        if (!names[type]) {
+          names[type] = 'Неизвестный тип';
+        }
+      });
+      
+      setProjectNames(names);
+    };
+    
+    if (entries.length > 0) {
+      loadProjectNames();
+    }
+  }, [entries]);
+  
+  // Получаем название проекта по его типу
+  const getProjectName = (type: string): string => {
+    return projectNames[type] || 'Загрузка...';
+  };
+  
   // Группируем записи по дням
   const groupEntriesByDay = (): DayData[] => {
     // Создаем мапу для группировки записей
