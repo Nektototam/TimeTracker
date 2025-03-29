@@ -14,7 +14,13 @@ function StatisticsPage() {
   const [monthData, setMonthData] = useState<ReportData | null>(null);
   const [allTimeData, setAllTimeData] = useState<ReportData | null>(null);
   const [recentEntries, setRecentEntries] = useState<any[]>([]);
+  const [isClient, setIsClient] = useState(false);
 
+  // Устанавливаем флаг клиентского рендеринга
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+  
   // Загрузка данных при монтировании компонента
   useEffect(() => {
     const loadData = async () => {
@@ -97,6 +103,21 @@ function StatisticsPage() {
       default: return 'Пользовательский тип';
     }
   };
+
+  // Если страница еще не гидратирована, показываем скелетон загрузки
+  if (!isClient) {
+    return (
+      <div className="app-container">
+        <div id="stats-screen" className="screen">
+          <div className="stats-header">
+            <h1>Статистика</h1>
+          </div>
+          <div className="loading-state">Загрузка статистики...</div>
+          <NavBar />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="app-container">

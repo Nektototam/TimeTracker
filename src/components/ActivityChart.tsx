@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { DailySummary } from '../lib/reportService';
 
 interface ActivityChartProps {
@@ -17,6 +17,12 @@ const ActivityChart: React.FC<ActivityChartProps> = ({
   barColor = '#5e72e4'
 }) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const [isClient, setIsClient] = useState(false);
+  
+  // Устанавливаем флаг клиентского рендеринга
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
   
   // Функция для форматирования даты
   const formatDate = (dateStr: string): string => {
@@ -33,6 +39,9 @@ const ActivityChart: React.FC<ActivityChartProps> = ({
   
   // Отрисовка графика
   const drawChart = () => {
+    // Проверяем, что мы на клиенте
+    if (!isClient) return;
+    
     const canvas = canvasRef.current;
     if (!canvas || data.length === 0) return;
     
@@ -121,6 +130,8 @@ const ActivityChart: React.FC<ActivityChartProps> = ({
   
   // Перерисовываем график при изменении данных или размеров
   useEffect(() => {
+    if (!isClient) return;
+    
     drawChart();
     
     // Обработчик изменения размера окна
@@ -142,7 +153,22 @@ const ActivityChart: React.FC<ActivityChartProps> = ({
     return () => {
       window.removeEventListener('resize', handleResize);
     };
-  }, [data, maxDuration, barColor]);
+  }, [data, maxDuration, barColor, isClient]);
+  
+  // Если мы на сервере, показываем заполнитель
+  if (!isClient) {
+    return (
+      <div 
+        className="chart-container"
+        style={{
+          height: `${height}px`,
+          width: '100%',
+          backgroundColor: 'rgba(94, 114, 228, 0.05)',
+          borderRadius: '12px'
+        }}
+      ></div>
+    );
+  }
   
   // Если нет данных, показываем сообщение
   if (data.length === 0) {
