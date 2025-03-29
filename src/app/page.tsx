@@ -1,103 +1,254 @@
-import Image from "next/image";
+"use client";
+
+import React, { useState, useEffect, useRef } from 'react';
+import NavBar from '../components/NavBar';
+import ProjectSelect from '../components/ProjectSelect';
+import TimerCircle from '../components/TimerCircle';
+import TimerButton from '../components/TimerButton';
+import { useTimeEntries } from '../hooks/useTimeEntries';
+import { useAuth } from '../contexts/AuthContext';
+import ProtectedRoute from '../components/ProtectedRoute';
+
+function TimerApp() {
+  const { user } = useAuth();
+  const userId = user?.id || '';
+  
+  const [project, setProject] = useState('development');
+  const [isRunning, setIsRunning] = useState(false);
+  const [startTime, setStartTime] = useState<number>(0);
+  const [elapsedTime, setElapsedTime] = useState(0);
+  const [timerStatus, setTimerStatus] = useState('Готов');
+  const [timerValue, setTimerValue] = useState('00:00:00');
+  const [projectText, setProjectText] = useState('Веб-разработка');
+  const [dailyTotal, setDailyTotal] = useState('00:00:00');
+  const [lastHourMark, setLastHourMark] = useState(0);
+  
+  // Ref для аудио элементов
+  const workCompleteAudioRef = useRef<HTMLAudioElement | null>(null);
+  const bigBenAudioRef = useRef<HTMLAudioElement | null>(null);
+  
+  // Используем хук для работы с записями времени
+  const { entries, isLoading, error, addTimeEntry, getTodayEntries } = useTimeEntries();
+  
+  // Инициализация аудио элементов
+  useEffect(() => {
+    workCompleteAudioRef.current = new Audio('/sounds/work-complete.mp3');
+    bigBenAudioRef.current = new Audio('/sounds/big-ben-chime.mp3');
+  }, []);
+  
+  // Загрузка суммарного времени за день при монтировании компонента
+  useEffect(() => {
+    async function loadDailyTotal() {
+      try {
+        const todayEntries = await getTodayEntries();
+        
+        // Считаем общую длительность
+        const totalMilliseconds = todayEntries.reduce(
+          (total, entry) => total + entry.duration, 
+          0
+        );
+        
+        setDailyTotal(formatTime(totalMilliseconds));
+      } catch (err) {
+        console.error('Ошибка при загрузке суммарного времени за день:', err);
+      }
+    }
+    
+    loadDailyTotal();
+  }, [getTodayEntries]);
+  
+  // Обработчик изменения проекта
+  const handleProjectChange = (value: string) => {
+    setProject(value);
+    
+    // Обновляем текстовое представление проекта
+    if (value.startsWith('custom-')) {
+      // Для пользовательских типов достаем timestamp из id и преобразуем в читаемый текст
+      const timestamp = value.split('custom-')[1];
+      try {
+        const date = new Date(parseInt(timestamp));
+        // Если дата корректна, используем метку времени как дополнительную информацию
+        if (!isNaN(date.getTime())) {
+          // Найдем соответствующий пользовательский тип в списке options компонента ProjectSelect
+          // Но так как у нас нет прямого доступа к нему, используем временное решение:
+          // Будем хранить названия пользовательских типов в localStorage
+          const customTypesStr = localStorage.getItem('timetracker-custom-types');
+          if (customTypesStr) {
+            try {
+              const customTypes = JSON.parse(customTypesStr);
+              const customType = customTypes.find((t: any) => t.value === value);
+              if (customType) {
+                setProjectText(customType.label);
+                return;
+              }
+            } catch (e) {
+              console.error('Error parsing custom types from localStorage:', e);
+            }
+          }
+        }
+      } catch (e) {
+        console.error('Error parsing timestamp from custom id:', e);
+      }
+      
+      // Если не смогли найти в localStorage, просто используем встроенное значение
+      setProjectText('Пользовательский тип');
+      return;
+    }
+    
+    // Для стандартных типов используем предопределенные значения
+    switch(value) {
+      case 'development': setProjectText('Веб-разработка'); break;
+      case 'design': setProjectText('Дизайн'); break;
+      case 'marketing': setProjectText('Маркетинг'); break;
+      case 'meeting': setProjectText('Совещание'); break;
+      case 'other': setProjectText('Другое'); break;
+      default: setProjectText('Неизвестный тип');
+    }
+  };
+  
+  // Форматирование времени
+  const formatTime = (milliseconds: number) => {
+    const totalSeconds = Math.floor(milliseconds / 1000);
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+    
+    return [
+      hours.toString().padStart(2, '0'),
+      minutes.toString().padStart(2, '0'),
+      seconds.toString().padStart(2, '0')
+    ].join(':');
+  };
+  
+  // Воспроизведение звука Биг Бен
+  const playBigBenSound = () => {
+    if (bigBenAudioRef.current) {
+      bigBenAudioRef.current.currentTime = 0;
+      bigBenAudioRef.current.play().catch(err => {
+        console.error('Ошибка воспроизведения звука Биг Бен:', err);
+      });
+    }
+  };
+  
+  // Обновление таймера
+  const updateTimer = () => {
+    const currentTime = Date.now();
+    const newElapsedTime = currentTime - startTime;
+    setElapsedTime(newElapsedTime);
+    setTimerValue(formatTime(newElapsedTime));
+    
+    // Проверяем, прошел ли час с момента старта или последнего часового сигнала
+    const hourInMs = 3600000; // 1 час в миллисекундах
+    const elapsedTimeInHours = Math.floor(newElapsedTime / hourInMs);
+    const lastHourMarkInHours = Math.floor(lastHourMark / hourInMs);
+    
+    if (elapsedTimeInHours > lastHourMarkInHours) {
+      // Прошел час, воспроизводим звук Биг Бен
+      playBigBenSound();
+      setLastHourMark(elapsedTimeInHours * hourInMs);
+    }
+  };
+  
+  // Запуск и остановка таймера
+  const toggleTimer = async () => {
+    if (isRunning) {
+      // Остановка таймера
+      setIsRunning(false);
+      setTimerStatus('Приостановлен');
+      
+      // Сохраняем запись в БД
+      const now = new Date();
+      const entryData = {
+        user_id: userId,
+        project_type: project,
+        start_time: new Date(startTime),
+        end_time: now,
+        duration: elapsedTime
+      };
+      
+      try {
+        await addTimeEntry(entryData);
+        
+        // Воспроизводим звук завершения работы
+        if (workCompleteAudioRef.current) {
+          workCompleteAudioRef.current.currentTime = 0;
+          workCompleteAudioRef.current.play().catch(err => {
+            console.error('Ошибка воспроизведения звука завершения работы:', err);
+          });
+        }
+        
+        // Обновляем суммарное время за день
+        const todayEntries = await getTodayEntries();
+        const totalMilliseconds = todayEntries.reduce(
+          (total, entry) => total + entry.duration, 
+          0
+        );
+        setDailyTotal(formatTime(totalMilliseconds));
+      } catch (err) {
+        console.error('Ошибка при сохранении записи:', err);
+      }
+    } else {
+      // Запуск таймера
+      const now = Date.now();
+      if (elapsedTime === 0) {
+        setStartTime(now);
+        setLastHourMark(0); // Сбрасываем метку последнего часа
+      } else {
+        setStartTime(now - elapsedTime);
+        // Сохраняем последнюю отметку часа
+      }
+      
+      setIsRunning(true);
+      setTimerStatus('Идет отсчет');
+    }
+  };
+  
+  // Обновление таймера при запуске
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    
+    if (isRunning) {
+      interval = setInterval(updateTimer, 1000);
+    }
+    
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [isRunning, startTime]);
+  
+  return (
+    <div className="app-container">
+      <div className="screen">
+        <h1 className="text-center text-[#32325d] font-bold text-2xl mb-4">TimeTracker</h1>
+        
+        <ProjectSelect value={project} onChange={handleProjectChange} />
+        
+        <TimerCircle
+          isRunning={isRunning}
+          startTime={startTime}
+          elapsedTime={elapsedTime}
+          status={timerStatus}
+          timeValue={timerValue}
+          project={projectText}
+        />
+        
+        <TimerButton isRunning={isRunning} onClick={toggleTimer} />
+        
+        <div className="daily-total">
+          <div className="daily-total-label">Сегодня отработано</div>
+          <div className="daily-total-value">{dailyTotal}</div>
+        </div>
+        
+        <NavBar />
+      </div>
+    </div>
+  );
+}
 
 export default function Home() {
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+    <ProtectedRoute>
+      <TimerApp />
+    </ProtectedRoute>
   );
 }

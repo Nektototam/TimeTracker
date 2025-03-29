@@ -1,33 +1,3 @@
-# TimeTracker - Приложение для учёта рабочего времени
-
-TimeTracker - это веб-приложение для отслеживания времени, затраченного на различные задачи и проекты. Разработано с использованием Next.js и Supabase.
-
-## Возможности приложения
-
-- Учёт времени по проектам и задачам
-- Статистика и отчёты за выбранный период
-- Метод Pomodoro (метод "Помидора") для повышения продуктивности
-- Настройки пользователя (сохраняются как в базе данных, так и локально)
-
-## Технический стек
-
-- **Frontend**: Next.js, React, TypeScript, Tailwind CSS
-- **Backend**: Supabase (PostgreSQL + REST API)
-- **Авторизация**: Supabase Auth
-
-## Настройка базы данных
-
-Для работы приложения требуется настройка базы данных Supabase. Выполните следующие шаги:
-
-1. Создайте аккаунт на [Supabase](https://supabase.com/)
-2. Создайте новый проект
-3. Выполните SQL-скрипты из директории `sql/`
-
-### SQL-скрипт для таблицы настроек пользователя
-
-Этот скрипт создаёт таблицу для хранения настроек пользователя, которые синхронизируются между устройствами:
-
-```sql
 -- Удаляем таблицу, если она существует
 DROP TABLE IF EXISTS public.user_settings;
 
@@ -88,6 +58,7 @@ DROP POLICY IF EXISTS "Users can read their own settings" ON public.user_setting
 DROP POLICY IF EXISTS "Users can update their own settings" ON public.user_settings;
 DROP POLICY IF EXISTS "Users can insert their own settings" ON public.user_settings;
 
+-- Пробуем применить явное приведение типов в политиках
 -- Политика на чтение: пользователь может видеть только свои настройки
 CREATE POLICY "Users can read their own settings"
 ON public.user_settings
@@ -130,45 +101,4 @@ COMMENT ON COLUMN public.user_settings.pomodoro_rest_time IS 'Длительно
 COMMENT ON COLUMN public.user_settings.pomodoro_long_rest_time IS 'Длительность длинного отдыха в минутах';
 COMMENT ON COLUMN public.user_settings.auto_start IS 'Автоматически начинать следующий период';
 COMMENT ON COLUMN public.user_settings.round_times IS 'Округление времени (off, 5min, 10min, 15min)';
-COMMENT ON COLUMN public.user_settings.language IS 'Язык интерфейса (ru, en)';
-```
-
-### Важные замечания по настройкам
-
-В приложении используется комбинированный подход к хранению настроек:
-
-1. **Настройки в базе данных** (синхронизируются между устройствами):
-   - Настройки Pomodoro (длительность рабочего времени, отдыха и длинного отдыха)
-   - Автоматический запуск следующего периода
-   - Округление времени трекинга
-   - Язык интерфейса 
-
-2. **Настройки в localStorage** (только для текущего устройства):
-   - Тема интерфейса
-   - Формат времени 
-   - Звуковые уведомления
-   - Уведомления браузера
-
-## Запуск приложения
-
-1. Установите зависимости:
-```bash
-npm install
-```
-
-2. Создайте файл `.env.local` и добавьте в него ключи Supabase:
-```
-NEXT_PUBLIC_SUPABASE_URL=https://your-project-url.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
-```
-
-3. Запустите приложение в режиме разработки:
-```bash
-npm run dev
-```
-
-4. Откройте [http://localhost:3000](http://localhost:3000) в браузере.
-
-## Лицензия
-
-MIT
+COMMENT ON COLUMN public.user_settings.language IS 'Язык интерфейса (ru, en)'; 
