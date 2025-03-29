@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useCustomProjectTypes } from '../hooks/useCustomProjectTypes';
 import { useAuth } from '../contexts/AuthContext';
+import { useTimer } from '../contexts/TimerContext';
 
 interface ProjectOption {
   value: string;
@@ -25,6 +26,7 @@ const standardProjectOptions: ProjectOption[] = [
 export default function ProjectSelect({ value, onChange }: ProjectSelectProps) {
   const { user } = useAuth();
   const { projectTypes, isLoading, addProjectType } = useCustomProjectTypes(user?.id);
+  const { setProjectText } = useTimer();
   
   const [isAddingNewType, setIsAddingNewType] = useState(false);
   const [newTypeValue, setNewTypeValue] = useState('');
@@ -48,6 +50,25 @@ export default function ProjectSelect({ value, onChange }: ProjectSelectProps) {
       onChange('development');
     }
   }, [isLoading, value, allOptions, onChange]);
+
+  // Обновляем текст для отображения проекта
+  useEffect(() => {
+    if (value === 'new') return;
+    
+    // Находим опцию по значению
+    const option = allOptions.find(opt => opt.value === value);
+    if (option) {
+      setProjectText(option.label);
+    } else {
+      // Если опция не найдена, устанавливаем стандартный текст по типу
+      const standardOption = standardProjectOptions.find(opt => opt.value === value);
+      if (standardOption) {
+        setProjectText(standardOption.label);
+      } else {
+        setProjectText('Неизвестный тип');
+      }
+    }
+  }, [value, allOptions, setProjectText]);
 
   const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedValue = e.target.value;
@@ -76,6 +97,7 @@ export default function ProjectSelect({ value, onChange }: ProjectSelectProps) {
       if (newType && newType.id) {
         // Выбираем новый тип
         onChange(newType.id);
+        setProjectText(newType.name);
       }
       
       setIsAddingNewType(false);

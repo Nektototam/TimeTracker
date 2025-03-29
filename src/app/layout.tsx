@@ -2,6 +2,7 @@ import './globals.css';
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import { AuthProvider } from '../contexts/AuthContext';
+import { TimerProvider } from '../contexts/TimerContext';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -19,7 +20,9 @@ export default function RootLayout({
     <html lang="ru">
       <body className={inter.className}>
         <AuthProvider>
-          {children}
+          <TimerProvider>
+            {children}
+          </TimerProvider>
         </AuthProvider>
       </body>
     </html>
