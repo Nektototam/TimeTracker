@@ -23,7 +23,7 @@ git checkout -b deploy-netlify
   command = "npm run build"
   publish = ".next"
 
-[build.environment]
+[build.environment] 
   NODE_VERSION = "18"
 
 [[plugins]]
