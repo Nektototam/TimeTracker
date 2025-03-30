@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import NavBar from '../../components/NavBar';
 import ProtectedRoute from '../../components/ProtectedRoute';
 import { useAuth } from '../../contexts/AuthContext';
-import { settingsService, AllSettings } from '../../lib/settingsService';
+import settingsService, { AllSettings } from '../../lib/settingsService';
 import WorkTypeManager from '../../components/WorkTypeManager';
 
 function SettingsPage() {

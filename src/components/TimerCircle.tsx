@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useTimer } from '../contexts/TimerContext';
 
 interface TimerCircleProps {
   isRunning: boolean;
@@ -17,9 +18,15 @@ export default function TimerCircle({
   timeValue,
   project,
 }: TimerCircleProps) {
+  const { timeLimit, formatTime } = useTimer();
   const [progressRotation, setProgressRotation] = useState(0);
   const [rightVisible, setRightVisible] = useState(false);
   const [rightRotation, setRightRotation] = useState('0deg');
+  
+  useEffect(() => {
+    // Выводим имя проекта при изменении
+    console.log('TimerCircle: Имя проекта:', project);
+  }, [project]);
 
   // Обновление кругового прогресса
   useEffect(() => {
@@ -34,9 +41,9 @@ export default function TimerCircle({
   }, [isRunning, elapsedTime]);
 
   const updateCircleProgress = () => {
-    // Для демонстрации прогресса используем 1 час как полный круг
-    const oneHour = 60 * 60 * 1000;
-    const progress = (elapsedTime % oneHour) / oneHour; // От 0 до 1
+    // Если есть временное ограничение, используем его как 100% прогресса
+    const maxTime = timeLimit || 3600000; // 1 час по умолчанию
+    const progress = timeLimit ? Math.min(elapsedTime / maxTime, 1) : (elapsedTime % 3600000) / 3600000;
     
     if (progress <= 0.5) {
       setProgressRotation(progress * 360);
@@ -46,6 +53,18 @@ export default function TimerCircle({
       setRightVisible(true);
       setRightRotation(`${(progress - 0.5) * 360}deg`);
     }
+  };
+
+  // Форматируем отображение времени ограничения
+  const getTimeLimitDisplay = () => {
+    if (!timeLimit) return null;
+    
+    const remainingTime = Math.max(0, timeLimit - elapsedTime);
+    return (
+      <div className="time-limit-info text-xs text-gray-500 mt-1">
+        Ограничение: {formatTime(remainingTime)}
+      </div>
+    );
   };
 
   return (
@@ -73,7 +92,10 @@ export default function TimerCircle({
         <div className="timer-circle-inner">
           <div className="timer-circle-status">{status}</div>
           <div className="timer-circle-time">{timeValue}</div>
-          <div className="timer-circle-project">{project}</div>
+          <div className="timer-circle-project" data-testid="project-name">
+            {project || 'Не выбрано'}
+          </div>
+          {getTimeLimitDisplay()}
         </div>
       </div>
     </div>

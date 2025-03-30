@@ -46,7 +46,7 @@ export function PomodoroProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (typeof window !== 'undefined') {
       workCompleteSound.current = new Audio('/sounds/work-complete.mp3');
-      restCompleteSound.current = new Audio('/sounds/rest-complete.mp3');
+      restCompleteSound.current = new Audio('/sounds/pomodoro-complete.mp3');
       
       // Заменяем на базовые звуки, если файлы не найдены
       workCompleteSound.current.onerror = () => {

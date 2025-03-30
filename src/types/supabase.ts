@@ -10,6 +10,7 @@ export interface TimeEntry {
   duration: number; // Длительность в миллисекундах
   description?: string; // Описание
   created_at?: string; // Автоматически создается в Supabase
+  time_limit?: number; // Ограничение времени работы над задачей в миллисекундах
 }
 
 // Настройки пользователя
