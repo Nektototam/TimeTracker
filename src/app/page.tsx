@@ -1,12 +1,13 @@
 "use client";
 
-import React from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import NavBar from '../components/NavBar';
 import ProjectSelect from '../components/ProjectSelect';
 import TimerCircle from '../components/TimerCircle';
 import TimerButton from '../components/TimerButton';
 import { useTimer } from '../contexts/TimerContext';
 import ProtectedRoute from '../components/ProtectedRoute';
+import { useTimeEntries } from '../hooks/useTimeEntries';
 
 function TimerApp() {
   const { 
@@ -19,7 +20,10 @@ function TimerApp() {
     timerValue, 
     dailyTotal, 
     setProject, 
-    toggleTimer 
+    toggleTimer,
+    finishTask,
+    timeLimit,
+    formatTime
   } = useTimer();
   
   return (
@@ -38,10 +42,14 @@ function TimerApp() {
           project={projectText}
         />
         
-        <TimerButton isRunning={isRunning} onClick={toggleTimer} />
+        <TimerButton 
+          isRunning={isRunning} 
+          onClick={toggleTimer}
+          onFinish={finishTask}
+        />
         
         <div className="daily-total">
-          <div className="daily-total-label">Сегодня отработано</div>
+          <div className="daily-total-label">Ранее сегодня выполнено</div>
           <div className="daily-total-value">{dailyTotal}</div>
         </div>
         

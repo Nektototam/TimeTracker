@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { useTimeEntries } from '../hooks/useTimeEntries';
 import { useAuth } from './AuthContext';
+import settingsService from '../lib/settingsService';
 
 // Тип для контекста таймера
 interface TimerContextType {
@@ -15,12 +16,15 @@ interface TimerContextType {
   timerStatus: string;
   timerValue: string;
   dailyTotal: string;
+  timeLimit: number | null;
   // Методы
   setProject: (project: string) => void;
   setProjectText: (text: string) => void;
   toggleTimer: () => Promise<void>;
+  finishTask: () => Promise<void>;
   switchProject: (newProject: string, newProjectText: string) => Promise<void>;
   formatTime: (milliseconds: number) => string;
+  setTimeLimit: (minutes: number | null) => void;
 }
 
 // Создание контекста с начальными значениями
@@ -41,18 +45,26 @@ export function TimerProvider({ children }: { children: React.ReactNode }) {
   const [projectText, setProjectText] = useState('Веб-разработка');
   const [dailyTotal, setDailyTotal] = useState('00:00:00');
   const [lastHourMark, setLastHourMark] = useState(0);
+  const [last15MinMark, setLast15MinMark] = useState(0);
+  const [timeLimit, setTimeLimit] = useState<number | null>(null);
   
   // Ref для аудио элементов
-  const workCompleteAudioRef = useRef<HTMLAudioElement | null>(null);
-  const bigBenAudioRef = useRef<HTMLAudioElement | null>(null);
+  const workCompleteAudioRef = useRef<HTMLAudioElement>(null);
+  const bigBenAudioRef = useRef<HTMLAudioElement>(null);
+  const work15AudioRef = useRef<HTMLAudioElement>(null);
+  const pomodoroStartAudioRef = useRef<HTMLAudioElement>(null);
+  const pomodoroCompleteAudioRef = useRef<HTMLAudioElement>(null);
   
   // Используем хук для работы с записями времени
   const { entries, isLoading, error, addTimeEntry, getTodayEntries } = useTimeEntries();
   
-  // Инициализация аудио элементов
+  // Инициализация аудио элементов и загрузка сохраненного состояния
   useEffect(() => {
     workCompleteAudioRef.current = new Audio('/sounds/work-complete.mp3');
-    bigBenAudioRef.current = new Audio('/sounds/big-ben-chime.mp3');
+    bigBenAudioRef.current = new Audio('/sounds/work-complete.mp3');
+    work15AudioRef.current = new Audio('/sounds/work-15.mp3');
+    pomodoroStartAudioRef.current = new Audio('/sounds/pomodoro-start.mp3');
+    pomodoroCompleteAudioRef.current = new Audio('/sounds/pomodoro-complete.mp3');
     
     // Проверяем, есть ли сохраненное состояние таймера в localStorage
     const savedTimer = localStorage.getItem('timetracker-timer-state');
@@ -68,6 +80,8 @@ export function TimerProvider({ children }: { children: React.ReactNode }) {
           setElapsedTime(Date.now() - timerState.startTime);
           setTimerStatus('Идет отсчет');
           setLastHourMark(timerState.lastHourMark || 0);
+          setLast15MinMark(timerState.last15MinMark || 0);
+          setTimeLimit(timerState.timeLimit || null);
         }
       } catch (err) {
         console.error('Ошибка при загрузке состояния таймера:', err);
@@ -82,7 +96,9 @@ export function TimerProvider({ children }: { children: React.ReactNode }) {
           project,
           projectText,
           startTime,
-          lastHourMark
+          lastHourMark,
+          last15MinMark,
+          timeLimit
         };
         localStorage.setItem('timetracker-timer-state', JSON.stringify(timerState));
       } else {
@@ -91,28 +107,33 @@ export function TimerProvider({ children }: { children: React.ReactNode }) {
     };
   }, []);
   
-  // Загрузка суммарного времени за день при монтировании компонента
-  useEffect(() => {
-    async function loadDailyTotal() {
-      try {
-        const todayEntries = await getTodayEntries();
-        
-        // Считаем общую длительность
-        const totalMilliseconds = todayEntries.reduce(
-          (total, entry) => total + entry.duration, 
-          0
-        );
-        
-        setDailyTotal(formatTime(totalMilliseconds));
-      } catch (err) {
-        console.error('Ошибка при загрузке суммарного времени за день:', err);
-      }
-    }
+  // Загрузка базового времени за день (все завершенные задачи)
+  const updateCompletedTimeTotal = async () => {
+    if (!userId) return;
     
-    if (userId) {
-      loadDailyTotal();
+    try {
+      console.log('Загрузка времени завершенных задач...');
+      const todayEntries = await getTodayEntries();
+      
+      // Считаем общую длительность всех завершенных записей
+      const totalMilliseconds = todayEntries.reduce(
+        (total, entry) => total + entry.duration, 
+        0
+      );
+      
+      console.log(`Время завершенных задач: ${formatTime(totalMilliseconds)}`);
+      setDailyTotal(formatTime(totalMilliseconds));
+    } catch (err) {
+      console.error('Ошибка при загрузке времени завершенных задач:', err);
     }
-  }, [getTodayEntries, userId]);
+  };
+  
+  // Загружаем время завершенных задач при монтировании и когда меняется userId
+  useEffect(() => {
+    if (userId) {
+      updateCompletedTimeTotal();
+    }
+  }, [userId]);
   
   // Форматирование времени
   const formatTime = (milliseconds: number) => {
@@ -128,13 +149,159 @@ export function TimerProvider({ children }: { children: React.ReactNode }) {
     ].join(':');
   };
   
-  // Воспроизведение звука Биг Бен
-  const playBigBenSound = () => {
-    if (bigBenAudioRef.current) {
-      bigBenAudioRef.current.currentTime = 0;
-      bigBenAudioRef.current.play().catch(err => {
-        console.error('Ошибка воспроизведения звука Биг Бен:', err);
+  // Воспроизведение звука с визуальным уведомлением
+  const playSound = (audioRef: React.RefObject<HTMLAudioElement | null>, title: string, message: string) => {
+    if (audioRef.current) {
+      audioRef.current.currentTime = 0;
+      audioRef.current.play().catch(err => {
+        console.error(`Ошибка воспроизведения звука ${title}:`, err);
       });
+    }
+    
+    // Визуальное уведомление
+    if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
+      new Notification(title, {
+        body: message,
+        icon: '/icons/timetracker-icon.png'
+      });
+    }
+  };
+  
+  // Сохранение текущей записи и обновление суммарного времени
+  const saveCurrentEntry = async (isFinishing: boolean = false): Promise<void> => {
+    // Если таймер не запущен или нет прошедшего времени, ничего не делаем
+    if (!isRunning || elapsedTime === 0) return;
+    
+    const now = new Date();
+    const entryData = {
+      user_id: userId,
+      project_type: project,
+      start_time: new Date(startTime),
+      end_time: now,
+      duration: elapsedTime
+    };
+    
+    try {
+      // Сохраняем запись в БД
+      await addTimeEntry(entryData);
+      
+      // После сохранения записи обновляем общее время завершенных задач
+      // ТОЛЬКО если задача завершается полностью (не пауза)
+      if (isFinishing) {
+        await updateCompletedTimeTotal();
+        // Воспроизводим звук завершения работы
+        playSound(workCompleteAudioRef, "Задача завершена", `Вы завершили работу над "${projectText}"`);
+      }
+    } catch (error) {
+      console.error('Ошибка при сохранении записи:', error);
+    }
+  };
+  
+  // Переключение между проектами
+  const switchProject = async (newProject: string, newProjectText: string): Promise<void> => {
+    // Если текущий проект совпадает с новым, ничего не делаем
+    if (project === newProject) return;
+    
+    // Сохраняем текущую запись, если таймер запущен
+    await saveCurrentEntry();
+    
+    // Обновляем проект
+    setProject(newProject);
+    setProjectText(newProjectText);
+    
+    // Сбрасываем таймер и ограничение времени
+    setStartTime(Date.now());
+    setElapsedTime(0);
+    setTimerValue('00:00:00');
+    setTimeLimit(null);
+    
+    // Если таймер был запущен, продолжаем отсчет для нового проекта
+    if (isRunning) {
+      setTimerStatus('Идет отсчет');
+      setLastHourMark(0);
+      setLast15MinMark(0);
+      
+      // Воспроизводим звук начала работы над проектом
+      playSound(pomodoroStartAudioRef, "Новая задача", `Начало работы над "${newProjectText}"`);
+      
+      // Сохраняем состояние таймера в localStorage с новым проектом
+      const timerState = {
+        isRunning,
+        project: newProject,
+        projectText: newProjectText,
+        startTime: Date.now(),
+        lastHourMark: 0,
+        last15MinMark: 0,
+        timeLimit: null
+      };
+      localStorage.setItem('timetracker-timer-state', JSON.stringify(timerState));
+    } else {
+      setTimerStatus('Готов');
+    }
+  };
+  
+  // Завершение текущей задачи
+  const finishTask = async (): Promise<void> => {
+    if (!isRunning) return;
+    
+    // Сохраняем запись и передаем true, указывая что это завершение
+    await saveCurrentEntry(true);
+    
+    // Сбрасываем таймер
+    setIsRunning(false);
+    setTimerStatus('Готов');
+    setElapsedTime(0);
+    setTimerValue('00:00:00');
+    setStartTime(0);
+    setLastHourMark(0);
+    setLast15MinMark(0);
+    
+    // Удаляем состояние таймера из localStorage
+    localStorage.removeItem('timetracker-timer-state');
+  };
+  
+  // Запуск и остановка таймера
+  const toggleTimer = async () => {
+    if (isRunning) {
+      // Остановка таймера (пауза)
+      setIsRunning(false);
+      setTimerStatus('Приостановлен');
+      
+      // Сохраняем запись без обновления счетчика (передаем false)
+      await saveCurrentEntry(false);
+      
+      // Удаляем состояние таймера из localStorage
+      localStorage.removeItem('timetracker-timer-state');
+    } else {
+      // Запуск таймера
+      const now = Date.now();
+      
+      if (elapsedTime === 0) {
+        setStartTime(now);
+        setLastHourMark(0); // Сбрасываем метку последнего часа
+        setLast15MinMark(0); // Сбрасываем метку 15 минут
+        
+        // Воспроизводим звук начала работы
+        playSound(pomodoroStartAudioRef, "Старт", `Начало работы над "${projectText}"`);
+      } else {
+        setStartTime(now - elapsedTime);
+        // Сохраняем последние отметки времени
+      }
+      
+      setIsRunning(true);
+      setTimerStatus('Идет отсчет');
+      
+      // Сохраняем состояние таймера в localStorage
+      const timerState = {
+        isRunning: true,
+        project,
+        projectText,
+        startTime: now - elapsedTime,
+        lastHourMark: elapsedTime === 0 ? 0 : lastHourMark,
+        last15MinMark: elapsedTime === 0 ? 0 : last15MinMark,
+        timeLimit
+      };
+      localStorage.setItem('timetracker-timer-state', JSON.stringify(timerState));
     }
   };
   
@@ -152,8 +319,25 @@ export function TimerProvider({ children }: { children: React.ReactNode }) {
     
     if (elapsedTimeInHours > lastHourMarkInHours) {
       // Прошел час, воспроизводим звук Биг Бен
-      playBigBenSound();
+      playSound(bigBenAudioRef, "Час работы", `Вы работаете над "${projectText}" уже ${elapsedTimeInHours} ч.`);
       setLastHourMark(elapsedTimeInHours * hourInMs);
+    }
+    
+    // Проверяем 15-минутные интервалы
+    const fifteenMinInMs = 900000; // 15 минут в миллисекундах
+    const elapsedTimeIn15Min = Math.floor(newElapsedTime / fifteenMinInMs);
+    const last15MinMarkIn15Min = Math.floor(last15MinMark / fifteenMinInMs);
+    
+    if (elapsedTimeIn15Min > last15MinMarkIn15Min) {
+      // Прошло 15 минут, воспроизводим звук
+      playSound(work15AudioRef, "15 минут работы", `Вы работаете над "${projectText}" ${elapsedTimeIn15Min * 15} минут`);
+      setLast15MinMark(elapsedTimeIn15Min * fifteenMinInMs);
+    }
+    
+    // Проверка на превышение лимита времени
+    if (timeLimit !== null && newElapsedTime >= timeLimit) {
+      playSound(workCompleteAudioRef, "Время истекло!", `Ограничение времени для "${projectText}" достигнуто`);
+      finishTask();
     }
     
     // Сохраняем состояние таймера в localStorage
@@ -162,120 +346,11 @@ export function TimerProvider({ children }: { children: React.ReactNode }) {
       project,
       projectText,
       startTime,
-      lastHourMark
+      lastHourMark,
+      last15MinMark,
+      timeLimit
     };
     localStorage.setItem('timetracker-timer-state', JSON.stringify(timerState));
-  };
-
-  // Сохранение текущей записи и обновление суммарного времени
-  const saveCurrentEntry = async (): Promise<void> => {
-    // Если таймер не запущен или нет прошедшего времени, ничего не делаем
-    if (!isRunning || elapsedTime === 0) return;
-    
-    const now = new Date();
-    const entryData = {
-      user_id: userId,
-      project_type: project,
-      start_time: new Date(startTime),
-      end_time: now,
-      duration: elapsedTime
-    };
-    
-    try {
-      await addTimeEntry(entryData);
-      
-      // Обновляем суммарное время за день
-      const todayEntries = await getTodayEntries();
-      const totalMilliseconds = todayEntries.reduce(
-        (total, entry) => total + entry.duration, 
-        0
-      );
-      setDailyTotal(formatTime(totalMilliseconds));
-      
-      // Воспроизводим звук завершения работы
-      if (workCompleteAudioRef.current) {
-        workCompleteAudioRef.current.currentTime = 0;
-        workCompleteAudioRef.current.play().catch(err => {
-          console.error('Ошибка воспроизведения звука завершения работы:', err);
-        });
-      }
-    } catch (err) {
-      console.error('Ошибка при сохранении записи:', err);
-    }
-  };
-  
-  // Переключение между проектами
-  const switchProject = async (newProject: string, newProjectText: string): Promise<void> => {
-    // Если текущий проект совпадает с новым, ничего не делаем
-    if (project === newProject) return;
-    
-    // Сохраняем текущую запись, если таймер запущен
-    await saveCurrentEntry();
-    
-    // Обновляем проект
-    setProject(newProject);
-    setProjectText(newProjectText);
-    
-    // Сбрасываем таймер
-    setStartTime(Date.now());
-    setElapsedTime(0);
-    setTimerValue('00:00:00');
-    
-    // Если таймер был запущен, продолжаем отсчет для нового проекта
-    if (isRunning) {
-      setTimerStatus('Идет отсчет');
-      setLastHourMark(0);
-      
-      // Сохраняем состояние таймера в localStorage с новым проектом
-      const timerState = {
-        isRunning,
-        project: newProject,
-        projectText: newProjectText,
-        startTime: Date.now(),
-        lastHourMark: 0
-      };
-      localStorage.setItem('timetracker-timer-state', JSON.stringify(timerState));
-    } else {
-      setTimerStatus('Готов');
-    }
-  };
-  
-  // Запуск и остановка таймера
-  const toggleTimer = async () => {
-    if (isRunning) {
-      // Остановка таймера
-      setIsRunning(false);
-      setTimerStatus('Приостановлен');
-      
-      // Сохраняем запись
-      await saveCurrentEntry();
-      
-      // Удаляем состояние таймера из localStorage
-      localStorage.removeItem('timetracker-timer-state');
-    } else {
-      // Запуск таймера
-      const now = Date.now();
-      if (elapsedTime === 0) {
-        setStartTime(now);
-        setLastHourMark(0); // Сбрасываем метку последнего часа
-      } else {
-        setStartTime(now - elapsedTime);
-        // Сохраняем последнюю отметку часа
-      }
-      
-      setIsRunning(true);
-      setTimerStatus('Идет отсчет');
-      
-      // Сохраняем состояние таймера в localStorage
-      const timerState = {
-        isRunning: true,
-        project,
-        projectText,
-        startTime: now - elapsedTime,
-        lastHourMark: elapsedTime === 0 ? 0 : lastHourMark
-      };
-      localStorage.setItem('timetracker-timer-state', JSON.stringify(timerState));
-    }
   };
   
   // Обновление таймера при запуске
@@ -283,11 +358,16 @@ export function TimerProvider({ children }: { children: React.ReactNode }) {
     let interval: NodeJS.Timeout;
     
     if (isRunning) {
+      console.log('Запуск интервала обновления таймера');
+      // Интервал для обновления основного таймера
       interval = setInterval(updateTimer, 1000);
     }
     
     return () => {
-      if (interval) clearInterval(interval);
+      if (interval) {
+        console.log('Очистка интервала обновления таймера');
+        clearInterval(interval);
+      }
     };
   }, [isRunning, startTime]);
   
@@ -303,14 +383,22 @@ export function TimerProvider({ children }: { children: React.ReactNode }) {
         timerStatus,
         timerValue,
         dailyTotal,
+        timeLimit,
         setProject,
         setProjectText,
         toggleTimer,
+        finishTask,
         switchProject,
-        formatTime
+        formatTime,
+        setTimeLimit
       }}
     >
       {children}
+      <audio ref={workCompleteAudioRef} src="/sounds/work-complete.mp3" />
+      <audio ref={bigBenAudioRef} src="/sounds/work-complete.mp3" />
+      <audio ref={work15AudioRef} src="/sounds/work-15.mp3" />
+      <audio ref={pomodoroStartAudioRef} src="/sounds/pomodoro-start.mp3" />
+      <audio ref={pomodoroCompleteAudioRef} src="/sounds/pomodoro-complete.mp3" />
     </TimerContext.Provider>
   );
 }
@@ -319,7 +407,7 @@ export function TimerProvider({ children }: { children: React.ReactNode }) {
 export function useTimer() {
   const context = useContext(TimerContext);
   if (context === undefined) {
-    throw new Error('useTimer must be used within a TimerProvider');
+    throw new Error('useTimer должен использоваться внутри TimerProvider');
   }
   return context;
 } 
