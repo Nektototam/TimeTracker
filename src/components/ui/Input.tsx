@@ -9,11 +9,11 @@ export interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   leftIcon?: React.ReactNode;
   rightIcon?: React.ReactNode;
   fullWidth?: boolean;
-  size?: 'sm' | 'md' | 'lg';
+  inputSize?: 'sm' | 'md' | 'lg';
 }
 
 export const Input = forwardRef<HTMLInputElement, InputProps>(
-  ({ className, label, error, leftIcon, rightIcon, fullWidth, size = 'md', ...props }, ref) => {
+  ({ className, label, error, leftIcon, rightIcon, fullWidth, inputSize = 'md', ...props }, ref) => {
     const inputClasses = {
       base: 'flex rounded-app border border-gray-300 bg-white text-gray-900 transition-colors file:border-0 file:bg-transparent placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/30 disabled:cursor-not-allowed disabled:opacity-50',
       sizes: {
@@ -55,7 +55,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             ref={ref}
             className={cn(
               inputClasses.base,
-              inputClasses.sizes[size],
+              inputClasses.sizes[inputSize],
               fullWidth && inputClasses.fullWidth.true,
               leftIcon && inputClasses.withLeftIcon.true,
               rightIcon && inputClasses.withRightIcon.true,
