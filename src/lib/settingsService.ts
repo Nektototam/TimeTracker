@@ -20,7 +20,9 @@ export interface LocalSettings {
 }
 
 // Интерфейс для всех настроек
-export interface AllSettings extends DBSettings, LocalSettings {}
+export interface AllSettings extends DBSettings, LocalSettings {
+  // Тут могут быть дополнительные поля, связанные со всеми настройками
+}
 
 // Настройки по умолчанию
 const defaultDBSettings: DBSettings = {
@@ -299,4 +301,11 @@ class SettingsService {
   }
 }
 
-export const settingsService = new SettingsService(); 
+// Создаем экземпляр сервиса
+const settingsService = new SettingsService();
+
+// Экспортируем по умолчанию
+export default settingsService;
+
+// Экспортируем только класс (типы уже экспортированы выше)
+export { SettingsService }; 
