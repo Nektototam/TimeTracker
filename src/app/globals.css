@@ -6,6 +6,12 @@
   --primary-color-light: #9B90F2;
   --primary-color-hover: #5B4FC5;
   --primary-dark: #5B4FC5;
+  --primary-400: #9285F4;
+  --primary-300: #BEB4FF;
+  --primary-200: #D9D1FF;
+  --primary-100: #F5F3FF;
+  --primary-50: #FAF9FF;
+  --primary-600: #5A4CC5;
   --secondary-color: #8898aa;
   --secondary-color-hover: #7989a6;
   --accent-color: #36D6AE;
@@ -13,12 +19,19 @@
   --success-color-hover: #28C49C;
   --success-color-dark: #28B68E;
   --info-color: #63C5FD;
+  --info-50: #F0F9FF;
+  --info-100: #E0F2FE;
+  --info-200: #B9E6FE;
   --light-color: #F8FAFC;
   --dark-color: #32325d;
   --error-color: #FF6A7A;
   --error-color-hover: #FF5366;
   --error-color-dark: #E5596A;
+  --error-50: #FFF1F2;
+  --error-100: #FFE4E6;
   --warning-color: #FFBB38;
+  --warning-50: #FFFBEA;
+  --warning-100: #FFF3C4;
   --border-radius: 24px;
   --border-radius-sm: 16px;
   --border-radius-lg: 32px;
@@ -50,7 +63,7 @@
 }
 
 body {
-  background-color: #F8FAFC;
+  background-color: #F5F7FF;
   color: #333;
   font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
   margin: 0;

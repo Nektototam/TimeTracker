@@ -12,7 +12,7 @@ export default function TimerButton({ isRunning, onClick, onFinish }: TimerButto
   const { t } = useTranslation();
   
   return (
-    <div className="flex gap-4 justify-center mt-8">
+    <div className="flex gap-6 justify-center mt-10">
       <Button 
         variant={isRunning ? "outline" : "timer"}
         size="lg"
@@ -21,9 +21,9 @@ export default function TimerButton({ isRunning, onClick, onFinish }: TimerButto
         className={`
           ${isRunning 
             ? "border-gray-200 text-gray-700 bg-white" 
-            : "bg-gradient-to-r from-primary-400 to-primary-600 text-white shadow-button hover:shadow-lg hover:-translate-y-0.5"
+            : "bg-gradient-to-r from-primary-300 to-primary-600 text-white shadow-xl"
           } 
-          px-10 py-3 font-medium text-base
+          px-12 py-4 font-semibold text-base min-w-[180px]
         `}
       >
         {isRunning ? t('timer.pause') : t('timer.start')}
@@ -35,7 +35,7 @@ export default function TimerButton({ isRunning, onClick, onFinish }: TimerButto
           size="lg"
           rounded="full"
           onClick={onFinish}
-          className="px-10 py-3 font-medium text-base shadow-md hover:shadow-lg"
+          className="px-12 py-4 font-semibold text-base shadow-xl min-w-[180px]"
         >
           {t('timer.stop')}
         </Button>

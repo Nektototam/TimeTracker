@@ -12,16 +12,16 @@ const buttonVariants = cva(
     variants: {
       // Варианты внешнего вида
       variant: {
-        primary: "bg-gradient-to-r from-primary-400 to-primary text-white shadow-button hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 active:shadow-button",
-        secondary: "bg-secondary text-white shadow-app-sm hover:shadow-md hover:bg-opacity-90 hover:-translate-y-0.5 active:translate-y-0",
+        primary: "bg-gradient-to-r from-primary-400 to-primary text-white shadow-button hover:shadow-lg hover:-translate-y-1 active:translate-y-0 active:shadow-button",
+        secondary: "bg-gradient-to-br from-gray-400 to-gray-500 text-white shadow-app-sm hover:shadow-md hover:bg-opacity-90 hover:-translate-y-0.5 active:translate-y-0",
         outline: "border border-gray-200 bg-white hover:bg-gray-50 text-gray-700 hover:shadow-md hover:-translate-y-0.5 active:translate-y-0",
         ghost: "bg-transparent hover:bg-gray-100 text-gray-700 shadow-none",
-        danger: "bg-gradient-to-r from-error to-error text-white shadow-app-sm hover:shadow-md hover:-translate-y-0.5 active:translate-y-0",
-        success: "bg-gradient-to-r from-success to-success-dark text-white shadow-app-sm hover:shadow-md hover:-translate-y-0.5 active:translate-y-0",
-        timer: "bg-gradient-to-r from-primary-400 to-primary text-white shadow-button hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0",
-        timerStop: "bg-gradient-to-r from-error to-error text-white shadow-app-sm hover:shadow-md hover:-translate-y-0.5 active:translate-y-0",
+        danger: "bg-gradient-to-r from-error to-error-dark text-white shadow-md hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0",
+        success: "bg-gradient-to-r from-success to-success-dark text-white shadow-md hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0",
+        timer: "bg-gradient-to-r from-primary-300 to-primary-600 text-white shadow-lg hover:shadow-xl hover:-translate-y-1 active:translate-y-0",
+        timerStop: "bg-gradient-to-r from-error to-error-dark text-white shadow-lg hover:shadow-xl hover:-translate-y-1 active:translate-y-0",
         // Стиль для кнопок таймера, как на скриншоте
-        timerControl: "bg-white text-gray-700 shadow-app-sm hover:shadow-md h-12 w-12 rounded-full flex items-center justify-center",
+        timerControl: "bg-white text-gray-700 shadow-lg hover:shadow-xl h-14 w-14 rounded-full flex items-center justify-center hover:-translate-y-1",
         // Стиль для кнопок переключения (День/Неделя)
         toggle: "bg-gray-100 text-gray-700 hover:bg-gray-200",
         // Стиль для вкладок категорий
@@ -31,8 +31,8 @@ const buttonVariants = cva(
       size: {
         sm: "h-9 px-4 text-sm",
         md: "h-11 px-6",
-        lg: "h-14 px-8 text-lg",
-        xl: "h-16 px-10 text-xl",
+        lg: "h-14 px-8 text-base",
+        xl: "h-16 px-10 text-lg",
         icon: "p-2 aspect-square",
       },
       // Закругленность углов

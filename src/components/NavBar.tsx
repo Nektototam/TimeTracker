@@ -93,10 +93,10 @@ export default function NavBar() {
   };
   
   return (
-    <nav className="nav-bar fixed bottom-0 left-0 right-0 flex justify-around items-center py-3 px-2 bg-white shadow-lg z-10 rounded-t-xl">
+    <nav className="nav-bar fixed bottom-0 left-0 right-0 flex justify-around items-center py-3 px-2 bg-white shadow-xl z-10 rounded-t-xl border-t border-gray-100">
       <Link
         href="/"
-        className={`flex flex-col items-center justify-center p-2 rounded-xl transition-all ${pathname === "/" ? "text-primary" : "text-gray-500"}`}
+        className={`flex flex-col items-center justify-center p-2 rounded-full transition-all ${pathname === "/" ? "text-primary bg-primary-50" : "text-gray-500 hover:text-primary hover:bg-gray-50"}`}
       >
         <span className="nav-icon">{icons.timer}</span>
         <span className="text-xs mt-1 font-medium">{t('nav.timer')}</span>
@@ -104,7 +104,7 @@ export default function NavBar() {
       
       <Link
         href="/statistics"
-        className={`flex flex-col items-center justify-center p-2 rounded-xl transition-all ${pathname === "/statistics" ? "text-primary" : "text-gray-500"}`}
+        className={`flex flex-col items-center justify-center p-2 rounded-full transition-all ${pathname === "/statistics" ? "text-primary bg-primary-50" : "text-gray-500 hover:text-primary hover:bg-gray-50"}`}
       >
         <span className="nav-icon">{icons.statistics}</span>
         <span className="text-xs mt-1 font-medium">{t('nav.statistics')}</span>
@@ -112,7 +112,7 @@ export default function NavBar() {
       
       <Link
         href="/reports"
-        className={`flex flex-col items-center justify-center p-2 rounded-xl transition-all ${pathname === "/reports" ? "text-primary" : "text-gray-500"}`}
+        className={`flex flex-col items-center justify-center p-2 rounded-full transition-all ${pathname === "/reports" ? "text-primary bg-primary-50" : "text-gray-500 hover:text-primary hover:bg-gray-50"}`}
       >
         <span className="nav-icon">{icons.reports}</span>
         <span className="text-xs mt-1 font-medium">{t('nav.reports')}</span>
@@ -120,7 +120,7 @@ export default function NavBar() {
       
       <Link
         href="/pomodoro"
-        className={`flex flex-col items-center justify-center p-2 rounded-xl transition-all ${pathname === "/pomodoro" ? "text-primary" : "text-gray-500"}`}
+        className={`flex flex-col items-center justify-center p-2 rounded-full transition-all ${pathname === "/pomodoro" ? "text-primary bg-primary-50" : "text-gray-500 hover:text-primary hover:bg-gray-50"}`}
       >
         <span className="nav-icon">{icons.pomodoro}</span>
         <span className="text-xs mt-1 font-medium">{t('nav.pomodoro')}</span>
@@ -128,7 +128,7 @@ export default function NavBar() {
       
       <Link
         href="/settings"
-        className={`flex flex-col items-center justify-center p-2 rounded-xl transition-all ${pathname === "/settings" ? "text-primary" : "text-gray-500"}`}
+        className={`flex flex-col items-center justify-center p-2 rounded-full transition-all ${pathname === "/settings" ? "text-primary bg-primary-50" : "text-gray-500 hover:text-primary hover:bg-gray-50"}`}
       >
         <span className="nav-icon">{icons.settings}</span>
         <span className="text-xs mt-1 font-medium">{t('nav.settings')}</span>
@@ -136,7 +136,7 @@ export default function NavBar() {
       
       <button
         onClick={() => signOut()}
-        className="flex flex-col items-center justify-center p-2 rounded-xl transition-all text-gray-500 hover:text-primary"
+        className="flex flex-col items-center justify-center p-2 rounded-full transition-all text-gray-500 hover:text-error hover:bg-error-50"
       >
         <span className="nav-icon">{icons.logout}</span>
         <span className="text-xs mt-1 font-medium">{t('nav.logout')}</span>
