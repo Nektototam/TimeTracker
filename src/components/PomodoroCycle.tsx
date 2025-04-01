@@ -169,11 +169,10 @@ const PomodoroCycle: React.FC<PomodoroCycleProps> = ({
       <div className="pomodoro-controls">
         {!isActive ? (
           <Button 
-            variant="buttonStart"
+            variant="timer"
             onClick={handleStart}
             disabled={state === TimerState.COMPLETED && currentCycle > cycles}
-            leftIcon="▶"
-            className="relative w-44"
+            className="relative px-8"
           >
             {translate('start')}
           </Button>

@@ -286,16 +286,16 @@ export default function ProjectSelect({ value, onChange }: ProjectSelectProps) {
           </div>
           <div className="flex justify-center gap-2">
             <Button
-              variant="saveButton"
+              variant="outline"
               onClick={handleTimeLimitSave}
-              rounded="none"
+              size="sm"
             >
               {t('save')}
             </Button>
             <Button
-              variant="cancelButton"
+              variant="outline"
               onClick={handleTimeLimitCancel}
-              rounded="none"
+              size="sm"
             >
               {t('cancel')}
             </Button>

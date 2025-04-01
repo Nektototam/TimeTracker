@@ -53,10 +53,9 @@ export default function PomodoroTimer({}: PomodoroTimerProps) {
       <div className="flex gap-4 justify-center mt-4">
         {!isRunning ? (
           <Button 
-            variant="buttonStart"
+            variant="timer"
             onClick={startTimer}
-            leftIcon="▶"
-            className="relative w-44"
+            className="px-8"
           >
             Старт
           </Button>
@@ -65,7 +64,7 @@ export default function PomodoroTimer({}: PomodoroTimerProps) {
             variant="timerStop"
             size="lg"
             onClick={pauseTimer}
-            leftIcon="⏸"
+            className="px-8"
           >
             Пауза
           </Button>
@@ -75,7 +74,7 @@ export default function PomodoroTimer({}: PomodoroTimerProps) {
           variant="secondary"
           size="lg"
           onClick={resetTimer}
-          leftIcon="↺"
+          className="px-8"
         >
           Сброс
         </Button>

@@ -2,26 +2,28 @@
 @tailwind utilities;
 
 :root {
-  --primary-color: #5e72e4;
-  --primary-color-light: #7b8ef1;
-  --primary-color-hover: #4a5bcb;
-  --primary-dark: #4a5ad9;
+  --primary-color: #7163DE;
+  --primary-color-light: #9B90F2;
+  --primary-color-hover: #5B4FC5;
+  --primary-dark: #5B4FC5;
   --secondary-color: #8898aa;
   --secondary-color-hover: #7989a6;
-  --accent-color: #fb6340;
-  --success-color: #2dce89;
-  --success-color-hover: #26b677;
-  --info-color: #11cdef;
-  --light-color: #f5f7fa;
+  --accent-color: #36D6AE;
+  --success-color: #36D6AE;
+  --success-color-hover: #28C49C;
+  --info-color: #63C5FD;
+  --light-color: #F8FAFC;
   --dark-color: #32325d;
-  --error-color: #f56565;
-  --error-color-hover: #e53e3e;
-  --warning-color: #ed8936;
-  --border-radius: 10px;
-  --shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  --button-shadow: 0 4px 10px rgba(94, 114, 228, 0.3);
-  --button-shadow-hover: 0 8px 15px rgba(94, 114, 228, 0.4);
-  --button-shadow-active: 0 3px 6px rgba(94, 114, 228, 0.2);
+  --error-color: #FF6A7A;
+  --error-color-hover: #FF5366;
+  --warning-color: #FFBB38;
+  --border-radius: 24px;
+  --border-radius-sm: 16px;
+  --border-radius-lg: 32px;
+  --shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
+  --button-shadow: 0 4px 10px rgba(113, 99, 222, 0.25);
+  --button-shadow-hover: 0 8px 15px rgba(113, 99, 222, 0.35);
+  --button-shadow-active: 0 3px 6px rgba(113, 99, 222, 0.2);
   --transition: all 0.3s ease;
   --border-color: #e2e8f0;
   --bg-color: #ffffff;
@@ -29,12 +31,26 @@
   --bg-input: #f8fafc;
   --text-color: #334155;
   --secondary-text-color: #64748b;
+  
+  /* Цвета категорий */
+  --color-purple: #7163DE;
+  --color-purple-50: rgba(113, 99, 222, 0.1);
+  --color-blue: #63C5FD;
+  --color-blue-50: rgba(99, 197, 253, 0.1);
+  --color-green: #36D6AE;
+  --color-green-50: rgba(54, 214, 174, 0.1);
+  --color-red: #FF6A7A;
+  --color-red-50: rgba(255, 106, 122, 0.1);
+  --color-orange: #FFBB38;
+  --color-orange-50: rgba(255, 187, 56, 0.1);
+  --color-pink: #F178B6;
+  --color-pink-50: rgba(241, 120, 182, 0.1);
 }
 
 body {
-  background-color: #f5f7fa;
+  background-color: #F8FAFC;
   color: #333;
-  font-family: 'Segoe UI', Arial, sans-serif;
+  font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
   margin: 0;
   padding: 0;
 }

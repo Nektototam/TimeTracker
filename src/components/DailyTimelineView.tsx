@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { TimeEntry } from '../lib/reportService';
 import { supabase } from '../lib/supabase';
+import { Card, TaskCategory } from './ui/Card';
 
 interface TimeBlock {
   id: string;
@@ -146,29 +147,26 @@ const DailyTimelineView: React.FC<DailyTimelineViewProps> = ({
     return `${weekdays[date.getDay()]}, ${date.getDate()} ${months[date.getMonth()]}`;
   };
   
-  // Получаем цвет для проекта
-  const getProjectColor = (projectType: string): string => {
-    // Простая хеш-функция для получения стабильного цвета по типу проекта
-    const hashCode = (str: string): number => {
-      let hash = 0;
-      for (let i = 0; i < str.length; i++) {
-        hash = str.charCodeAt(i) + ((hash << 5) - hash);
-      }
-      return hash;
-    };
-    
+  // Получаем цвет категории для проекта
+  const getProjectCategoryColor = (projectType: string): 'purple' | 'blue' | 'green' | 'red' | 'orange' | 'pink' => {
     // Предопределенные цвета для стандартных типов
     switch (projectType) {
-      case 'development': return 'var(--primary-color)';
-      case 'design': return 'var(--success-color)';
-      case 'marketing': return 'var(--warning-color)';
-      case 'meeting': return 'var(--danger-color)';
-      case 'other': return 'var(--info-color)';
+      case 'development': return 'blue'; // Разработка - синий
+      case 'design': return 'purple'; // Дизайн - фиолетовый
+      case 'marketing': return 'orange'; // Маркетинг - оранжевый
+      case 'meeting': return 'red'; // Встречи - красный
       default: {
-        // Для пользовательских типов генерируем цвет на основе хеша
-        const hash = hashCode(projectType);
-        const hue = Math.abs(hash % 360);
-        return `hsl(${hue}, 70%, 60%)`;
+        // Для пользовательских типов выбираем по хешу
+        const colors: Array<'purple' | 'blue' | 'green' | 'red' | 'orange' | 'pink'> = 
+          ['purple', 'blue', 'green', 'red', 'orange', 'pink'];
+        
+        // Простая хеш-функция для стабильного выбора цвета
+        let hash = 0;
+        for (let i = 0; i < projectType.length; i++) {
+          hash = projectType.charCodeAt(i) + ((hash << 5) - hash);
+        }
+        
+        return colors[Math.abs(hash) % colors.length];
       }
     }
   };
@@ -176,100 +174,110 @@ const DailyTimelineView: React.FC<DailyTimelineViewProps> = ({
   // Если записей нет, показываем сообщение
   if (days.length === 0) {
     return (
-      <div className="daily-timeline-empty">
+      <div className="flex items-center justify-center p-8 text-gray-500">
         Нет данных за выбранный период
       </div>
     );
   }
   
   return (
-    <div className="daily-timeline-view">
+    <div className="space-y-6 pb-20">
       {days.map(day => (
-        <div key={day.date.toISOString()} className="day-container">
-          <div className="day-header">
-            <div className="day-date">{formatDate(day.date)}</div>
-            <div className="day-total">Всего: {formatTime(day.totalDuration)}</div>
+        <Card key={day.date.toISOString()} className="overflow-hidden">
+          <div className="flex justify-between items-center p-4 border-b border-gray-100">
+            <h3 className="font-medium">{formatDate(day.date)}</h3>
+            <div className="text-primary font-semibold">{formatTime(day.totalDuration)}</div>
           </div>
           
-          <div className="timeline-container">
-            {/* Временная шкала часов (с 8 утра до 20 вечера) */}
-            <div className="timeline-hours">
-              {Array.from({ length: 13 }).map((_, index) => (
-                <div key={index} className="hour-marker">
-                  <div className="hour-label">{(index + 8).toString().padStart(2, '0')}:00</div>
-                </div>
-              ))}
-            </div>
-            
-            {/* Блоки активности */}
-            <div className="timeline-blocks">
-              {day.blocks.map(block => {
-                // Рассчитываем позицию и ширину блока
-                const dayStart = new Date(day.date);
-                dayStart.setHours(8, 0, 0, 0); // начало в 8:00
-                
-                const dayEnd = new Date(day.date);
-                dayEnd.setHours(20, 0, 0, 0); // конец в 20:00
-                
-                const dayDuration = dayEnd.getTime() - dayStart.getTime(); // 12 часов в миллисекундах
-                
-                // Обрезаем время начала и окончания до границ дня для визуализации
-                const visibleStartTime = Math.max(block.startTime.getTime(), dayStart.getTime());
-                const visibleEndTime = Math.min(block.endTime.getTime(), dayEnd.getTime());
-                
-                // Если блок не попадает в видимый диапазон, пропускаем его
-                if (visibleEndTime <= visibleStartTime) return null;
-                
-                // Рассчитываем левую позицию и ширину в процентах
-                const leftPos = ((visibleStartTime - dayStart.getTime()) / dayDuration) * 100;
-                const widthPercent = ((visibleEndTime - visibleStartTime) / dayDuration) * 100;
-                
-                return (
-                  <div
-                    key={block.id}
-                    className="timeline-block"
-                    style={{
-                      left: `${leftPos}%`,
-                      width: `${widthPercent}%`,
-                      backgroundColor: getProjectColor(block.projectType)
-                    }}
-                    title={`${block.projectName}: ${formatTimeOfDay(block.startTime)} - ${formatTimeOfDay(block.endTime)}`}
-                  >
-                    <div className="block-content">
-                      <div className="block-time">
+          {/* Визуальная шкала времени */}
+          <div className="p-4 border-b border-gray-100">
+            <div className="relative">
+              {/* Временные метки (с 8 утра до 20 вечера) */}
+              <div className="flex justify-between text-xs text-gray-500 mb-2">
+                {Array.from({ length: 13 }).map((_, index) => (
+                  <div key={index}>{(index + 8).toString().padStart(2, '0')}</div>
+                ))}
+              </div>
+              
+              {/* Линия времени */}
+              <div className="h-1 bg-gray-100 mb-3 rounded-full"></div>
+              
+              {/* Блоки активности */}
+              <div className="relative h-16">
+                {day.blocks.map(block => {
+                  // Рассчитываем позицию и ширину блока
+                  const dayStart = new Date(day.date);
+                  dayStart.setHours(8, 0, 0, 0); // начало в 8:00
+                  
+                  const dayEnd = new Date(day.date);
+                  dayEnd.setHours(20, 0, 0, 0); // конец в 20:00
+                  
+                  const dayDuration = dayEnd.getTime() - dayStart.getTime(); // 12 часов в миллисекундах
+                  
+                  // Обрезаем время начала и окончания до границ дня для визуализации
+                  const visibleStartTime = Math.max(block.startTime.getTime(), dayStart.getTime());
+                  const visibleEndTime = Math.min(block.endTime.getTime(), dayEnd.getTime());
+                  
+                  // Если блок не попадает в видимый диапазон, пропускаем его
+                  if (visibleEndTime <= visibleStartTime) return null;
+                  
+                  // Рассчитываем левую позицию и ширину в процентах
+                  const leftPos = ((visibleStartTime - dayStart.getTime()) / dayDuration) * 100;
+                  const widthPercent = ((visibleEndTime - visibleStartTime) / dayDuration) * 100;
+                  
+                  const categoryColor = getProjectCategoryColor(block.projectType);
+                  
+                  return (
+                    <div
+                      key={block.id}
+                      className="absolute rounded-xl p-2 shadow-sm cursor-pointer hover:shadow-md transition-shadow"
+                      style={{
+                        left: `${leftPos}%`,
+                        width: `${Math.max(widthPercent, 10)}%`,
+                        backgroundColor: `var(--color-${categoryColor}-50)`,
+                        borderLeft: `3px solid var(--color-${categoryColor})`,
+                        height: '40px',
+                        overflow: 'hidden'
+                      }}
+                      title={`${block.projectName}: ${formatTimeOfDay(block.startTime)} - ${formatTimeOfDay(block.endTime)}`}
+                    >
+                      <div className="text-xs font-medium truncate text-gray-700">
+                        {block.projectName}
+                      </div>
+                      <div className="text-xs text-gray-500">
                         {formatTimeOfDay(block.startTime)} - {formatTimeOfDay(block.endTime)}
                       </div>
-                      <div className="block-project">{block.projectName}</div>
                     </div>
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
             </div>
           </div>
           
-          {/* Список записей по дню */}
-          <div className="day-entries">
+          {/* Список записей */}
+          <div className="divide-y divide-gray-100">
             {day.blocks.map(block => (
-              <div key={block.id} className="day-entry">
-                <div className="entry-time">
-                  {formatTimeOfDay(block.startTime)} - {formatTimeOfDay(block.endTime)}
+              <div key={block.id} className="p-4 flex items-center justify-between hover:bg-gray-50">
+                <div className="flex items-center space-x-4">
+                  <div className="flex-shrink-0 w-10 text-center">
+                    <div className="text-xs text-gray-500">{formatTimeOfDay(block.startTime)}</div>
+                    <div className="text-xs text-gray-500">{formatTimeOfDay(block.endTime)}</div>
+                  </div>
+                  
+                  <div>
+                    <TaskCategory color={getProjectCategoryColor(block.projectType)}>
+                      {block.projectName}
+                    </TaskCategory>
+                  </div>
                 </div>
-                <div 
-                  className="entry-type" 
-                  style={{
-                    backgroundColor: getProjectColor(block.projectType),
-                    padding: '2px 8px',
-                    borderRadius: '4px',
-                    color: '#fff'
-                  }}
-                >
-                  {block.projectName}
+                
+                <div className="font-medium text-gray-700">
+                  {formatTime(block.duration)}
                 </div>
-                <div className="entry-duration">{formatTime(block.duration)}</div>
               </div>
             ))}
           </div>
-        </div>
+        </Card>
       ))}
     </div>
   );

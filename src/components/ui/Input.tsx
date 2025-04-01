@@ -15,9 +15,9 @@ export interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
 export const Input = forwardRef<HTMLInputElement, InputProps>(
   ({ className, label, error, leftIcon, rightIcon, fullWidth, inputSize = 'md', ...props }, ref) => {
     const inputClasses = {
-      base: 'flex rounded-app border border-gray-300 bg-white text-gray-900 transition-colors file:border-0 file:bg-transparent placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/30 disabled:cursor-not-allowed disabled:opacity-50',
+      base: 'flex bg-white text-gray-900 transition-all file:border-0 file:bg-transparent placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/30 disabled:cursor-not-allowed disabled:opacity-50',
       sizes: {
-        sm: 'h-8 text-sm px-3',
+        sm: 'h-9 text-sm px-3',
         md: 'h-10 px-4',
         lg: 'h-12 text-lg px-5',
       },
@@ -33,7 +33,14 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
       error: {
         true: 'border-error focus:ring-error/40',
       },
+      variants: {
+        default: 'rounded-full border border-gray-200 shadow-app-sm',
+        filled: 'rounded-full bg-gray-50 border border-transparent',
+        clean: 'border-none shadow-none px-0 h-auto',
+      }
     };
+
+    const variant = props.disabled ? 'filled' : (props.readOnly ? 'clean' : 'default');
 
     return (
       <div className={cn('flex flex-col space-y-1.5', fullWidth && 'w-full')}>
@@ -56,6 +63,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             className={cn(
               inputClasses.base,
               inputClasses.sizes[inputSize],
+              inputClasses.variants[variant as keyof typeof inputClasses.variants],
               fullWidth && inputClasses.fullWidth.true,
               leftIcon && inputClasses.withLeftIcon.true,
               rightIcon && inputClasses.withRightIcon.true,

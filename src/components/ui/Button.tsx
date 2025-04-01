@@ -12,20 +12,20 @@ const buttonVariants = cva(
     variants: {
       // Варианты внешнего вида
       variant: {
-        primary: "bg-primary text-white rounded-lg shadow-md hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 active:shadow-md",
-        secondary: "bg-secondary text-white rounded-lg shadow-md hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 active:shadow-md",
-        outline: "border-2 border-gray-300 bg-transparent hover:bg-gray-50 text-gray-700 rounded-lg hover:shadow-md hover:-translate-y-0.5 active:translate-y-0 active:shadow-sm",
-        ghost: "bg-transparent hover:bg-gray-100 text-gray-700 shadow-none rounded-lg hover:shadow-sm",
-        danger: "bg-error text-white rounded-lg shadow-md hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 active:shadow-md",
-        success: "bg-success text-white rounded-lg shadow-md hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 active:shadow-md",
-        timer: "bg-gradient-to-b from-primary/90 to-primary text-white rounded-lg shadow-md hover:shadow-lg hover:-translate-y-1 active:translate-y-0 active:shadow-md",
-        timerStop: "bg-gradient-to-b from-error/90 to-error text-white rounded-lg shadow-md hover:shadow-lg hover:-translate-y-1 active:translate-y-0 active:shadow-md",
-        // Специальный стиль для кнопки Старт, точно как на скриншоте
-        buttonStart: "bg-[#5866df] text-white rounded-full py-2 px-6 shadow-[0_4px_6px_rgba(0,0,0,0.15)] hover:shadow-[0_6px_8px_rgba(0,0,0,0.2)] relative after:absolute after:content-[''] after:left-0 after:bottom-[-6px] after:w-full after:h-[2px] after:bg-red-500",
-        // Стиль для кнопки Сохранить как на скриншоте
-        saveButton: "bg-white border border-[#e2e8f0] text-black py-1 px-4 shadow-sm hover:bg-gray-50",
-        // Стиль для кнопки Отмена как на скриншоте
-        cancelButton: "bg-white border border-[#e2e8f0] text-black py-1 px-4 shadow-sm hover:bg-gray-50",
+        primary: "bg-primary text-white shadow-button hover:shadow-lg hover:bg-primary-600 hover:-translate-y-0.5 active:translate-y-0",
+        secondary: "bg-secondary text-white shadow-app-sm hover:shadow-md hover:bg-opacity-90 hover:-translate-y-0.5 active:translate-y-0",
+        outline: "border border-gray-200 bg-white hover:bg-gray-50 text-gray-700 hover:shadow-md hover:-translate-y-0.5 active:translate-y-0",
+        ghost: "bg-transparent hover:bg-gray-100 text-gray-700 shadow-none",
+        danger: "bg-error text-white shadow-app-sm hover:shadow-md hover:bg-opacity-90 hover:-translate-y-0.5 active:translate-y-0",
+        success: "bg-success text-white shadow-app-sm hover:shadow-md hover:bg-opacity-90 hover:-translate-y-0.5 active:translate-y-0",
+        timer: "bg-primary text-white shadow-button hover:shadow-lg hover:bg-primary-600 hover:-translate-y-0.5 active:translate-y-0",
+        timerStop: "bg-error text-white shadow-app-sm hover:shadow-md hover:bg-opacity-90 hover:-translate-y-0.5 active:translate-y-0",
+        // Стиль для кнопок таймера, как на скриншоте
+        timerControl: "bg-white text-gray-700 shadow-app-sm hover:shadow-md h-12 w-12 rounded-full flex items-center justify-center",
+        // Стиль для кнопок переключения (День/Неделя)
+        toggle: "bg-gray-100 text-gray-700 hover:bg-gray-200",
+        // Стиль для вкладок категорий
+        category: "py-1 px-3 text-xs rounded-full font-medium",
       },
       // Размеры
       size: {
@@ -33,15 +33,15 @@ const buttonVariants = cva(
         md: "h-10 px-4",
         lg: "h-12 px-6 text-lg",
         xl: "h-14 px-8 text-xl",
-        icon: "h-10 w-10",
+        icon: "p-2 aspect-square",
       },
       // Закругленность углов
       rounded: {
-        default: "rounded-lg",
+        default: "rounded-app",
         full: "rounded-full",
-        sm: "rounded",
-        md: "rounded-xl",
-        lg: "rounded-3xl",
+        sm: "rounded-app-sm",
+        md: "rounded-app",
+        lg: "rounded-app-lg",
         none: "rounded-none",
       },
       // Ширина кнопки
@@ -53,7 +53,7 @@ const buttonVariants = cva(
     defaultVariants: {
       variant: "primary",
       size: "md",
-      rounded: "default",
+      rounded: "full", // По умолчанию теперь кнопки круглые, как на скриншоте
     },
   }
 );

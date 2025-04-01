@@ -392,7 +392,7 @@ function SettingsPage() {
             variant={saveStatus === 'error' ? 'danger' : 'primary'}
             size="xl"
             fullWidth={true}
-            rounded="xl"
+            rounded="lg"
             onClick={saveSettings}
             disabled={isLoading || saveStatus === 'saving'}
             isLoading={saveStatus === 'saving'}

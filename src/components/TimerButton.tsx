@@ -12,13 +12,13 @@ export default function TimerButton({ isRunning, onClick, onFinish }: TimerButto
   const { t } = useTranslation();
   
   return (
-    <div className="flex gap-4 justify-center mt-4">
+    <div className="flex gap-4 justify-center mt-6">
       <Button 
-        variant={isRunning ? "outline" : "buttonStart"}
-        size={isRunning ? "lg" : undefined}
+        variant={isRunning ? "outline" : "timer"}
+        size="lg"
+        rounded="full"
         onClick={onClick}
-        leftIcon={isRunning ? '⏸' : '▶'}
-        className={!isRunning ? "relative w-44" : ""}
+        className={`${isRunning ? "border-gray-200 text-gray-700" : "bg-primary text-white shadow-button"} px-8`}
       >
         {isRunning ? t('timer.pause') : t('timer.start')}
       </Button>
@@ -27,8 +27,9 @@ export default function TimerButton({ isRunning, onClick, onFinish }: TimerButto
         <Button 
           variant="danger"
           size="lg"
+          rounded="full"
           onClick={onFinish}
-          leftIcon="✓"
+          className="px-8"
         >
           {t('timer.stop')}
         </Button>
