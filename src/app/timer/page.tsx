@@ -35,34 +35,36 @@ function TimerApp() {
   };
   
   return (
-    <div className="app-container">
+    <div className="app-container bg-[#F5F7FF]">
       <div className="screen">
         <TopBar 
           showProjectInfo={true}
           showPeriodSelector={false}
           showAddButton={true}
           onAddClick={handleAddEntry}
-          clientName="Client" // Это можно заменить на реальное имя клиента из контекста
+          clientName="Henderson Agency" // Это можно заменить на реальное имя клиента из контекста
         />
         
-        <ProjectSelect value={project} onChange={setProject} />
-        
-        <TimerCircle
-          isRunning={isRunning}
-          startTime={startTime}
-          elapsedTime={elapsedTime}
-          status={timerStatus}
-          timeValue={timerValue}
-          project={projectText}
-        />
-        
-        <TimerButton 
-          isRunning={isRunning} 
-          onClick={toggleTimer}
-          onFinish={finishTask}
-        />
-        
-        <DailyTotal totalTimeToday={dailyTotalMs} />
+        <div className="flex flex-col items-center">
+          <ProjectSelect value={project} onChange={setProject} />
+          
+          <TimerCircle
+            isRunning={isRunning}
+            startTime={startTime}
+            elapsedTime={elapsedTime}
+            status={timerStatus}
+            timeValue={timerValue}
+            project={projectText}
+          />
+          
+          <TimerButton 
+            isRunning={isRunning} 
+            onClick={toggleTimer}
+            onFinish={finishTask}
+          />
+          
+          <DailyTotal totalTimeToday={dailyTotalMs} />
+        </div>
         
         <NavBar />
       </div>
