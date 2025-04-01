@@ -217,10 +217,10 @@ export default function ProjectSelect({ value, onChange }: ProjectSelectProps) {
             onClick={showTimeLimitEditor}
             variant="outline"
             size="sm"
-            rounded="none"
-            className="border border-gray-300 bg-white"
+            rounded="full"
+            className="bg-white text-gray-700 border border-gray-200 shadow-sm hover:bg-gray-50"
           >
-            {t('timer.addLimitation')}
+            + {t('timer.addLimitation')}
           </Button>
         )}
       </div>
@@ -240,7 +240,7 @@ export default function ProjectSelect({ value, onChange }: ProjectSelectProps) {
               type="submit"
               variant="primary"
               size="sm"
-              rounded="lg"
+              rounded="full"
             >
               ✓
             </Button>
@@ -248,7 +248,7 @@ export default function ProjectSelect({ value, onChange }: ProjectSelectProps) {
               type="button"
               variant="outline"
               size="sm"
-              rounded="lg"
+              rounded="full"
               onClick={handleCancelNewType}
             >
               ✕
@@ -256,15 +256,15 @@ export default function ProjectSelect({ value, onChange }: ProjectSelectProps) {
           </div>
         </form>
       ) : isEditingTimeLimit ? (
-        <div className="time-limit-form p-3 bg-white rounded-lg shadow-md">
-          <div className="mb-2 font-medium text-gray-700 text-sm">{t('timer.timeLimit.setLimit')}</div>
-          <div className="flex flex-row gap-2 mb-3 justify-center">
+        <div className="time-limit-form p-4 bg-white rounded-app shadow-card">
+          <div className="mb-3 font-medium text-gray-700">{t('timer.timeLimit.setLimit')}</div>
+          <div className="flex flex-row gap-2 mb-4 justify-center">
             <div className="w-24">
               <label className="block text-xs text-gray-600 mb-1">{t('timer.hours')}</label>
               <select
                 value={timeLimitHours}
                 onChange={(e) => setTimeLimitHours(parseFloat(e.target.value))}
-                className="w-full p-2 border border-gray-300 rounded text-sm"
+                className="w-full p-2 border border-gray-300 rounded-full text-sm"
               >
                 {hourOptions.map(hour => (
                   <option key={hour} value={hour}>{hour}</option>
@@ -276,7 +276,7 @@ export default function ProjectSelect({ value, onChange }: ProjectSelectProps) {
               <select
                 value={timeLimitMinutes}
                 onChange={(e) => setTimeLimitMinutes(parseInt(e.target.value))}
-                className="w-full p-2 border border-gray-300 rounded text-sm"
+                className="w-full p-2 border border-gray-300 rounded-full text-sm"
               >
                 {[0, 15, 30, 45].map(minute => (
                   <option key={minute} value={minute}>{minute}</option>
@@ -284,18 +284,22 @@ export default function ProjectSelect({ value, onChange }: ProjectSelectProps) {
               </select>
             </div>
           </div>
-          <div className="flex justify-center gap-2">
+          <div className="flex justify-center gap-3">
             <Button
-              variant="outline"
+              variant="primary"
               onClick={handleTimeLimitSave}
-              size="sm"
+              size="md"
+              rounded="full"
+              className="shadow-button"
             >
               {t('save')}
             </Button>
             <Button
-              variant="outline"
+              variant="outline" 
               onClick={handleTimeLimitCancel}
-              size="sm"
+              size="md"
+              rounded="full"
+              className="bg-white border-gray-200"
             >
               {t('cancel')}
             </Button>

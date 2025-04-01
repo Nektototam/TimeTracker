@@ -93,7 +93,7 @@ export default function NavBar() {
   };
   
   return (
-    <nav className="fixed bottom-0 left-0 right-0 flex justify-around items-center py-3 px-2 bg-white shadow-lg z-10 rounded-t-xl">
+    <nav className="nav-bar fixed bottom-0 left-0 right-0 flex justify-around items-center py-3 px-2 bg-white shadow-lg z-10 rounded-t-xl">
       <Link
         href="/"
         className={`flex flex-col items-center justify-center p-2 rounded-xl transition-all ${pathname === "/" ? "text-primary" : "text-gray-500"}`}
