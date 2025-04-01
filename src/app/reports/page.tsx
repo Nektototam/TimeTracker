@@ -1,333 +1,217 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import NavBar from '../../components/NavBar';
 import TopBar from '../../components/TopBar';
 import ProtectedRoute from '../../components/ProtectedRoute';
-import ActivityChart from '../../components/ActivityChart';
-import DailyTimelineView from '../../components/DailyTimelineView';
-import { reportService, ReportData, ProjectSummary, PeriodType } from '../../lib/reportService';
 import { useAuth } from '../../contexts/AuthContext';
-import { useLanguage } from '../../contexts/LanguageContext';
-import { useTranslation } from 'react-i18next';
-
-// Вспомогательные функции для форматирования времени
-const formatTime = (milliseconds: number): string => {
-  const totalSeconds = Math.floor(milliseconds / 1000);
-  const hours = Math.floor(totalSeconds / 3600);
-  const minutes = Math.floor((totalSeconds % 3600) / 60);
-  
-  return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
-};
-
-const formatFullTime = (milliseconds: number): string => {
-  const totalSeconds = Math.floor(milliseconds / 1000);
-  const hours = Math.floor(totalSeconds / 3600);
-  const minutes = Math.floor((totalSeconds % 3600) / 60);
-  const seconds = totalSeconds % 60;
-  
-  return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-};
 
 function ReportsApp() {
   const { user } = useAuth();
-  const { translationInstance } = useLanguage();
-  const { t } = translationInstance;
+  const { t } = useTranslation();
   const [isLoading, setIsLoading] = useState(true);
-  const [reportData, setReportData] = useState<ReportData | null>(null);
-  
-  // Состояние для выбранного периода
-  const [periodType, setPeriodType] = useState<PeriodType>('week');
-  const [currentDate, setCurrentDate] = useState(new Date());
-  const [dateRange, setDateRange] = useState('');
-  
-  // Состояние для типа отображения (summary или daily)
   const [viewType, setViewType] = useState<'summary' | 'daily'>('summary');
+  const [period, setPeriod] = useState<'week' | 'month' | 'quarter' | 'custom'>('week');
+  const [dateRange, setDateRange] = useState('31 март 2025 - 7 май 2025');
+  const [totalTime, setTotalTime] = useState('01:28:36');
   
-  // Функция перевода
-  const translate = (key: string): string => {
-    const i18nTranslation = t(`reports.${key}`);
-    
-    // Возвращаем перевод напрямую, так как всё должно быть в файлах локализации
-    return i18nTranslation === `reports.${key}` ? key : i18nTranslation;
-  };
+  const [reportData, setReportData] = useState({
+    dailyActivity: [
+      { date: '31 мар.', duration: '00:00' },
+      { date: '01 апр.', duration: '01:28' },
+    ],
+    projects: [
+      { name: 'Веб-разработка', duration: '01:28', percentage: 100 }
+    ]
+  });
 
-  // Загрузка данных отчета
-  const loadReportData = async () => {
-    if (!user) return;
-    
-    setIsLoading(true);
-    try {
-      let data: ReportData;
-      
-      // Загружаем данные в зависимости от периода
-      switch (periodType) {
-        case 'week':
-          data = await reportService.getWeeklyReport(user.id);
-          break;
-        case 'month':
-          data = await reportService.getMonthlyReport(user.id);
-          break;
-        case 'quarter':
-          data = await reportService.getQuarterlyReport(user.id);
-          break;
-        case 'custom':
-          // Для примера используем месяц, потом можно реализовать выбор произвольного периода
-          const startDate = new Date();
-          startDate.setDate(1);
-          const endDate = new Date();
-          endDate.setMonth(endDate.getMonth() + 1, 0);
-          
-          data = await reportService.getCustomReport(
-            user.id, 
-            startDate.toISOString(), 
-            endDate.toISOString()
-          );
-          break;
-        default:
-          data = await reportService.getWeeklyReport(user.id);
-      }
-      
-      setReportData(data);
-      
-      // Обновляем отображаемый диапазон дат на основе полученных данных
-      if (data) {
-        updateDateRangeFromData(data.startDate, data.endDate);
-      }
-    } catch (error) {
-      console.error('Ошибка загрузки отчета:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-  
-  // Обновляем отчет при изменении периода или пользователя
   useEffect(() => {
-    loadReportData();
-  }, [user, periodType, currentDate]);
-  
-  // Обновляем отображаемый диапазон дат на основе полученных данных
-  const updateDateRangeFromData = (startDate: Date, endDate: Date) => {
-    // Форматтер для дат
-    const formatDate = (date: Date) => {
-      return `${date.getDate()} ${date.toLocaleString('ru-RU', { month: 'short' })} ${date.getFullYear()}`;
-    };
-    
-    setDateRange(`${formatDate(startDate)} - ${formatDate(endDate)}`);
-  };
-  
-  // Перемещение на предыдущий период
-  const goToPrevPeriod = () => {
-    const newDate = new Date(currentDate);
-    
-    switch (periodType) {
-      case 'week':
-        newDate.setDate(newDate.getDate() - 7);
-        break;
-      case 'month':
-        newDate.setMonth(newDate.getMonth() - 1);
-        break;
-      case 'quarter':
-        newDate.setMonth(newDate.getMonth() - 3);
-        break;
-    }
-    
-    setCurrentDate(newDate);
-  };
-  
-  // Перемещение на следующий период
-  const goToNextPeriod = () => {
-    const newDate = new Date(currentDate);
-    
-    switch (periodType) {
-      case 'week':
-        newDate.setDate(newDate.getDate() + 7);
-        break;
-      case 'month':
-        newDate.setMonth(newDate.getMonth() + 1);
-        break;
-      case 'quarter':
-        newDate.setMonth(newDate.getMonth() + 3);
-        break;
-    }
-    
-    setCurrentDate(newDate);
-  };
-  
-  // Подготовка данных для графика активности
-  const getDailyChartData = () => {
-    if (!reportData || !reportData.entries) return [];
-    
-    // Группируем записи по дням
-    const dailyMap = new Map<string, number>();
-    
-    reportData.entries.forEach(entry => {
-      const date = new Date(entry.start_time).toISOString().split('T')[0];
-      const current = dailyMap.get(date) || 0;
-      dailyMap.set(date, current + entry.duration);
-    });
-    
-    // Преобразуем в массив объектов для графика
-    const dailyData = Array.from(dailyMap.entries()).map(([date, duration]) => ({
-      date,
-      total_duration: duration
-    }));
-    
-    // Сортируем по дате
-    return dailyData.sort((a, b) => a.date.localeCompare(b.date));
-  };
-  
-  // Обработчики для действий с отчетом
-  const handlePrint = () => {
-    window.print();
-  };
-  
-  const handleCopy = () => {
-    // Функция копирования данных в буфер обмена
-    if (!reportData) return;
-    
-    let text = `${translate('title')} ${dateRange}\n\n`;
-    
-    text += `${translate('projects')}:\n`;
-    reportData.projectSummaries.forEach(project => {
-      text += `${project.project_name}: ${formatTime(project.total_duration)} (${project.percentage}%)\n`;
-    });
-    
-    text += `\n${translate('totalTime')}: ${formatFullTime(reportData.totalDuration)}`;
-    
-    navigator.clipboard.writeText(text).then(() => {
-      alert(translate('copied'));
-    }).catch(err => {
-      console.error('Ошибка при копировании', err);
-      alert(translate('copyError'));
-    });
-  };
-  
-  const handleExport = () => {
-    // Функция экспорта данных в CSV
-    if (!reportData) return;
-    
-    const rows = [
-      ['Тип проекта', 'Название', 'Длительность (мин)', 'Процент'],
-      ...reportData.projectSummaries.map(project => [
-        project.project_type,
-        project.project_name,
-        (project.total_duration / 60000).toFixed(2),
-        project.percentage.toString()
-      ]),
-      [],
-      ['Всего (часы:минуты:секунды)', formatFullTime(reportData.totalDuration)]
-    ];
-    
-    const csvContent = "data:text/csv;charset=utf-8," + 
-      rows.map(row => row.join(',')).join('\n');
-    
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", `timetracker-report-${new Date().toISOString().split('T')[0]}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
-  
-  const handlePeriodChange = (period: PeriodType) => {
-    setPeriodType(period);
-    // Здесь можно добавить логику загрузки отчетов для выбранного периода
-  };
-  
+    // Имитация загрузки данных
+    setTimeout(() => {
+      setIsLoading(false);
+    }, 1000);
+  }, []);
+
   return (
     <div className="app-container">
       <div className="screen">
         <TopBar 
-          title={t('nav.reports')} 
-          onPeriodChange={handlePeriodChange}
+          title={t('nav.reports')}
+          showPeriodSelector={false}
+          showSettingsButton={true}
         />
         
-        <div className="mt-8 p-6 bg-white rounded-xl shadow-md">
-          <h2 className="text-xl font-semibold text-gray-800 mb-4">
-            {t(`periods.${periodType}`)} {t('nav.reports')}
-          </h2>
+        <div className="mt-6">
+          <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-6">
+            {t('reports.title')}
+          </h1>
+          
+          {/* Переключатель периодов */}
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-4 mb-6">
+            <div className="flex space-x-2 mb-6">
+              {[
+                { id: 'week', label: t('reports.week') },
+                { id: 'month', label: t('reports.month') },
+                { id: 'quarter', label: t('reports.quarter') },
+                { id: 'custom', label: t('reports.custom') }
+              ].map((item) => (
+                <button
+                  key={item.id}
+                  className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                    period === item.id 
+                      ? 'bg-primary text-white' 
+                      : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                  }`}
+                  onClick={() => setPeriod(item.id as any)}
+                >
+                  {item.label}
+                </button>
+              ))}
+            </div>
+            
+            {/* Диапазон дат */}
+            <div className="flex items-center justify-between mb-6">
+              <button className="text-gray-400 hover:text-primary">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+              </button>
+              <div className="text-lg font-semibold text-gray-800 dark:text-gray-200">
+                {dateRange}
+              </div>
+              <button className="text-gray-400 hover:text-primary">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
+            </div>
+            
+            {/* Переключатель вида отчета */}
+            <div className="flex space-x-2">
+              <button
+                className={`flex-1 py-2 rounded-md text-sm font-medium transition-all ${
+                  viewType === 'summary'
+                    ? 'bg-primary text-white'
+                    : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                }`}
+                onClick={() => setViewType('summary')}
+              >
+                {t('reports.summaryReport')}
+              </button>
+              <button
+                className={`flex-1 py-2 rounded-md text-sm font-medium transition-all ${
+                  viewType === 'daily'
+                    ? 'bg-primary text-white'
+                    : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                }`}
+                onClick={() => setViewType('daily')}
+              >
+                {t('reports.dailyReport')}
+              </button>
+            </div>
+          </div>
           
           {isLoading ? (
-            <div className="text-center py-10 text-gray-500">
+            <div className="flex items-center justify-center py-10 text-gray-500">
+              <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-primary" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
               {t('loading')}...
             </div>
           ) : (
-            viewType === 'summary' ? (
-              // Суммарный отчет
-              <>
-                <div className="chart-container slide-up">
-                  <div className="chart-title">{translate('dailyActivity')}</div>
-                  <ActivityChart 
-                    data={getDailyChartData()} 
-                    height={180}
-                    barColor="var(--primary-color)"
-                  />
-                </div>
-                
-                <div className="project-summary">
-                  <h2 className="project-summary-title">{translate('projects')}</h2>
-                  <div className="project-list">
-                    {reportData && reportData.projectSummaries.map((project, index) => (
-                      <div key={project.project_type} className="project-item">
-                        <div className="project-item-info">
-                          <span className="project-item-name">{project.project_name}</span>
-                          <span className="project-item-time">{formatTime(project.total_duration)}</span>
-                        </div>
-                        <div className="project-item-bar">
-                          <div 
-                            className="project-item-progress" 
-                            style={{
-                              width: `${project.percentage}%`, 
-                              backgroundColor: index === 0 ? 'var(--primary-color)' : 
-                                              index === 1 ? 'var(--success-color)' : 
-                                              index === 2 ? 'var(--warning-color)' : 
-                                              'var(--info-color)'
-                            }}
-                          ></div>
-                        </div>
+            <>
+              {/* Активность по дням */}
+              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-4 mb-6">
+                <h2 className="font-semibold text-lg mb-4 text-gray-800 dark:text-gray-200">
+                  {t('reports.activityByDay')}
+                </h2>
+                <div className="h-48 relative">
+                  {/* График */}
+                  <div className="flex h-full items-end justify-between">
+                    {reportData.dailyActivity.map((day, index) => (
+                      <div key={index} className="flex flex-col items-center flex-1">
+                        <div 
+                          className="w-full mx-1 bg-gradient-to-t from-primary-300 to-primary rounded-t-md transition-all hover:from-primary-400 hover:to-primary-600" 
+                          style={{ 
+                            height: day.duration === '00:00' ? '0%' : '80%',
+                            minHeight: day.duration === '00:00' ? '0' : '4px'
+                          }}
+                        ></div>
+                        <div className="mt-2 text-xs text-gray-500 dark:text-gray-400">{day.date}</div>
+                        <div className="text-xs font-medium text-gray-700 dark:text-gray-300">{day.duration}</div>
                       </div>
                     ))}
-                    
-                    {reportData && reportData.projectSummaries.length === 0 && (
-                      <div className="empty-state">{translate('noData')}</div>
-                    )}
+                  </div>
+                  
+                  {/* Горизонтальные линии */}
+                  <div className="absolute left-0 top-0 w-full h-full flex flex-col justify-between pointer-events-none">
+                    {['01:28', '01:06', '00:44', '00:22', '00:00'].map((time, index) => (
+                      <div key={index} className="border-t border-gray-100 dark:border-gray-700 w-full h-0 flex items-center">
+                        <span className="text-xs text-gray-400 dark:text-gray-500 pr-2">{time}</span>
+                      </div>
+                    ))}
                   </div>
                 </div>
-              </>
-            ) : (
-              // Подробный отчет по дням
-              <div className="daily-view slide-up">
-                <DailyTimelineView 
-                  entries={reportData?.entries || []} 
-                  formatTime={formatTime}
-                />
               </div>
-            )
+              
+              {/* Проекты */}
+              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-4 mb-6">
+                <h2 className="font-semibold text-lg mb-4 text-gray-800 dark:text-gray-200">
+                  {t('reports.projects')}
+                </h2>
+                <div className="space-y-4">
+                  {reportData.projects.map((project, index) => (
+                    <div key={index}>
+                      <div className="flex justify-between mb-1">
+                        <div className="font-medium text-gray-700 dark:text-gray-300">{project.name}</div>
+                        <div className="font-bold text-primary">{project.duration}</div>
+                      </div>
+                      <div className="h-2 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
+                        <div 
+                          className="h-full bg-gradient-to-r from-primary to-primary-600 rounded-full"
+                          style={{ width: `${project.percentage}%` }}
+                        ></div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              
+              {/* Общее время за период */}
+              <div className="bg-gray-50 dark:bg-gray-800/50 rounded-xl p-6 mb-6 text-center">
+                <div className="text-sm text-gray-500 dark:text-gray-400 mb-2">
+                  {t('reports.totalForPeriod')}
+                </div>
+                <div className="text-3xl font-bold text-primary">
+                  {totalTime}
+                </div>
+              </div>
+              
+              {/* Кнопки действий */}
+              <div className="flex justify-center space-x-6 mb-24">
+                <button className="flex flex-col items-center text-gray-600 dark:text-gray-300 hover:text-primary dark:hover:text-primary transition-colors">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                  </svg>
+                  <span className="text-sm">{t('reports.print')}</span>
+                </button>
+                <button className="flex flex-col items-center text-gray-600 dark:text-gray-300 hover:text-primary dark:hover:text-primary transition-colors">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2" />
+                  </svg>
+                  <span className="text-sm">{t('reports.copy')}</span>
+                </button>
+                <button className="flex flex-col items-center text-gray-600 dark:text-gray-300 hover:text-primary dark:hover:text-primary transition-colors">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                  </svg>
+                  <span className="text-sm">{t('reports.export')}</span>
+                </button>
+              </div>
+            </>
           )}
-          
-          <div className="report-total slide-up">
-            <div className="report-total-label">{translate('totalTime')}</div>
-            <div className="report-total-value">
-              {reportData ? formatFullTime(reportData.totalDuration) : '00:00:00'}
-            </div>
-          </div>
-          
-          <div className="report-actions slide-up">
-            <button className="report-action" onClick={handlePrint}>
-              <span className="report-action-icon">🖨️</span>
-              <span className="report-action-text">{translate('print')}</span>
-            </button>
-            <button className="report-action" onClick={handleCopy}>
-              <span className="report-action-icon">📋</span>
-              <span className="report-action-text">{translate('copy')}</span>
-            </button>
-            <button className="report-action" onClick={handleExport}>
-              <span className="report-action-icon">📤</span>
-              <span className="report-action-text">{translate('export')}</span>
-            </button>
-          </div>
         </div>
         
         <NavBar />

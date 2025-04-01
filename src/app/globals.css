@@ -616,61 +616,46 @@ h1 {
 
 /* Настройки */
 .settings-section {
-  background-color: white;
+  background: linear-gradient(135deg, var(--primary-50), white);
   border-radius: var(--border-radius);
   padding: 20px;
   box-shadow: var(--shadow);
   margin-bottom: 20px;
+  border: 1px solid var(--primary-100);
+  position: relative;
+  overflow: hidden;
+}
+
+.settings-section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 100px;
+  height: 100px;
+  background: radial-gradient(circle, var(--primary-100) 0%, rgba(255,255,255,0) 70%);
+  opacity: 0.8;
+  z-index: 0;
 }
 
 .settings-section-title {
   font-size: 18px;
   font-weight: 600;
-  color: var(--dark-color);
+  color: var(--primary-dark);
   margin-bottom: 20px;
   position: relative;
-}
-
-.user-profile {
-  display: flex;
-  align-items: center;
-  gap: 15px;
-}
-
-.avatar-placeholder {
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
-  background-color: var(--primary-color);
-  color: white;
-  font-size: 24px;
-  font-weight: bold;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.user-info {
-  flex: 1;
-}
-
-.user-email {
-  font-weight: 600;
-  color: var(--dark-color);
-  margin-bottom: 4px;
-}
-
-.user-id {
-  font-size: 13px;
-  color: var(--secondary-color);
+  padding-bottom: 8px;
+  border-bottom: 2px solid var(--primary-100);
 }
 
 .settings-item {
   padding: 15px 0;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid var(--primary-100);
   display: flex;
   align-items: center;
   justify-content: space-between;
+  position: relative;
+  z-index: 1;
 }
 
 .settings-item:last-child {
@@ -685,17 +670,24 @@ h1 {
 
 .settings-select {
   padding: 8px 12px;
-  border: 1px solid #dddfe6;
-  border-radius: var(--border-radius);
+  border: 1px solid var(--primary-200);
+  border-radius: var(--border-radius-sm);
   font-size: 14px;
   transition: var(--transition);
   min-width: 120px;
+  background-color: white;
+  color: var(--dark-color);
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%237163DE' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  padding-right: 32px;
 }
 
 .settings-select:focus {
   outline: none;
   border-color: var(--primary-color);
-  box-shadow: 0 0 0 3px rgba(94, 114, 228, 0.2);
+  box-shadow: 0 0 0 3px rgba(113, 99, 222, 0.2);
 }
 
 .settings-buttons {
@@ -710,17 +702,26 @@ h1 {
   align-items: center;
   justify-content: center;
   padding: 16px;
-  border-radius: 10px;
-  background-color: #f8f9fe;
-  border: none;
+  border-radius: var(--border-radius-sm);
+  background: linear-gradient(135deg, white, var(--primary-50));
+  border: 1px solid var(--primary-100);
   cursor: pointer;
   transition: var(--transition);
   flex: 1;
   min-width: 100px;
+  position: relative;
+  overflow: hidden;
 }
 
 .settings-button:hover {
-  background-color: #eceef7;
+  background: linear-gradient(135deg, var(--primary-50), var(--primary-100));
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(113, 99, 222, 0.15);
+}
+
+.settings-button:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 6px rgba(113, 99, 222, 0.1);
 }
 
 .settings-button-icon {
@@ -731,20 +732,172 @@ h1 {
 .settings-button-text {
   font-size: 13px;
   font-weight: 500;
-  color: var(--secondary-color);
+  color: var(--dark-color);
 }
 
-/* Добавляем стили для дополнительных элементов */
-.text-secondary {
-  color: var(--secondary-color);
-}
-
-.mb-6 {
-  margin-bottom: 1.5rem;
-}
-
-.text-center {
+.settings-input {
+  padding: 8px 12px;
+  border: 1px solid var(--primary-200);
+  border-radius: var(--border-radius-sm);
+  font-size: 14px;
+  transition: var(--transition);
+  background-color: white;
+  color: var(--dark-color);
+  width: 80px;
   text-align: center;
+}
+
+.settings-input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(113, 99, 222, 0.2);
+}
+
+.settings-save-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin-top: 30px;
+  margin-bottom: 60px;
+  position: relative;
+}
+
+.settings-save-button {
+  padding: 12px 32px;
+  background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+  color: white;
+  border-radius: var(--border-radius-sm);
+  font-size: 16px;
+  font-weight: 600;
+  border: none;
+  box-shadow: var(--button-shadow);
+  cursor: pointer;
+  transition: var(--transition);
+  min-width: 180px;
+  position: relative;
+  overflow: hidden;
+}
+
+.settings-save-button:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--button-shadow-hover);
+}
+
+.settings-save-button:active {
+  transform: translateY(-1px);
+  box-shadow: var(--button-shadow-active);
+}
+
+.settings-save-button.saving {
+  background: linear-gradient(135deg, var(--secondary-color), var(--secondary-color-hover));
+}
+
+.settings-save-button.success {
+  background: linear-gradient(135deg, var(--success-color), var(--success-color-dark));
+}
+
+.settings-save-button.error {
+  background: linear-gradient(135deg, var(--error-color), var(--error-color-dark));
+}
+
+.settings-error-message {
+  color: var(--error-color);
+  font-size: 14px;
+  margin-top: 12px;
+  text-align: center;
+  animation: fadeIn 0.3s ease-in;
+}
+
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 48px;
+  height: 24px;
+  margin: 0;
+}
+
+.toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.switch-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #e2e8f0;
+  transition: .4s;
+  border-radius: 24px;
+}
+
+.switch-slider:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: .4s;
+  border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+input:checked + .switch-slider {
+  background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+}
+
+input:checked + .switch-slider:before {
+  transform: translateX(24px);
+}
+
+/* Добавляем стили для темного режима */
+@media (prefers-color-scheme: dark) {
+  .settings-section {
+    background: linear-gradient(135deg, rgba(113, 99, 222, 0.1), rgba(0, 0, 0, 0));
+    border: 1px solid rgba(113, 99, 222, 0.2);
+  }
+  
+  .settings-section-title {
+    color: var(--primary-300);
+    border-bottom: 2px solid rgba(113, 99, 222, 0.2);
+  }
+  
+  .settings-item {
+    border-bottom: 1px solid rgba(113, 99, 222, 0.2);
+  }
+  
+  .settings-item-label {
+    color: #f8fafc;
+  }
+  
+  .settings-select, .settings-input {
+    background-color: #1e293b;
+    border-color: rgba(113, 99, 222, 0.3);
+    color: #f8fafc;
+  }
+  
+  .settings-button {
+    background: linear-gradient(135deg, #1e293b, rgba(113, 99, 222, 0.1));
+    border: 1px solid rgba(113, 99, 222, 0.3);
+  }
+  
+  .settings-button:hover {
+    background: linear-gradient(135deg, rgba(113, 99, 222, 0.2), rgba(113, 99, 222, 0.1));
+  }
+  
+  .settings-button-text {
+    color: #f8fafc;
+  }
+  
+  .switch-slider {
+    background-color: #334155;
+  }
 }
 
 /* Анимации */
@@ -992,7 +1145,7 @@ h1 {
   box-shadow: 0 0 0 3px rgba(94, 114, 228, 0.2);
 }
 
-/* Селектор типа работы */
+/* Стили для селектора типа работы */
 .select-container {
   margin-bottom: 20px;
   width: 100%;
@@ -1245,103 +1398,6 @@ input:checked + .switch-slider:before {
 .remember-me-text {
   font-size: 14px;
   color: var(--secondary-color);
-}
-
-/* Дополнительные стили для настроек */
-.settings-input {
-  width: 70px;
-  padding: 8px 12px;
-  border: 1px solid #dddfe6;
-  border-radius: var(--border-radius);
-  font-size: 14px;
-  text-align: center;
-  transition: var(--transition);
-}
-
-.settings-input:focus {
-  outline: none;
-  border-color: var(--primary-color);
-  box-shadow: 0 0 0 3px rgba(94, 114, 228, 0.2);
-}
-
-.settings-save-section {
-  position: fixed;
-  bottom: 80px;
-  left: 0;
-  right: 0;
-  text-align: center;
-  background: linear-gradient(to top, white 60%, rgba(255, 255, 255, 0.8) 90%, rgba(255, 255, 255, 0));
-  padding: 20px 0;
-  z-index: 10;
-  margin: 0;
-}
-
-.settings-save-button {
-  background-color: var(--primary-color);
-  color: white;
-  border: none;
-  border-radius: 8px;
-  padding: 12px 24px;
-  font-size: 16px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: var(--transition);
-  box-shadow: 0 4px 6px rgba(94, 114, 228, 0.2);
-  width: calc(100% - 40px);
-  max-width: 300px;
-}
-
-.settings-save-button:hover {
-  background-color: var(--primary-dark);
-  transform: translateY(-2px);
-}
-
-.settings-save-button:active {
-  transform: translateY(0);
-}
-
-/* Дополнительные стили для настроек */
-.settings-loading {
-  display: inline-block;
-  margin-left: 12px;
-  font-size: 14px;
-  color: var(--secondary-color);
-  font-style: italic;
-}
-
-.settings-section-desc {
-  font-size: 13px;
-  color: var(--secondary-color);
-  margin-top: -10px;
-  margin-bottom: 15px;
-  font-style: italic;
-}
-
-.settings-item-desc {
-  font-size: 12px;
-  color: var(--secondary-color);
-  margin-top: 2px;
-  margin-bottom: 4px;
-}
-
-.settings-save-button.saving {
-  background-color: var(--secondary-color);
-  cursor: wait;
-}
-
-.settings-save-button.success {
-  background-color: var(--success-color);
-}
-
-.settings-save-button.error {
-  background-color: var(--error-color);
-}
-
-.settings-error-message {
-  color: var(--error-color);
-  font-size: 14px;
-  margin-top: 10px;
-  text-align: center;
 }
 
 /* Стили для отключенных элементов */
@@ -2142,5 +2198,169 @@ select:disabled {
   
   #timer-gradient-dark stop:nth-child(3) {
     stop-color: #7163DE;
+  }
+}
+
+/* Анимации интерактивных элементов */
+@keyframes buttonPressEffect {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(0.95);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes rippleEffect {
+  to {
+    transform: scale(2);
+    opacity: 0;
+  }
+}
+
+/* Класс для создания эффекта всплеска */
+.ripple-effect {
+  position: relative;
+  overflow: hidden;
+  transform: translate3d(0, 0, 0);
+}
+
+.ripple-effect::after {
+  content: "";
+  display: block;
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  background-image: radial-gradient(circle, #fff 10%, transparent 10.01%);
+  background-repeat: no-repeat;
+  background-position: 50%;
+  transform: scale(10, 10);
+  opacity: 0;
+  transition: transform .5s, opacity 1s;
+}
+
+.ripple-effect:active::after {
+  transform: scale(0, 0);
+  opacity: .3;
+  transition: 0s;
+}
+
+/* Применение анимаций к конкретным элементам */
+.timer-start-button:active, 
+.timer-stop-button:active,
+.save-button:active,
+.cancel-button:active,
+.project-limit-badge:active,
+.add-button:active,
+.settings-button:active {
+  animation: buttonPressEffect 0.3s ease;
+}
+
+.timer-start-button,
+.timer-stop-button,
+.save-button,
+.add-button {
+  position: relative;
+  overflow: hidden;
+}
+
+.timer-start-button::after,
+.timer-stop-button::after,
+.save-button::after,
+.add-button::after {
+  content: '';
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: inherit;
+  opacity: 0;
+  transform: scale(0);
+  transition: all 0.3s;
+}
+
+.timer-start-button:active::after,
+.timer-stop-button:active::after,
+.save-button:active::after,
+.add-button:active::after {
+  opacity: 1;
+  transform: scale(1);
+  transition: 0s;
+}
+
+/* Эффект нажатия для круговых кнопок */
+.project-limit-action:active,
+.settings-button:active {
+  transform: scale(0.85);
+}
+
+/* Плавный переход для всех элементов управления */
+button, 
+select, 
+input,
+.nav-item,
+.period-button,
+.project-limit-badge,
+.custom-select {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Эффект при фокусе на элементах */
+button:focus-visible,
+select:focus-visible,
+input:focus-visible {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+}
+
+/* Эффект при наведении на селектор */
+.custom-select:hover {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(113, 99, 222, 0.1);
+}
+
+/* Стили для активного состояния кнопки навигации */
+.nav-item.active {
+  position: relative;
+}
+
+.nav-item.active::before {
+  content: '';
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  background-color: var(--primary-color);
+  border-radius: 50%;
+  bottom: -2px;
+  left: 50%;
+  transform: translateX(-50%);
+  animation: bounceIn 0.5s;
+}
+
+/* Стили для кнопок в темном режиме */
+@media (prefers-color-scheme: dark) {
+  .timer-start-button::after,
+  .timer-stop-button::after,
+  .save-button::after,
+  .add-button::after {
+    background: rgba(255, 255, 255, 0.15);
+  }
+  
+  button:focus-visible,
+  select:focus-visible,
+  input:focus-visible {
+    outline-color: var(--primary-color-light);
+  }
+  
+  .ripple-effect::after {
+    background-image: radial-gradient(circle, #4A5568 10%, transparent 10.01%);
   }
 }

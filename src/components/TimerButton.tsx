@@ -14,7 +14,7 @@ export default function TimerButton({ isRunning, onClick, onFinish }: TimerButto
     <div className="timer-buttons">
       <button 
         onClick={onClick}
-        className={isRunning ? "timer-stop-button" : "timer-start-button"}
+        className={`ripple-effect ${isRunning ? "timer-stop-button" : "timer-start-button"}`}
       >
         {isRunning ? t('timer.pause') : t('timer.start')}
       </button>
@@ -22,7 +22,7 @@ export default function TimerButton({ isRunning, onClick, onFinish }: TimerButto
       {isRunning && onFinish && (
         <button 
           onClick={onFinish}
-          className="timer-stop-button"
+          className="ripple-effect timer-stop-button"
         >
           {t('timer.stop')}
         </button>

@@ -83,7 +83,7 @@ export default function TopBar({
         {showAddButton && (
           <button
             onClick={onAddClick}
-            className="add-button"
+            className="add-button ripple-effect"
           >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M12 6L12 18M18 12L6 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
@@ -93,7 +93,7 @@ export default function TopBar({
         
         {showSettingsButton && (
           <Link href="/settings" className="relative">
-            <button className="settings-button">
+            <button className="settings-button ripple-effect">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M12 15C13.6569 15 15 13.6569 15 12C15 10.3431 13.6569 9 12 9C10.3431 9 9 10.3431 9 12C9 13.6569 10.3431 15 12 15Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                 <path d="M12.0001 20.99V21M18.3601 18.36L18.3601 18.3601M21.0001 12H20.9901M18.3601 5.64L18.3601 5.6401M12.0001 3.01V3M5.6401 5.64L5.6401 5.6401M3.0101 12H3.0001M5.6401 18.36L5.6401 18.3601" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>

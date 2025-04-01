@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabase';
 import { CustomProjectType } from '../types/supabase';
 import { useLanguage } from '../contexts/LanguageContext';
 import { Button } from './ui/Button';
+import { useTranslation } from 'react-i18next';
 
 interface WorkTypeManagerProps {
   userId: string;
@@ -11,40 +12,19 @@ interface WorkTypeManagerProps {
 
 export default function WorkTypeManager({ userId }: WorkTypeManagerProps) {
   const { projectTypes, isLoading, error, addProjectType, updateProjectType, deleteProjectType } = useCustomProjectTypes(userId);
-  const { translationInstance } = useLanguage();
-  const { t } = translationInstance;
+  const { t } = useTranslation();
   
   const [newTypeName, setNewTypeName] = useState('');
   const [editMode, setEditMode] = useState<{id: string, name: string} | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
   
-  // Функция перевода
-  const translate = (key: string): string => {
-    const i18nTranslation = t(`settings.${key}`);
-    
-    // Если перевод вернул тот же ключ (не найден), используем фиксированные значения
-    if (i18nTranslation === `settings.${key}`) {
-      const localTranslations: Record<string, string> = {
-        workTypes: 'Work Types',
-        addWorkType: 'Add Work Type',
-        workTypesDesc: 'Manage your work types and projects',
-        standardTypes: 'Standard Types',
-        customTypes: 'Custom Types',
-        standard: 'Standard'
-      };
-      return localTranslations[key] || key;
-    }
-    
-    return i18nTranslation;
-  };
-  
   // Стандартные типы работ
   const standardTypes = [
-    { id: 'development', name: 'Веб-разработка' },
-    { id: 'design', name: 'Дизайн' },
-    { id: 'marketing', name: 'Маркетинг' },
-    { id: 'meeting', name: 'Совещание' },
-    { id: 'other', name: 'Другое' },
+    { id: 'development', name: t('workTypes.development', 'Веб-разработка') },
+    { id: 'design', name: t('workTypes.design', 'Дизайн') },
+    { id: 'marketing', name: t('workTypes.marketing', 'Маркетинг') },
+    { id: 'meeting', name: t('workTypes.meeting', 'Совещание') },
+    { id: 'other', name: t('workTypes.other', 'Другое') },
   ];
 
   const handleAddType = async (e: React.FormEvent) => {
@@ -77,7 +57,7 @@ export default function WorkTypeManager({ userId }: WorkTypeManagerProps) {
       if (error) throw new Error(error.message);
       
       if (data && data.length > 0) {
-        setDeleteError('Нельзя удалить тип, который используется в записях. Сначала измените тип в записях.');
+        setDeleteError(t('settings.cannotDeleteUsedType', 'Нельзя удалить тип, который используется в записях. Сначала измените тип в записях.'));
         return;
       }
       
@@ -85,7 +65,7 @@ export default function WorkTypeManager({ userId }: WorkTypeManagerProps) {
       await deleteProjectType(id);
     } catch (err) {
       console.error('Ошибка при удалении типа работы:', err);
-      setDeleteError('Произошла ошибка при удалении. Попробуйте еще раз.');
+      setDeleteError(t('settings.deleteError', 'Произошла ошибка при удалении. Попробуйте еще раз.'));
     }
   };
 
@@ -98,45 +78,74 @@ export default function WorkTypeManager({ userId }: WorkTypeManagerProps) {
   };
 
   if (isLoading) {
-    return <div className="loading">Загрузка типов работ...</div>;
+    return (
+      <div className="flex items-center justify-center py-10 text-gray-500">
+        <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-primary" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        {t('loading')}...
+      </div>
+    );
   }
 
   if (error) {
-    return <div className="error">Ошибка загрузки типов работ: {error.message}</div>;
+    return (
+      <div className="p-4 bg-error-50 border border-error-100 text-error rounded-lg mt-4">
+        <p>{t('errorLoadingData')}: {error.message}</p>
+      </div>
+    );
   }
 
   return (
-    <div className="work-type-manager">
-      <div className="standard-types">
-        <h3>{translate('standardTypes')}</h3>
-        <ul className="type-list">
+    <div className="work-type-manager mt-4">
+      <div className="mb-6">
+        <h4 className="text-lg font-medium text-gray-700 dark:text-gray-200 mb-3">
+          {t('settings.standardTypes')}
+        </h4>
+        <div className="space-y-2">
           {standardTypes.map(type => (
-            <li key={type.id} className="type-item">
-              <span className="type-name">{type.name}</span>
-              <span className="type-badge standard">{translate('standard')}</span>
-            </li>
+            <div 
+              key={type.id} 
+              className="flex justify-between items-center p-3 bg-gradient-to-r from-primary-50 to-white dark:from-primary-600/10 dark:to-gray-800 rounded-lg shadow-sm border border-primary-100 dark:border-primary-600/20"
+            >
+              <span className="font-medium text-gray-800 dark:text-gray-200">{type.name}</span>
+              <span className="px-2 py-1 text-xs font-medium text-primary-600 dark:text-primary-300 bg-primary-100 dark:bg-primary-900/40 rounded-md">
+                {t('settings.standard')}
+              </span>
+            </div>
           ))}
-        </ul>
+        </div>
       </div>
       
-      <div className="custom-types">
-        <h3>{translate('customTypes')}</h3>
+      <div className="mb-6">
+        <h4 className="text-lg font-medium text-gray-700 dark:text-gray-200 mb-3">
+          {t('settings.customTypes')}
+        </h4>
+        
         {projectTypes.length === 0 ? (
-          <p className="no-types">У вас пока нет пользовательских типов работ</p>
+          <div className="p-4 text-center bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-gray-100 dark:border-gray-700">
+            <p className="text-gray-500 dark:text-gray-400 italic">
+              {t('settings.noCustomTypes', 'У вас пока нет пользовательских типов работ')}
+            </p>
+          </div>
         ) : (
-          <ul className="type-list">
+          <div className="space-y-2">
             {projectTypes.map(type => (
-              <li key={type.id} className="type-item">
+              <div 
+                key={type.id} 
+                className="p-3 bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 transition-all hover:shadow-md"
+              >
                 {editMode && editMode.id === type.id ? (
-                  <form onSubmit={handleUpdateType} className="edit-form">
+                  <form onSubmit={handleUpdateType} className="flex items-center gap-2">
                     <input
                       type="text"
                       value={editMode.name}
                       onChange={(e) => setEditMode({ ...editMode, name: e.target.value })}
-                      className="type-input"
+                      className="flex-1 p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                       autoFocus
                     />
-                    <div className="type-actions">
+                    <div className="flex gap-2">
                       <Button 
                         variant="success" 
                         size="sm" 
@@ -156,9 +165,9 @@ export default function WorkTypeManager({ userId }: WorkTypeManagerProps) {
                     </div>
                   </form>
                 ) : (
-                  <>
-                    <span className="type-name">{type.name}</span>
-                    <div className="type-actions">
+                  <div className="flex justify-between items-center">
+                    <span className="font-medium text-gray-800 dark:text-gray-200">{type.name}</span>
+                    <div className="flex gap-2">
                       <Button 
                         variant="secondary"
                         size="sm"
@@ -176,24 +185,26 @@ export default function WorkTypeManager({ userId }: WorkTypeManagerProps) {
                         {t('delete')}
                       </Button>
                     </div>
-                  </>
+                  </div>
                 )}
-              </li>
+              </div>
             ))}
-          </ul>
+          </div>
         )}
         
         {deleteError && (
-          <div className="error-message">{deleteError}</div>
+          <div className="mt-4 p-3 bg-error-50 border border-error-100 text-error rounded-lg animate-fadeIn">
+            {deleteError}
+          </div>
         )}
         
-        <form onSubmit={handleAddType} className="add-type-form">
+        <form onSubmit={handleAddType} className="mt-4 flex gap-2">
           <input
             type="text"
             value={newTypeName}
             onChange={(e) => setNewTypeName(e.target.value)}
-            placeholder={translate('addWorkType')}
-            className="type-input"
+            placeholder={t('settings.addWorkType', 'Добавить тип работы')}
+            className="flex-1 p-2.5 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
           />
           <Button 
             variant="primary" 
@@ -206,136 +217,6 @@ export default function WorkTypeManager({ userId }: WorkTypeManagerProps) {
           </Button>
         </form>
       </div>
-      
-      <style jsx>{`
-        .work-type-manager {
-          margin-top: 15px;
-        }
-        
-        .standard-types, .custom-types {
-          margin-bottom: 24px;
-        }
-        
-        h3 {
-          font-size: 16px;
-          margin-bottom: 10px;
-          color: #444;
-        }
-        
-        .type-list {
-          list-style: none;
-          padding: 0;
-        }
-        
-        .type-item {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          padding: 10px 15px;
-          background-color: #f8f9fe;
-          border-radius: 8px;
-          margin-bottom: 8px;
-        }
-        
-        .type-name {
-          font-weight: 500;
-        }
-        
-        .type-badge {
-          font-size: 12px;
-          padding: 2px 8px;
-          border-radius: 4px;
-          background-color: #e1e5f7;
-          color: #5266c4;
-        }
-        
-        .type-actions {
-          display: flex;
-          gap: 8px;
-        }
-        
-        .btn-edit, .btn-delete, .btn-save, .btn-cancel, .btn-add {
-          padding: 5px 10px;
-          border-radius: 6px;
-          border: none;
-          font-size: 13px;
-          cursor: pointer;
-          transition: background-color 0.2s;
-        }
-        
-        .btn-edit {
-          background-color: #e1e5f7;
-          color: #5266c4;
-        }
-        
-        .btn-delete {
-          background-color: #ffe5e5;
-          color: #e54d4d;
-        }
-        
-        .btn-save {
-          background-color: #5266c4;
-          color: white;
-        }
-        
-        .btn-cancel {
-          background-color: #f0f0f0;
-          color: #666;
-        }
-        
-        .btn-add {
-          background-color: #5266c4;
-          color: white;
-          padding: 8px 16px;
-          font-size: 14px;
-        }
-        
-        .btn-add:disabled {
-          opacity: 0.5;
-          cursor: not-allowed;
-        }
-        
-        .type-input {
-          padding: 8px 12px;
-          border-radius: 6px;
-          border: 1px solid #ddd;
-          flex-grow: 1;
-          font-size: 14px;
-        }
-        
-        .add-type-form {
-          display: flex;
-          gap: 10px;
-          margin-top: 15px;
-        }
-        
-        .edit-form {
-          display: flex;
-          width: 100%;
-          justify-content: space-between;
-          gap: 10px;
-        }
-        
-        .no-types {
-          color: #888;
-          font-style: italic;
-        }
-        
-        .error-message {
-          color: #e54d4d;
-          margin: 10px 0;
-          padding: 8px 12px;
-          background-color: #ffe5e5;
-          border-radius: 6px;
-          font-size: 14px;
-        }
-        
-        .loading, .error {
-          padding: 20px 0;
-          color: #666;
-          font-style: italic;
-        }
-      `}</style>
     </div>
   );
 } 
