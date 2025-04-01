@@ -2,9 +2,11 @@
 
 import React from 'react';
 import NavBar from '../../components/NavBar';
+import TopBar from '../../components/TopBar';
 import ProjectSelect from '../../components/ProjectSelect';
 import TimerCircle from '../../components/TimerCircle';
 import TimerButton from '../../components/TimerButton';
+import DailyTotal from '../../components/DailyTotal';
 import { useTimer } from '../../contexts/TimerContext';
 import ProtectedRoute from '../../components/ProtectedRoute';
 import { useTranslation } from 'react-i18next';
@@ -19,17 +21,19 @@ function TimerApp() {
     elapsedTime, 
     timerStatus, 
     timerValue, 
-    dailyTotal, 
+    dailyTotalMs, 
     setProject, 
     toggleTimer,
-    finishTask,
-    formatTime
+    finishTask
   } = useTimer();
   
   return (
     <div className="app-container">
       <div className="screen">
-        <h1 className="text-center text-[#32325d] font-bold text-2xl mb-4">TimeTracker</h1>
+        <TopBar 
+          title={t('nav.timer')} 
+          showPeriodSelector={false}
+        />
         
         <ProjectSelect value={project} onChange={setProject} />
         
@@ -48,10 +52,7 @@ function TimerApp() {
           onFinish={finishTask}
         />
         
-        <div className="daily-total">
-          <div className="daily-total-label">{t('timer.dailyTotal')}</div>
-          <div className="daily-total-value">{dailyTotal}</div>
-        </div>
+        <DailyTotal totalTimeToday={dailyTotalMs} />
         
         <NavBar />
       </div>

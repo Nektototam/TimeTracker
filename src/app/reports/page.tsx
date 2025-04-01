@@ -2,12 +2,14 @@
 
 import React, { useState, useEffect } from 'react';
 import NavBar from '../../components/NavBar';
+import TopBar from '../../components/TopBar';
 import ProtectedRoute from '../../components/ProtectedRoute';
 import ActivityChart from '../../components/ActivityChart';
 import DailyTimelineView from '../../components/DailyTimelineView';
 import { reportService, ReportData, ProjectSummary, PeriodType } from '../../lib/reportService';
 import { useAuth } from '../../contexts/AuthContext';
 import { useLanguage } from '../../contexts/LanguageContext';
+import { useTranslation } from 'react-i18next';
 
 // Вспомогательные функции для форматирования времени
 const formatTime = (milliseconds: number): string => {
@@ -27,7 +29,7 @@ const formatFullTime = (milliseconds: number): string => {
   return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
 };
 
-function ReportsPage() {
+function ReportsApp() {
   const { user } = useAuth();
   const { translationInstance } = useLanguage();
   const { t } = translationInstance;
@@ -229,137 +231,103 @@ function ReportsPage() {
     document.body.removeChild(link);
   };
   
+  const handlePeriodChange = (period: PeriodType) => {
+    setPeriodType(period);
+    // Здесь можно добавить логику загрузки отчетов для выбранного периода
+  };
+  
   return (
     <div className="app-container">
-      <div id="report-screen" className="screen">
-        <div className="report-header">
-          <h1>{translate('title')}</h1>
-        </div>
+      <div className="screen">
+        <TopBar 
+          title={t('nav.reports')} 
+          onPeriodChange={handlePeriodChange}
+        />
         
-        <div className="period-tabs slide-up">
-          <button 
-            className={`period-tab ${periodType === 'week' ? 'active' : ''}`}
-            onClick={() => setPeriodType('week')}
-          >
-            {translate('weekly')}
-          </button>
-          <button 
-            className={`period-tab ${periodType === 'month' ? 'active' : ''}`}
-            onClick={() => setPeriodType('month')}
-          >
-            {translate('monthly')}
-          </button>
-          <button 
-            className={`period-tab ${periodType === 'quarter' ? 'active' : ''}`}
-            onClick={() => setPeriodType('quarter')}
-          >
-            {translate('quarterly')}
-          </button>
-          <button 
-            className={`period-tab ${periodType === 'custom' ? 'active' : ''}`}
-            onClick={() => setPeriodType('custom')}
-          >
-            {translate('custom')}
-          </button>
-        </div>
-        
-        <div className="date-selector slide-up">
-          <button className="date-nav prev" onClick={goToPrevPeriod}>◀</button>
-          <span className="date-range">{dateRange}</span>
-          <button className="date-nav next" onClick={goToNextPeriod}>▶</button>
-        </div>
-        
-        <div className="view-type-selector slide-up">
-          <button 
-            className={`view-type-button ${viewType === 'summary' ? 'active' : ''}`}
-            onClick={() => setViewType('summary')}
-          >
-            {translate('summary')}
-          </button>
-          <button 
-            className={`view-type-button ${viewType === 'daily' ? 'active' : ''}`}
-            onClick={() => setViewType('daily')}
-          >
-            {translate('daily')}
-          </button>
-        </div>
-        
-        {isLoading ? (
-          <div className="loading-state">{translate('loading')}</div>
-        ) : (
-          viewType === 'summary' ? (
-            // Суммарный отчет
-            <>
-              <div className="chart-container slide-up">
-                <div className="chart-title">{translate('dailyActivity')}</div>
-                <ActivityChart 
-                  data={getDailyChartData()} 
-                  height={180}
-                  barColor="var(--primary-color)"
+        <div className="mt-8 p-6 bg-white rounded-xl shadow-md">
+          <h2 className="text-xl font-semibold text-gray-800 mb-4">
+            {t(`periods.${periodType}`)} {t('nav.reports')}
+          </h2>
+          
+          {isLoading ? (
+            <div className="text-center py-10 text-gray-500">
+              {t('loading')}...
+            </div>
+          ) : (
+            viewType === 'summary' ? (
+              // Суммарный отчет
+              <>
+                <div className="chart-container slide-up">
+                  <div className="chart-title">{translate('dailyActivity')}</div>
+                  <ActivityChart 
+                    data={getDailyChartData()} 
+                    height={180}
+                    barColor="var(--primary-color)"
+                  />
+                </div>
+                
+                <div className="project-summary">
+                  <h2 className="project-summary-title">{translate('projects')}</h2>
+                  <div className="project-list">
+                    {reportData && reportData.projectSummaries.map((project, index) => (
+                      <div key={project.project_type} className="project-item">
+                        <div className="project-item-info">
+                          <span className="project-item-name">{project.project_name}</span>
+                          <span className="project-item-time">{formatTime(project.total_duration)}</span>
+                        </div>
+                        <div className="project-item-bar">
+                          <div 
+                            className="project-item-progress" 
+                            style={{
+                              width: `${project.percentage}%`, 
+                              backgroundColor: index === 0 ? 'var(--primary-color)' : 
+                                              index === 1 ? 'var(--success-color)' : 
+                                              index === 2 ? 'var(--warning-color)' : 
+                                              'var(--info-color)'
+                            }}
+                          ></div>
+                        </div>
+                      </div>
+                    ))}
+                    
+                    {reportData && reportData.projectSummaries.length === 0 && (
+                      <div className="empty-state">{translate('noData')}</div>
+                    )}
+                  </div>
+                </div>
+              </>
+            ) : (
+              // Подробный отчет по дням
+              <div className="daily-view slide-up">
+                <DailyTimelineView 
+                  entries={reportData?.entries || []} 
+                  formatTime={formatTime}
                 />
               </div>
-              
-              <div className="project-summary">
-                <h2 className="project-summary-title">{translate('projects')}</h2>
-                <div className="project-list">
-                  {reportData && reportData.projectSummaries.map((project, index) => (
-                    <div key={project.project_type} className="project-item">
-                      <div className="project-item-info">
-                        <span className="project-item-name">{project.project_name}</span>
-                        <span className="project-item-time">{formatTime(project.total_duration)}</span>
-                      </div>
-                      <div className="project-item-bar">
-                        <div 
-                          className="project-item-progress" 
-                          style={{
-                            width: `${project.percentage}%`, 
-                            backgroundColor: index === 0 ? 'var(--primary-color)' : 
-                                            index === 1 ? 'var(--success-color)' : 
-                                            index === 2 ? 'var(--warning-color)' : 
-                                            'var(--info-color)'
-                          }}
-                        ></div>
-                      </div>
-                    </div>
-                  ))}
-                  
-                  {reportData && reportData.projectSummaries.length === 0 && (
-                    <div className="empty-state">{translate('noData')}</div>
-                  )}
-                </div>
-              </div>
-            </>
-          ) : (
-            // Подробный отчет по дням
-            <div className="daily-view slide-up">
-              <DailyTimelineView 
-                entries={reportData?.entries || []} 
-                formatTime={formatTime}
-              />
+            )
+          )}
+          
+          <div className="report-total slide-up">
+            <div className="report-total-label">{translate('totalTime')}</div>
+            <div className="report-total-value">
+              {reportData ? formatFullTime(reportData.totalDuration) : '00:00:00'}
             </div>
-          )
-        )}
-        
-        <div className="report-total slide-up">
-          <div className="report-total-label">{translate('totalTime')}</div>
-          <div className="report-total-value">
-            {reportData ? formatFullTime(reportData.totalDuration) : '00:00:00'}
           </div>
-        </div>
-        
-        <div className="report-actions slide-up">
-          <button className="report-action" onClick={handlePrint}>
-            <span className="report-action-icon">🖨️</span>
-            <span className="report-action-text">{translate('print')}</span>
-          </button>
-          <button className="report-action" onClick={handleCopy}>
-            <span className="report-action-icon">📋</span>
-            <span className="report-action-text">{translate('copy')}</span>
-          </button>
-          <button className="report-action" onClick={handleExport}>
-            <span className="report-action-icon">📤</span>
-            <span className="report-action-text">{translate('export')}</span>
-          </button>
+          
+          <div className="report-actions slide-up">
+            <button className="report-action" onClick={handlePrint}>
+              <span className="report-action-icon">🖨️</span>
+              <span className="report-action-text">{translate('print')}</span>
+            </button>
+            <button className="report-action" onClick={handleCopy}>
+              <span className="report-action-icon">📋</span>
+              <span className="report-action-text">{translate('copy')}</span>
+            </button>
+            <button className="report-action" onClick={handleExport}>
+              <span className="report-action-icon">📤</span>
+              <span className="report-action-text">{translate('export')}</span>
+            </button>
+          </div>
         </div>
         
         <NavBar />
@@ -371,7 +339,7 @@ function ReportsPage() {
 export default function Reports() {
   return (
     <ProtectedRoute>
-      <ReportsPage />
+      <ReportsApp />
     </ProtectedRoute>
   );
 } 

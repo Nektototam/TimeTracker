@@ -17,6 +17,7 @@ interface TimerContextType {
   timerStatus: string;
   timerValue: string;
   dailyTotal: string;
+  dailyTotalMs: number;
   timeLimit: number | null;
   // Методы
   setProject: (project: string) => void;
@@ -45,6 +46,7 @@ export function TimerProvider({ children }: { children: React.ReactNode }) {
   const [timerValue, setTimerValue] = useState('00:00:00');
   const [projectText, setProjectText] = useState('Веб-разработка'); // Временное значение
   const [dailyTotal, setDailyTotal] = useState('00:00:00');
+  const [dailyTotalMs, setDailyTotalMs] = useState(0);
   const [lastHourMark, setLastHourMark] = useState(0);
   const [last15MinMark, setLast15MinMark] = useState(0);
   const [timeLimit, setTimeLimit] = useState<number | null>(null);
@@ -133,6 +135,7 @@ export function TimerProvider({ children }: { children: React.ReactNode }) {
       
       console.log(`Время завершенных задач: ${formatTime(totalMilliseconds)}`);
       setDailyTotal(formatTime(totalMilliseconds));
+      setDailyTotalMs(totalMilliseconds);
     } catch (err) {
       console.error('Ошибка при загрузке времени завершенных задач:', err);
     }
@@ -404,6 +407,7 @@ export function TimerProvider({ children }: { children: React.ReactNode }) {
         timerStatus,
         timerValue,
         dailyTotal,
+        dailyTotalMs,
         timeLimit,
         setProject,
         setProjectText,

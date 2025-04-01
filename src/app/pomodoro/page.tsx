@@ -2,66 +2,52 @@
 
 import React, { useState } from 'react';
 import NavBar from '../../components/NavBar';
-import PomodoroTimer from '../../components/PomodoroTimer';
-import ProtectedRoute from '../../components/ProtectedRoute';
+import TopBar from '../../components/TopBar';
 import PomodoroCycle from '../../components/PomodoroCycle';
+import ProtectedRoute from '../../components/ProtectedRoute';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { Button } from '../../components/ui/Button';
+import { useTranslation } from 'react-i18next';
 import './pomodoro.css';
 
-export default function Pomodoro() {
+function PomodoroApp() {
   const { translationInstance } = useLanguage();
   const { t } = translationInstance;
+  const { i18n } = useTranslation();
   
   const [settings, setSettings] = useState({
     workDuration: 25,
     restDuration: 5,
-    cycles: 4
+    cycles: 4,
+    autostart: true,
   });
   
-  const [showSettings, setShowSettings] = useState(false);
+  const [showSettingsPanel, setShowSettingsPanel] = useState(false);
   
   const handleSettingsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setSettings({
-      ...settings,
-      [name]: parseInt(value, 10)
-    });
+    const { name, value, type, checked } = e.target;
+    
+    setSettings(prev => ({
+      ...prev,
+      [name]: type === 'checkbox' ? checked : Number(value)
+    }));
   };
   
   const toggleSettings = () => {
-    setShowSettings(!showSettings);
+    setShowSettingsPanel(!showSettingsPanel);
   };
   
-  // Локальный перевод на случай, если контекст i18n не загрузился
-  const translate = (key: string): string => {
-    const i18nTranslation = t(`pomodoro.${key}`);
-    
-    // Если перевод вернул тот же ключ (не найден), используем фиксированные значения
-    if (i18nTranslation === `pomodoro.${key}`) {
-      const localTranslations: Record<string, string> = {
-        title: 'Pomodoro Timer',
-        settings: 'Настройки',
-        workDuration: 'Время работы (мин)',
-        restDuration: 'Время отдыха (мин)',
-        cycles: 'Количество циклов',
-        save: 'Сохранить',
-        description: 'Работайте с полной концентрацией, затем делайте перерывы для отдыха.'
-      };
-      return localTranslations[key] || key;
-    }
-    
-    return i18nTranslation;
-  };
-  
+  const translate = (key: string) => t(`pomodoro.${key}`);
+
   return (
-    <ProtectedRoute>
-      <div className="app-container">
-        <div id="pomodoro-screen" className="screen">
-          <div className="stats-header">
-            <h1>{translate('title')}</h1>
-          </div>
-          
+    <div className="app-container">
+      <div className="screen">
+        <TopBar 
+          title={i18n.t('nav.pomodoro')} 
+          showPeriodSelector={false}
+        />
+        
+        <div className="mt-8 text-center">
           <div className="text-center slide-up">
             <p className="text-secondary mb-6">{translate('description')}</p>
           </div>
@@ -79,15 +65,15 @@ export default function Pomodoro() {
             size="md"
             className="w-full max-w-xs mx-auto mt-4"
             onClick={toggleSettings}
-            rightIcon={showSettings ? '▲' : '▼'}
+            rightIcon={showSettingsPanel ? '▲' : '▼'}
           >
             {translate('settings')}
           </Button>
           
-          {showSettings && (
-            <div className="settings-panel">
-              <div className="setting-item">
-                <label htmlFor="workDuration">{translate('workDuration')}</label>
+          {showSettingsPanel && (
+            <div className="settings-panel mt-6 p-6 bg-white rounded-xl shadow-md">
+              <div className="setting-item mb-4">
+                <label htmlFor="workDuration" className="block mb-2 text-gray-700">{translate('workDuration')}</label>
                 <input
                   type="number"
                   id="workDuration"
@@ -96,11 +82,12 @@ export default function Pomodoro() {
                   max="60"
                   value={settings.workDuration}
                   onChange={handleSettingsChange}
+                  className="w-full p-2 border border-gray-300 rounded-full"
                 />
               </div>
               
-              <div className="setting-item">
-                <label htmlFor="restDuration">{translate('restDuration')}</label>
+              <div className="setting-item mb-4">
+                <label htmlFor="restDuration" className="block mb-2 text-gray-700">{translate('restDuration')}</label>
                 <input
                   type="number"
                   id="restDuration"
@@ -109,11 +96,12 @@ export default function Pomodoro() {
                   max="30"
                   value={settings.restDuration}
                   onChange={handleSettingsChange}
+                  className="w-full p-2 border border-gray-300 rounded-full"
                 />
               </div>
               
-              <div className="setting-item">
-                <label htmlFor="cycles">{translate('cycles')}</label>
+              <div className="setting-item mb-4">
+                <label htmlFor="cycles" className="block mb-2 text-gray-700">{translate('cycles')}</label>
                 <input
                   type="number"
                   id="cycles"
@@ -122,14 +110,23 @@ export default function Pomodoro() {
                   max="10"
                   value={settings.cycles}
                   onChange={handleSettingsChange}
+                  className="w-full p-2 border border-gray-300 rounded-full"
                 />
               </div>
             </div>
           )}
-          
-          <NavBar />
         </div>
+        
+        <NavBar />
       </div>
+    </div>
+  );
+}
+
+export default function Pomodoro() {
+  return (
+    <ProtectedRoute>
+      <PomodoroApp />
     </ProtectedRoute>
   );
 } 
