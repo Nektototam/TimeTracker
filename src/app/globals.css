@@ -1772,10 +1772,11 @@ select:disabled {
   border-radius: 12px;
   cursor: pointer;
   transition: all 0.2s;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none'%3E%3Cpath d='M6 9L12 15L18 9' stroke='%237163DE' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 12px center;
-  background-size: 16px;
+  background-size: 18px;
+  padding-right: 45px;
 }
 
 .custom-select:focus {
@@ -2013,4 +2014,133 @@ select:disabled {
 .card:hover {
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
   transform: translateY(-2px);
+}
+
+/* Медиа-запрос для темной темы */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --primary-color: #9B90F2;
+    --primary-color-light: #BEB4FF;
+    --primary-color-hover: #7163DE;
+    --primary-dark: #5B4FC5;
+    --secondary-color: #a0aec0;
+    --accent-color: #4FDBC8;
+    --success-color: #4FDBC8;
+    --success-color-hover: #36D6AE;
+    --success-color-dark: #28C49C;
+    --light-color: #2D3748;
+    --dark-color: #F7FAFC;
+    --error-color: #FF6A7A;
+    --border-color: #4A5568;
+    --bg-color: #1A202C;
+    --bg-card: #2D3748;
+    --bg-input: #2D3748;
+    --text-color: #F7FAFC;
+    --secondary-text-color: #CBD5E0;
+    --shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  }
+  
+  body {
+    background-color: #1A202C;
+    color: var(--text-color);
+  }
+  
+  /* Темный фон для компонентов */
+  .top-bar {
+    background: linear-gradient(to right, rgba(26, 32, 44, 0.95), rgba(26, 32, 44, 0.98));
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(74, 85, 104, 0.8);
+  }
+  
+  .project-select {
+    background: var(--bg-card);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  }
+  
+  .task-name, .top-bar-title {
+    color: var(--text-color);
+  }
+  
+  .task-label, .project-select-label, .top-bar-subtitle {
+    color: var(--secondary-text-color);
+  }
+  
+  .custom-select {
+    background-color: var(--bg-input);
+    border-color: var(--border-color);
+    color: var(--text-color);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none'%3E%3Cpath d='M6 9L12 15L18 9' stroke='%239B90F2' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  }
+  
+  .new-project-input, .time-input {
+    background-color: var(--bg-input);
+    border-color: var(--border-color);
+    color: var(--text-color);
+  }
+  
+  .new-project-form, .time-limit-form {
+    background-color: var(--bg-card);
+  }
+  
+  .time-limit-title {
+    color: var(--text-color);
+  }
+  
+  .time-input-label {
+    color: var(--secondary-text-color);
+  }
+  
+  .cancel-button {
+    background-color: #4A5568;
+    color: var(--text-color);
+  }
+  
+  .timer-inner-content {
+    background-color: var(--bg-card);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  }
+  
+  .timer-time {
+    color: var(--text-color);
+  }
+  
+  .timer-status {
+    color: var(--secondary-text-color);
+  }
+  
+  .nav-bar {
+    background-color: var(--bg-card);
+    border-top: 1px solid var(--border-color);
+  }
+  
+  .settings-button {
+    background: #4A5568;
+    color: var(--text-color);
+  }
+  
+  .settings-button:hover {
+    background: #2D3748;
+  }
+  
+  /* Адаптируем градиенты для темной темы */
+  .timer-progress-circle circle[stroke="url(#timer-gradient)"] {
+    stroke: url(#timer-gradient-dark);
+  }
+  
+  .timer-circle-bg {
+    background: linear-gradient(to right, #2D3748, #1A202C);
+  }
+  
+  /* Градиент для прогресса в темной теме */
+  #timer-gradient-dark stop:nth-child(1) {
+    stop-color: #BEB4FF;
+  }
+  
+  #timer-gradient-dark stop:nth-child(2) {
+    stop-color: #9B90F2;
+  }
+  
+  #timer-gradient-dark stop:nth-child(3) {
+    stop-color: #7163DE;
+  }
 }

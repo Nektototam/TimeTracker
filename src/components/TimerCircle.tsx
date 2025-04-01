@@ -113,6 +113,13 @@ export default function TimerCircle({
               <stop offset="50%" stopColor="#9285F4" />
               <stop offset="100%" stopColor="#7163DE" />
             </linearGradient>
+            
+            {/* Градиент для темного режима */}
+            <linearGradient id="timer-gradient-dark" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#BEB4FF" />
+              <stop offset="50%" stopColor="#9B90F2" />
+              <stop offset="100%" stopColor="#7163DE" />
+            </linearGradient>
           </defs>
         </svg>
       </div>
