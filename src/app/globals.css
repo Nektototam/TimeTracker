@@ -1485,3 +1485,42 @@ select:disabled {
 .daily-view {
   margin-top: 15px;
 }
+
+/* Переключатель периодов */
+.period-selector {
+  display: flex;
+  overflow: hidden;
+  border-radius: 10px;
+  border: 1px solid var(--border-color);
+}
+
+.period-button {
+  font-size: 12px;
+  font-weight: 500;
+  height: 32px;
+  padding: 0 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  border-right: 1px solid var(--border-color);
+}
+
+.period-button:last-child {
+  border-right: none;
+}
+
+.period-button.active {
+  background-color: var(--success-color);
+  color: white;
+  font-weight: 600;
+}
+
+.period-button:not(.active) {
+  background-color: white;
+  color: var(--secondary-text-color);
+}
+
+.period-button:not(.active):hover {
+  background-color: var(--bg-input);
+}

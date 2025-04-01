@@ -36,34 +36,22 @@ export default function TopBar({
       
       <div className="flex items-center gap-3">
         {showPeriodSelector && (
-          <div className="bg-gray-100 rounded-full p-1 shadow-inner flex">
+          <div className="period-selector">
             <button
               onClick={() => handlePeriodChange('day')}
-              className={`text-xs font-medium px-3 py-1.5 rounded-full transition-colors ${
-                activePeriod === 'day' 
-                  ? 'bg-white text-primary shadow-sm' 
-                  : 'text-gray-500 hover:text-gray-700'
-              }`}
+              className={`period-button ${activePeriod === 'day' ? 'active' : ''}`}
             >
               {t('periods.day')}
             </button>
             <button
               onClick={() => handlePeriodChange('week')}
-              className={`text-xs font-medium px-3 py-1.5 rounded-full transition-colors ${
-                activePeriod === 'week' 
-                  ? 'bg-white text-primary shadow-sm' 
-                  : 'text-gray-500 hover:text-gray-700'
-              }`}
+              className={`period-button ${activePeriod === 'week' ? 'active' : ''}`}
             >
               {t('periods.week')}
             </button>
             <button
               onClick={() => handlePeriodChange('month')}
-              className={`text-xs font-medium px-3 py-1.5 rounded-full transition-colors ${
-                activePeriod === 'month' 
-                  ? 'bg-white text-primary shadow-sm' 
-                  : 'text-gray-500 hover:text-gray-700'
-              }`}
+              className={`period-button ${activePeriod === 'month' ? 'active' : ''}`}
             >
               {t('periods.month')}
             </button>
@@ -71,11 +59,12 @@ export default function TopBar({
         )}
         
         {showSettingsButton && (
-          <Link href="/settings">
+          <Link href="/settings" className="relative">
             <Button 
               variant="ghost" 
-              size="icon" 
-              className="text-gray-600"
+              size="sm"
+              rounded="full"
+              className="text-gray-600 hover:bg-gray-100 p-2 flex items-center justify-center"
             >
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M12 15C13.6569 15 15 13.6569 15 12C15 10.3431 13.6569 9 12 9C10.3431 9 9 10.3431 9 12C9 13.6569 10.3431 15 12 15Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
