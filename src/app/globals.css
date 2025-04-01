@@ -39,6 +39,8 @@
   --button-shadow: 0 6px 12px rgba(113, 99, 222, 0.25);
   --button-shadow-hover: 0 8px 16px rgba(113, 99, 222, 0.35);
   --button-shadow-active: 0 3px 6px rgba(113, 99, 222, 0.2);
+  --success-shadow: 0 6px 12px rgba(54, 214, 174, 0.25);
+  --success-shadow-hover: 0 8px 16px rgba(54, 214, 174, 0.35);
   --transition: all 0.3s ease;
   --border-color: #e2e8f0;
   --bg-color: #ffffff;
@@ -166,137 +168,209 @@ h1 {
   font-weight: 600;
 }
 
-/* Стили для кругового таймера */
-.timer-circle {
-  width: 260px;
-  height: 260px;
+/* Стили для круга таймера */
+.timer-container {
   position: relative;
-  margin: 0 auto 20px;
+  width: 280px;
+  height: 280px;
+  margin: 30px auto;
+}
+
+.timer-circle-outer {
+  position: absolute;
+  top: -10px;
+  left: -10px;
+  right: -10px;
+  bottom: -10px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgba(54, 214, 174, 0.1), rgba(113, 99, 222, 0.1));
+  filter: blur(20px);
+  z-index: -1;
 }
 
 .timer-circle-bg {
+  position: absolute;
   width: 100%;
   height: 100%;
   border-radius: 50%;
-  background-color: #f5f7fa;
-  position: absolute;
-  border: 2px solid #f1f3f9;
+  background: linear-gradient(to right, #f8fafc, #ffffff);
+  box-shadow: 0 8px 32px rgba(113, 99, 222, 0.12);
 }
 
-.timer-circle-progress {
+.timer-progress-circle {
+  position: absolute;
+  top: 0;
+  left: 0;
   width: 100%;
   height: 100%;
   border-radius: 50%;
+  transform: rotate(-90deg);
+}
+
+.timer-inner-content {
   position: absolute;
-  clip: rect(0, 260px, 260px, 130px);
-}
-
-.timer-circle-progress .left-side,
-.timer-circle-progress .right-side {
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
-  position: absolute;
-  background-color: var(--primary-color);
-  transform-origin: center right;
-  opacity: 0.2;
-}
-
-.timer-circle-progress .left-side {
-  clip: rect(0, 130px, 260px, 0);
-  z-index: 1;
-}
-
-.timer-circle-progress .right-side {
-  clip: rect(0, 260px, 260px, 130px);
-  z-index: 2;
-  visibility: hidden;
-}
-
-.timer-circle-inner {
-  width: 220px;
-  height: 220px;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
   background-color: white;
   border-radius: 50%;
-  position: absolute;
-  top: 20px;
-  left: 20px;
+  width: 220px;
+  height: 220px;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
-  z-index: 3;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
 }
 
-.timer-circle-status {
+.timer-status {
   font-size: 13px;
-  color: var(--secondary-color);
-  margin-bottom: 5px;
   text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--secondary-text-color);
   font-weight: 600;
-  letter-spacing: 0.5px;
 }
 
-.timer-circle-time {
-  font-size: 38px;
-  font-weight: bold;
+.timer-time {
+  font-size: 40px;
+  font-weight: 700;
   color: var(--dark-color);
-  margin-bottom: 5px;
+  margin: 8px 0;
 }
 
-.timer-circle-project {
-  font-size: 14px;
+.timer-project {
+  font-size: 15px;
+  font-weight: 500;
   color: var(--primary-color);
 }
 
-/* Стили для кнопки таймера */
-.timer-button {
+.timer-active-indicator {
+  position: absolute;
+  bottom: -4px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
   background-color: var(--primary-color);
+}
+
+.timer-active-indicator::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: 50%;
+  background-color: var(--primary-color);
+  opacity: 0.5;
+  animation: pulse 2s infinite;
+  z-index: -1;
+}
+
+/* Стили для кнопок таймера */
+.timer-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  margin-top: 30px;
+}
+
+.timer-start-button {
+  padding: 16px 40px;
+  background: linear-gradient(135deg, var(--primary-400), var(--primary-color));
   color: white;
-  border: none;
-  border-radius: 20px;
-  padding: 8px 16px;
+  border-radius: 50px;
+  font-size: 16px;
   font-weight: 600;
+  border: none;
+  box-shadow: var(--button-shadow);
   cursor: pointer;
+  transition: all 0.3s ease;
+  min-width: 180px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.timer-start-button:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--button-shadow-hover);
+}
+
+.timer-start-button:active {
+  transform: translateY(-1px);
+  box-shadow: var(--button-shadow-active);
+}
+
+.timer-stop-button {
+  padding: 16px 40px;
+  background: linear-gradient(135deg, var(--error-color), var(--error-color-dark));
+  color: white;
+  border-radius: 50px;
+  font-size: 16px;
+  font-weight: 600;
+  border: none;
+  box-shadow: 0 6px 12px rgba(255, 106, 122, 0.25);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-width: 180px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.timer-stop-button:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 16px rgba(255, 106, 122, 0.35);
+}
+
+.timer-stop-button:active {
+  transform: translateY(-1px);
+  box-shadow: 0 3px 6px rgba(255, 106, 122, 0.2);
+}
+
+/* Стили для блока дневной статистики */
+.daily-stats {
+  background: linear-gradient(135deg, rgba(54, 214, 174, 0.1), rgba(54, 214, 174, 0.05));
+  border-radius: 20px;
+  padding: 20px;
+  margin: 30px 20px 80px;
+  box-shadow: 0 4px 16px rgba(54, 214, 174, 0.1);
+  border: 1px solid rgba(54, 214, 174, 0.1);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.daily-stats-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.daily-stats-label {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--secondary-text-color);
+  margin-bottom: 6px;
+}
+
+.daily-stats-value {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--success-color-dark);
+  position: relative;
+}
+
+.daily-stats-icon {
+  width: 48px;
+  height: 48px;
+  background: linear-gradient(135deg, var(--success-color), var(--success-color-dark));
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  margin: 0 auto;
-  transition: all 0.2s;
-  box-shadow: 0 2px 6px rgba(94, 114, 228, 0.3);
-}
-
-.timer-button:hover {
-  background-color: var(--primary-dark);
-  transform: translateY(-2px);
-}
-
-.timer-button:active {
-  transform: translateY(0);
-}
-
-/* Стили для блока "Сегодня отработано" */
-.daily-total {
-  background-color: var(--light-color);
-  padding: 15px;
-  border-radius: var(--border-radius);
-  margin-top: 20px;
-  margin-bottom: 80px; /* Увеличенный отступ снизу, чтобы не закрывалось навигационной панелью */
-}
-
-.daily-total-label {
-  font-size: 14px;
-  color: var(--dark-color);
-  margin-bottom: 8px;
-  font-weight: 600;
-}
-
-.daily-total-value {
-  font-size: 24px;
-  font-weight: bold;
-  color: var(--primary-color);
+  color: white;
+  box-shadow: 0 4px 12px rgba(54, 214, 174, 0.2);
 }
 
 /* Статистика */
@@ -681,9 +755,18 @@ h1 {
 }
 
 @keyframes pulse {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.05); }
-  100% { transform: scale(1); }
+  0% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+  70% {
+    transform: scale(2);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(2.5);
+    opacity: 0;
+  }
 }
 
 .fade-in {
@@ -1492,18 +1575,26 @@ select:disabled {
   overflow: hidden;
   border-radius: 10px;
   border: 1px solid var(--border-color);
+  background: #f8fafc;
+  position: relative;
 }
 
 .period-button {
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 500;
-  height: 32px;
-  padding: 0 16px;
+  height: 36px;
+  padding: 0 20px;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s ease;
+  transition: all 0.3s ease;
   border-right: 1px solid var(--border-color);
+  position: relative;
+  z-index: 2;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  min-width: 70px;
 }
 
 .period-button:last-child {
@@ -1511,16 +1602,93 @@ select:disabled {
 }
 
 .period-button.active {
-  background-color: var(--success-color);
   color: white;
   font-weight: 600;
 }
 
+.period-button.active::before {
+  content: '';
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  left: 4px;
+  right: 4px;
+  background: linear-gradient(135deg, var(--success-color), var(--success-color-dark));
+  border-radius: 6px;
+  z-index: -1;
+}
+
 .period-button:not(.active) {
-  background-color: white;
   color: var(--secondary-text-color);
 }
 
 .period-button:not(.active):hover {
-  background-color: var(--bg-input);
+  color: var(--text-color);
+}
+
+/* Верхний бар */
+.top-bar {
+  background: linear-gradient(to right, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.98));
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 15px rgba(113, 99, 222, 0.08);
+  padding: 16px 20px;
+  border-bottom: 1px solid rgba(226, 232, 240, 0.8);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.top-bar-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--dark-color);
+  margin: 0;
+}
+
+.top-bar-subtitle {
+  font-size: 14px;
+  color: var(--secondary-text-color);
+  margin-top: 2px;
+}
+
+.add-button {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--success-color), var(--success-color-dark));
+  color: white;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: var(--success-shadow);
+  transition: all 0.3s ease;
+}
+
+.add-button:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--success-shadow-hover);
+}
+
+.settings-button {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: #f2f5f9;
+  color: #64748b;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.settings-button:hover {
+  background: #e9edf3;
+  color: #4b5563;
 }

@@ -1,6 +1,5 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { Button } from './ui/Button';
 
 interface TimerButtonProps {
   isRunning: boolean;
@@ -12,33 +11,21 @@ export default function TimerButton({ isRunning, onClick, onFinish }: TimerButto
   const { t } = useTranslation();
   
   return (
-    <div className="flex gap-6 justify-center mt-10">
-      <Button 
-        variant={isRunning ? "outline" : "timer"}
-        size="lg"
-        rounded="full"
+    <div className="timer-buttons">
+      <button 
         onClick={onClick}
-        className={`
-          ${isRunning 
-            ? "border-gray-200 text-gray-700 bg-white" 
-            : "bg-gradient-to-r from-primary-300 to-primary-600 text-white shadow-xl"
-          } 
-          px-12 py-4 font-semibold text-base min-w-[180px]
-        `}
+        className={isRunning ? "timer-stop-button" : "timer-start-button"}
       >
         {isRunning ? t('timer.pause') : t('timer.start')}
-      </Button>
+      </button>
       
       {isRunning && onFinish && (
-        <Button 
-          variant="danger"
-          size="lg"
-          rounded="full"
+        <button 
           onClick={onFinish}
-          className="px-12 py-4 font-semibold text-base shadow-xl min-w-[180px]"
+          className="timer-stop-button"
         >
           {t('timer.stop')}
-        </Button>
+        </button>
       )}
     </div>
   );

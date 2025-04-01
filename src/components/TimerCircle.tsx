@@ -63,30 +63,30 @@ export default function TimerCircle({
     
     const remainingTime = Math.max(0, timeLimit - elapsedTime);
     return (
-      <div className="text-xs text-gray-500 mt-1.5">
+      <div className="text-xs text-gray-500 mt-2">
         {t('timer.limitValue')} {formatTime(remainingTime)}
       </div>
     );
   };
 
   return (
-    <div className="flex flex-col items-center my-8 mb-10 relative">
-      {/* Основная обводка */}
-      <div className="absolute inset-0 w-full h-full bg-gradient-to-tr from-primary-300/20 to-primary-100/10 rounded-full blur-xl"></div>
+    <div className="timer-container">
+      {/* Фоновый эффект свечения */}
+      <div className="timer-circle-outer"></div>
       
-      <div className="relative w-[280px] h-[280px] md:w-[280px] md:h-[280px]">
-        {/* Фоновый круг */}
+      <div className="timer-circle-bg">
+        {/* Основное SVG с прогрессом */}
         <svg 
-          className="w-full h-full -rotate-90 transform drop-shadow-lg"
+          className="w-full h-full" 
           viewBox={`0 0 ${size} ${size}`}
-          style={{ filter: "drop-shadow(0px 8px 16px rgba(113, 99, 222, 0.25))" }}
         >
+          {/* Фоновый серый круг */}
           <circle
             cx={size / 2}
             cy={size / 2}
             r={radius}
             fill="transparent"
-            stroke="#F0F0F7"
+            stroke="#f0f0f7"
             strokeWidth={strokeWidth}
             className="opacity-50"
           />
@@ -110,32 +110,30 @@ export default function TimerCircle({
           <defs>
             <linearGradient id="timer-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
               <stop offset="0%" stopColor="#BEB4FF" />
-              <stop offset="60%" stopColor="#9285F4" />
+              <stop offset="50%" stopColor="#9285F4" />
               <stop offset="100%" stopColor="#7163DE" />
             </linearGradient>
           </defs>
         </svg>
-        
-        {/* Внутренний круг с контентом */}
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-full w-[220px] h-[220px] flex flex-col items-center justify-center shadow-lg">
-          <div className="text-xs uppercase font-semibold text-gray-500 mb-1.5 tracking-wider">
-            {status}
-          </div>
-          <div className="text-4xl font-bold text-gray-800 mb-2">
-            {timeValue}
-          </div>
-          <div className="text-sm font-medium text-primary" data-testid="project-name">
-            {project || t('timer.notSelected')}
-          </div>
-          {getTimeLimitDisplay()}
-          
-          {/* Пульсирующий индикатор активности */}
-          {isRunning && (
-            <div className="absolute -bottom-1 w-3 h-3 rounded-full bg-primary">
-              <span className="absolute inset-0 rounded-full bg-primary animate-ping opacity-75"></span>
-            </div>
-          )}
+      </div>
+      
+      {/* Внутренний круг с контентом */}
+      <div className="timer-inner-content">
+        <div className="timer-status">
+          {status}
         </div>
+        <div className="timer-time">
+          {timeValue}
+        </div>
+        <div className="timer-project" data-testid="project-name">
+          {project || t('timer.notSelected')}
+        </div>
+        {getTimeLimitDisplay()}
+        
+        {/* Пульсирующий индикатор активности */}
+        {isRunning && (
+          <div className="timer-active-indicator"></div>
+        )}
       </div>
     </div>
   );
