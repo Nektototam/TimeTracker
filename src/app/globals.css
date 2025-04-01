@@ -3,18 +3,32 @@
 
 :root {
   --primary-color: #5e72e4;
+  --primary-color-light: #7b8ef1;
+  --primary-color-hover: #4a5bcb;
   --primary-dark: #4a5ad9;
   --secondary-color: #8898aa;
+  --secondary-color-hover: #7989a6;
   --accent-color: #fb6340;
   --success-color: #2dce89;
+  --success-color-hover: #26b677;
   --info-color: #11cdef;
   --light-color: #f5f7fa;
   --dark-color: #32325d;
+  --error-color: #f56565;
+  --error-color-hover: #e53e3e;
+  --warning-color: #ed8936;
   --border-radius: 10px;
   --shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  --button-shadow: 0 4px 10px rgba(94, 114, 228, 0.3);
+  --button-shadow-hover: 0 8px 15px rgba(94, 114, 228, 0.4);
+  --button-shadow-active: 0 3px 6px rgba(94, 114, 228, 0.2);
   --transition: all 0.3s ease;
-  --danger-color: #f56565;
-  --warning-color: #ed8936;
+  --border-color: #e2e8f0;
+  --bg-color: #ffffff;
+  --bg-card: #ffffff;
+  --bg-input: #f8fafc;
+  --text-color: #334155;
+  --secondary-text-color: #64748b;
 }
 
 body {
@@ -105,7 +119,7 @@ h1 {
 }
 
 .nav-item.logout {
-  color: var(--danger-color);
+  color: var(--error-color);
 }
 
 .nav-item.logout:hover {
@@ -1198,11 +1212,11 @@ input:checked + .switch-slider:before {
 }
 
 .settings-save-button.error {
-  background-color: var(--danger-color);
+  background-color: var(--error-color);
 }
 
 .settings-error-message {
-  color: var(--danger-color);
+  color: var(--error-color);
   font-size: 14px;
   margin-top: 10px;
   text-align: center;

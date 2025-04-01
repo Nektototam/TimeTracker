@@ -1,0 +1,88 @@
+{
+  "welcome": "ברוך הבא",
+  "login": "התחברות",
+  "register": "הרשמה",
+  "email": "אימייל",
+  "password": "סיסמה",
+  "confirmPassword": "אשר סיסמה",
+  "forgotPassword": "שכחת סיסמה?",
+  "submit": "שלח",
+  "cancel": "ביטול",
+  "save": "שמור",
+  "delete": "מחק",
+  "edit": "ערוך",
+  "add": "הוסף",
+  "back": "חזרה",
+  
+  "nav": {
+    "timer": "טיימר",
+    "statistics": "סטטיסטיקה",
+    "reports": "דוחות",
+    "pomodoro": "פומודורו",
+    "settings": "הגדרות",
+    "logout": "התנתק"
+  },
+  
+  "timer": {
+    "start": "הפעל טיימר",
+    "stop": "עצור טיימר",
+    "pause": "השהה",
+    "resume": "המשך",
+    "workType": "סוג עבודה",
+    "selectWorkType": "בחר סוג עבודה",
+    "project": "פרויקט",
+    "selectProject": "בחר פרויקט",
+    "description": "תיאור",
+    "noProjects": "אין פרויקטים",
+    "dailyTotal": "עבודה קודמת היום"
+  },
+  
+  "pomodoro": {
+    "work": "עבודה",
+    "rest": "מנוחה",
+    "cycle": "מחזור",
+    "reset": "איפוס",
+    "start": "התחל",
+    "pause": "השהה",
+    "settings": "הגדרות",
+    "workDuration": "משך זמן עבודה (דקות)",
+    "restDuration": "משך זמן מנוחה (דקות)",
+    "longRestDuration": "משך זמן מנוחה ארוכה (דקות)",
+    "autoStart": "התחל אוטומטית את התקופה הבאה"
+  },
+  
+  "settings": {
+    "title": "הגדרות",
+    "loading": "טוען הגדרות...",
+    "profile": "פרופיל משתמש",
+    "notifications": "התראות",
+    "interface": "ממשק",
+    "sound": "התראות צליל",
+    "browser": "התראות דפדפן",
+    "theme": "ערכת נושא",
+    "language": "שפה",
+    "timeFormat": "פורמט זמן",
+    "deviceOnly": "הגדרות אלו נשמרות רק עבור המכשיר הנוכחי",
+    "syncedSettings": "הגדרות אלו מסונכרנות בין כל המכשירים",
+    "dataRetention": "תקופת שמירת נתונים",
+    "clean": "נקה רשומות ישנות",
+    "cleaning": "מנקה...",
+    "cleanSuccess": "ניקוי הושלם בהצלחה",
+    "cleanError": "שגיאה בניקוי",
+    "saving": "שומר...",
+    "saveSuccess": "נשמר בהצלחה",
+    "saveError": "שגיאה בשמירה"
+  },
+  
+  "languages": {
+    "ru": "Русский",
+    "en": "English",
+    "he": "עברית"
+  },
+  
+  "themes": {
+    "light": "בהיר",
+    "dark": "כהה",
+    "system": "מערכת"
+  }
+} 

@@ -6,15 +6,27 @@ import ProtectedRoute from '../../components/ProtectedRoute';
 import ActivityChart from '../../components/ActivityChart';
 import { reportService, ReportData, ProjectSummary } from '../../lib/reportService';
 import { useAuth } from '../../contexts/AuthContext';
+import { useLanguage } from '../../contexts/LanguageContext';
 
 function StatisticsPage() {
   const { user } = useAuth();
+  const { translationInstance } = useLanguage();
+  const { t } = translationInstance;
+
   const [isLoading, setIsLoading] = useState(true);
   const [weekData, setWeekData] = useState<ReportData | null>(null);
   const [monthData, setMonthData] = useState<ReportData | null>(null);
   const [allTimeData, setAllTimeData] = useState<ReportData | null>(null);
   const [recentEntries, setRecentEntries] = useState<any[]>([]);
   const [isClient, setIsClient] = useState(false);
+
+  // Функция перевода
+  const translate = (key: string): string => {
+    const i18nTranslation = t(`statistics.${key}`);
+    
+    // Возвращаем перевод напрямую, так как всё должно быть в файлах локализации
+    return i18nTranslation === `statistics.${key}` ? key : i18nTranslation;
+  };
 
   // Устанавливаем флаг клиентского рендеринга
   useEffect(() => {
@@ -63,162 +75,146 @@ function StatisticsPage() {
     
     loadData();
   }, [user]);
-
-  // Форматирование даты для отображения
-  const formatDate = (date: Date): string => {
-    const now = new Date();
-    const isToday = date.toDateString() === now.toDateString();
-    
-    const yesterday = new Date(now);
-    yesterday.setDate(yesterday.getDate() - 1);
-    const isYesterday = date.toDateString() === yesterday.toDateString();
-    
-    if (isToday) {
-      return `Сегодня, ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
-    } else if (isYesterday) {
-      return `Вчера, ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
-    } else {
-      return `${date.getDate()} ${date.toLocaleString('ru-RU', { month: 'short' })}, ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
-    }
-  };
-
+  
   // Форматирование времени
-  const formatTime = (milliseconds: number): string => {
-    const totalSeconds = Math.floor(milliseconds / 1000);
-    const hours = Math.floor(totalSeconds / 3600);
-    const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const formatTime = (seconds: number): string => {
+    if (!seconds) return '00:00';
     
-    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
-  };
-
-  // Получение названия проекта
-  const getProjectName = (projectType: string): string => {
-    // Стандартные типы
-    switch (projectType) {
-      case 'development': return 'Веб-разработка';
-      case 'design': return 'Дизайн';
-      case 'marketing': return 'Маркетинг';
-      case 'meeting': return 'Совещание';
-      case 'other': return 'Другое';
-      default: return 'Пользовательский тип';
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    
+    if (hours > 0) {
+      return `${hours}h ${minutes}m`;
     }
+    
+    return `${minutes}m`;
   };
-
-  // Если страница еще не гидратирована, показываем скелетон загрузки
-  if (!isClient) {
-    return (
-      <div className="app-container">
-        <div id="stats-screen" className="screen">
-          <div className="stats-header">
-            <h1>Статистика</h1>
-          </div>
-          <div className="loading-state">Загрузка статистики...</div>
-          <NavBar />
-        </div>
-      </div>
-    );
-  }
-
+  
+  // Форматирование полного времени (с часами, минутами и секундами)
+  const formatFullTime = (seconds: number): string => {
+    if (!seconds) return '00:00:00';
+    
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const secs = seconds % 60;
+    
+    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
+  
+  // Форматирование даты
+  const formatDate = (date: Date): string => {
+    return date.toLocaleDateString('en-US', {
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: 'numeric'
+    });
+  };
+  
   return (
     <div className="app-container">
       <div id="stats-screen" className="screen">
         <div className="stats-header">
-          <h1>Статистика</h1>
+          <h1>{translate('title')}</h1>
         </div>
         
         {isLoading ? (
-          <div className="loading-state">Загрузка статистики...</div>
+          <div className="loading-state">{translate('loading')}</div>
         ) : (
           <>
-            <div className="stats-total slide-up">
-              <div className="stats-total-item">
-                <span className="stats-total-value">
-                  {weekData ? formatTime(weekData.totalDuration) : '00:00'}
-                </span>
-                <span className="stats-total-label">За неделю</span>
+            <div className="stats-summary slide-up">
+              <div className="stats-period-selector">
+                <div className="stats-period">
+                  <div className="stats-period-label">{translate('week')}</div>
+                  <div className="stats-period-value">
+                    {weekData && formatFullTime(weekData.totalDuration)}
+                  </div>
+                </div>
+                
+                <div className="stats-period">
+                  <div className="stats-period-label">{translate('month')}</div>
+                  <div className="stats-period-value">
+                    {monthData && formatFullTime(monthData.totalDuration)}
+                  </div>
+                </div>
+                
+                <div className="stats-period">
+                  <div className="stats-period-label">{translate('allTime')}</div>
+                  <div className="stats-period-value">
+                    {allTimeData && formatFullTime(allTimeData.totalDuration)}
+                  </div>
+                </div>
               </div>
-              <div className="stats-total-item">
-                <span className="stats-total-value">
-                  {monthData ? formatTime(monthData.totalDuration) : '00:00'}
-                </span>
-                <span className="stats-total-label">За месяц</span>
+              
+              <div className="stats-chart slide-up">
+                <div className="stats-chart-title">{translate('dailyActivity')}</div>
+                {isClient && weekData && (
+                  <ActivityChart 
+                    data={weekData.entries ? 
+                      weekData.entries.reduce((acc, entry) => {
+                        const date = new Date(entry.start_time).toISOString().split('T')[0];
+                        const existingDay = acc.find(day => day.date === date);
+                        
+                        if (existingDay) {
+                          existingDay.total_duration += entry.duration;
+                        } else {
+                          acc.push({ date, total_duration: entry.duration });
+                        }
+                        
+                        return acc;
+                      }, [] as {date: string, total_duration: number}[]) : []
+                    } 
+                    height={180}
+                    barColor="#9d79bc"
+                  />
+                )}
               </div>
-              <div className="stats-total-item">
-                <span className="stats-total-value">
-                  {allTimeData ? formatTime(allTimeData.totalDuration) : '00:00'}
-                </span>
-                <span className="stats-total-label">Всего</span>
-              </div>
-            </div>
-            
-            <div className="chart-container slide-up">
-              <div className="chart-title">Активность за неделю</div>
-              <ActivityChart 
-                data={weekData?.entries ? 
-                  weekData.entries.reduce((acc, entry) => {
-                    const date = new Date(entry.start_time).toISOString().split('T')[0];
-                    const existingDay = acc.find(day => day.date === date);
-                    
-                    if (existingDay) {
-                      existingDay.total_duration += entry.duration;
-                    } else {
-                      acc.push({ date, total_duration: entry.duration });
-                    }
-                    
-                    return acc;
-                  }, [] as {date: string, total_duration: number}[]) 
-                : []} 
-                height={180}
-                barColor="var(--primary-color)"
-              />
-            </div>
-            
-            <div className="project-summary">
-              <h2 className="project-summary-title">Распределение времени</h2>
-              <div className="project-list">
-                {weekData && weekData.projectSummaries.map((project: ProjectSummary, index) => (
-                  <div key={project.project_type} className="project-item">
-                    <div className="project-item-info">
-                      <span className="project-item-name">{project.project_name}</span>
-                      <span className="project-item-time">{formatTime(project.total_duration)}</span>
+              
+              <div className="project-summary slide-up">
+                <h2 className="project-summary-title">{translate('projects')}</h2>
+                
+                <div className="project-list">
+                  {weekData && weekData.projectSummaries.slice(0, 4).map((project, index) => (
+                    <div key={project.project_type} className="project-item">
+                      <div className="project-item-info">
+                        <span className="project-item-name">{project.project_name}</span>
+                        <span className="project-item-time">{formatTime(project.total_duration)}</span>
+                      </div>
+                      <div className="project-item-bar">
+                        <div 
+                          className="project-item-progress" 
+                          style={{
+                            width: `${project.percentage}%`, 
+                            backgroundColor: index === 0 ? '#9d79bc' : 
+                                            index === 1 ? '#60d394' : 
+                                            index === 2 ? '#ffd97d' : 
+                                            '#ff9b85'
+                          }}
+                        ></div>
+                      </div>
                     </div>
-                    <div className="project-item-bar">
-                      <div 
-                        className="project-item-progress" 
-                        style={{
-                          width: `${project.percentage}%`, 
-                          backgroundColor: index === 0 ? 'var(--primary-color)' : 
-                                           index === 1 ? 'var(--success-color)' : 
-                                           index === 2 ? 'var(--warning-color)' : 
-                                           'var(--info-color)'
-                        }}
-                      ></div>
+                  ))}
+                </div>
+              </div>
+              
+              <div className="activity-list slide-up">
+                <h2 className="activity-list-title">{translate('recentActivity')}</h2>
+                
+                {recentEntries.map(entry => (
+                  <div key={entry.id} className="activity-item">
+                    <div className="activity-item-header">
+                      <span className="activity-item-date">{formatDate(entry.date)}</span>
+                      <span className="activity-item-duration">{formatTime(entry.duration)}</span>
                     </div>
+                    <div className="activity-item-name">{entry.projectType}</div>
                   </div>
                 ))}
                 
-                {weekData && weekData.projectSummaries.length === 0 && (
-                  <div className="empty-state">Нет данных о проектах</div>
+                {recentEntries.length === 0 && (
+                  <div className="empty-state">{translate('noData')}</div>
                 )}
               </div>
-            </div>
-            
-            <div className="activity-list">
-              <h2 className="activity-list-title">Недавняя активность</h2>
-              
-              {recentEntries.map(entry => (
-                <div key={entry.id} className="activity-item">
-                  <div className="activity-item-header">
-                    <span className="activity-item-date">{formatDate(entry.date)}</span>
-                    <span className="activity-item-duration">{formatTime(entry.duration)}</span>
-                  </div>
-                  <div className="activity-item-name">{getProjectName(entry.projectType)}</div>
-                </div>
-              ))}
-              
-              {recentEntries.length === 0 && (
-                <div className="empty-state">Нет недавней активности</div>
-              )}
             </div>
           </>
         )}

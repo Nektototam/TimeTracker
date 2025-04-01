@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { useCustomProjectTypes } from '../hooks/useCustomProjectTypes';
 import { supabase } from '../lib/supabase';
 import { CustomProjectType } from '../types/supabase';
+import { useLanguage } from '../contexts/LanguageContext';
+import { Button } from './ui/Button';
 
 interface WorkTypeManagerProps {
   userId: string;
@@ -9,9 +11,32 @@ interface WorkTypeManagerProps {
 
 export default function WorkTypeManager({ userId }: WorkTypeManagerProps) {
   const { projectTypes, isLoading, error, addProjectType, updateProjectType, deleteProjectType } = useCustomProjectTypes(userId);
+  const { translationInstance } = useLanguage();
+  const { t } = translationInstance;
+  
   const [newTypeName, setNewTypeName] = useState('');
   const [editMode, setEditMode] = useState<{id: string, name: string} | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
+  
+  // Функция перевода
+  const translate = (key: string): string => {
+    const i18nTranslation = t(`settings.${key}`);
+    
+    // Если перевод вернул тот же ключ (не найден), используем фиксированные значения
+    if (i18nTranslation === `settings.${key}`) {
+      const localTranslations: Record<string, string> = {
+        workTypes: 'Work Types',
+        addWorkType: 'Add Work Type',
+        workTypesDesc: 'Manage your work types and projects',
+        standardTypes: 'Standard Types',
+        customTypes: 'Custom Types',
+        standard: 'Standard'
+      };
+      return localTranslations[key] || key;
+    }
+    
+    return i18nTranslation;
+  };
   
   // Стандартные типы работ
   const standardTypes = [
@@ -83,19 +108,19 @@ export default function WorkTypeManager({ userId }: WorkTypeManagerProps) {
   return (
     <div className="work-type-manager">
       <div className="standard-types">
-        <h3>Стандартные типы</h3>
+        <h3>{translate('standardTypes')}</h3>
         <ul className="type-list">
           {standardTypes.map(type => (
             <li key={type.id} className="type-item">
               <span className="type-name">{type.name}</span>
-              <span className="type-badge standard">Стандартный</span>
+              <span className="type-badge standard">{translate('standard')}</span>
             </li>
           ))}
         </ul>
       </div>
       
       <div className="custom-types">
-        <h3>Пользовательские типы</h3>
+        <h3>{translate('customTypes')}</h3>
         {projectTypes.length === 0 ? (
           <p className="no-types">У вас пока нет пользовательских типов работ</p>
         ) : (
@@ -112,20 +137,44 @@ export default function WorkTypeManager({ userId }: WorkTypeManagerProps) {
                       autoFocus
                     />
                     <div className="type-actions">
-                      <button type="submit" className="btn-save">Сохранить</button>
-                      <button type="button" className="btn-cancel" onClick={cancelEdit}>Отмена</button>
+                      <Button 
+                        variant="success" 
+                        size="sm" 
+                        rounded="lg"
+                        type="submit"
+                      >
+                        {t('save')}
+                      </Button>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        rounded="lg"
+                        onClick={cancelEdit}
+                      >
+                        {t('cancel')}
+                      </Button>
                     </div>
                   </form>
                 ) : (
                   <>
                     <span className="type-name">{type.name}</span>
                     <div className="type-actions">
-                      <button className="btn-edit" onClick={() => startEdit(type)}>
-                        Изменить
-                      </button>
-                      <button className="btn-delete" onClick={() => handleDeleteType(type.id as string)}>
-                        Удалить
-                      </button>
+                      <Button 
+                        variant="secondary"
+                        size="sm"
+                        rounded="lg"
+                        onClick={() => startEdit(type)}
+                      >
+                        {t('edit')}
+                      </Button>
+                      <Button 
+                        variant="danger"
+                        size="sm"
+                        rounded="lg"
+                        onClick={() => handleDeleteType(type.id as string)}
+                      >
+                        {t('delete')}
+                      </Button>
                     </div>
                   </>
                 )}
@@ -143,12 +192,18 @@ export default function WorkTypeManager({ userId }: WorkTypeManagerProps) {
             type="text"
             value={newTypeName}
             onChange={(e) => setNewTypeName(e.target.value)}
-            placeholder="Название нового типа работы"
+            placeholder={translate('addWorkType')}
             className="type-input"
           />
-          <button type="submit" className="btn-add" disabled={!newTypeName.trim()}>
-            Добавить тип
-          </button>
+          <Button 
+            variant="primary" 
+            size="md" 
+            rounded="lg"
+            type="submit" 
+            disabled={!newTypeName.trim()}
+          >
+            {t('add')}
+          </Button>
         </form>
       </div>
       

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useTimer } from '../contexts/TimerContext';
+import { useTranslation } from 'react-i18next';
 
 interface TimerCircleProps {
   isRunning: boolean;
@@ -19,6 +20,7 @@ export default function TimerCircle({
   project,
 }: TimerCircleProps) {
   const { timeLimit, formatTime } = useTimer();
+  const { t } = useTranslation();
   const [progressRotation, setProgressRotation] = useState(0);
   const [rightVisible, setRightVisible] = useState(false);
   const [rightRotation, setRightRotation] = useState('0deg');
@@ -62,7 +64,7 @@ export default function TimerCircle({
     const remainingTime = Math.max(0, timeLimit - elapsedTime);
     return (
       <div className="time-limit-info text-xs text-gray-500 mt-1">
-        Ограничение: {formatTime(remainingTime)}
+        {t('timer.limitValue')} {formatTime(remainingTime)}
       </div>
     );
   };
@@ -93,7 +95,7 @@ export default function TimerCircle({
           <div className="timer-circle-status">{status}</div>
           <div className="timer-circle-time">{timeValue}</div>
           <div className="timer-circle-project" data-testid="project-name">
-            {project || 'Не выбрано'}
+            {project || t('timer.notSelected')}
           </div>
           {getTimeLimitDisplay()}
         </div>

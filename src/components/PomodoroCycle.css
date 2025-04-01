@@ -1,0 +1,131 @@
+.pomodoro-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+.pomodoro-timer {
+  margin-bottom: 2rem;
+  width: 100%;
+  max-width: 300px;
+}
+
+.progress-ring {
+  width: 300px;
+  height: 300px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  transition: background 0.3s ease;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.timer-display {
+  width: 85%;
+  height: 85%;
+  background-color: white;
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Arial', sans-serif;
+}
+
+.timer-state {
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin-bottom: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.timer-time {
+  font-size: 3rem;
+  font-weight: bold;
+  margin-bottom: 0.5rem;
+  font-family: 'Courier New', monospace;
+}
+
+.timer-cycle {
+  font-size: 1rem;
+  color: #666;
+}
+
+.pomodoro-controls {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.pomodoro-btn {
+  padding: 0.8rem 1.5rem;
+  border: none;
+  border-radius: 50px;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  min-width: 100px;
+}
+
+.pomodoro-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.pomodoro-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.pomodoro-btn:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.start {
+  background-color: #4CAF50;
+  color: white;
+}
+
+.stop {
+  background-color: #f44336;
+  color: white;
+}
+
+.reset {
+  background-color: #2196F3;
+  color: white;
+}
+
+@media (max-width: 480px) {
+  .progress-ring {
+    width: 250px;
+    height: 250px;
+  }
+  
+  .timer-time {
+    font-size: 2.5rem;
+  }
+  
+  .timer-state {
+    font-size: 1.2rem;
+  }
+  
+  .pomodoro-btn {
+    padding: 0.6rem 1.2rem;
+    font-size: 0.9rem;
+    min-width: 80px;
+  }
+} 

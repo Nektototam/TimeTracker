@@ -1,8 +1,9 @@
 import React from 'react';
 import { usePomodoro } from '../contexts/PomodoroContext';
+import { Button } from './ui/Button';
 
 interface PomodoroTimerProps {
-  // Пропсы не требуются, так как таймер использует контекст
+  // Пропы не используются, контекст предоставляет все необходимое
 }
 
 export default function PomodoroTimer({}: PomodoroTimerProps) {
@@ -49,29 +50,35 @@ export default function PomodoroTimer({}: PomodoroTimerProps) {
         </div>
       </div>
       
-      <div className="pomodoro-buttons">
+      <div className="flex gap-4 justify-center mt-4">
         {!isRunning ? (
-          <button 
-            className="pomodoro-button start"
+          <Button 
+            variant="buttonStart"
             onClick={startTimer}
+            leftIcon="▶"
+            className="relative w-44"
           >
-            <span>▶</span> Старт
-          </button>
+            Старт
+          </Button>
         ) : (
-          <button 
-            className="pomodoro-button stop"
+          <Button 
+            variant="timerStop"
+            size="lg"
             onClick={pauseTimer}
+            leftIcon="⏸"
           >
-            <span>⏸</span> Пауза
-          </button>
+            Пауза
+          </Button>
         )}
         
-        <button 
-          className="pomodoro-button reset"
+        <Button 
+          variant="secondary"
+          size="lg"
           onClick={resetTimer}
+          leftIcon="↺"
         >
-          <span>↺</span> Сброс
-        </button>
+          Сброс
+        </Button>
       </div>
       
       <div className="pomodoro-settings">
