@@ -1,6 +1,6 @@
 "use client";
 
-import React from 'react';
+import React, { useState } from 'react';
 import NavBar from '../../components/NavBar';
 import TopBar from '../../components/TopBar';
 import ProjectSelect from '../../components/ProjectSelect';
@@ -13,6 +13,8 @@ import { useTranslation } from 'react-i18next';
 
 function TimerApp() {
   const { t } = useTranslation();
+  const [showAddEntryForm, setShowAddEntryForm] = useState(false);
+  
   const { 
     project, 
     projectText, 
@@ -27,12 +29,20 @@ function TimerApp() {
     finishTask
   } = useTimer();
   
+  const handleAddEntry = () => {
+    setShowAddEntryForm(true);
+    // Здесь будет логика для отображения формы добавления записи времени вручную
+  };
+  
   return (
     <div className="app-container">
       <div className="screen">
         <TopBar 
-          title={t('nav.timer')} 
+          showProjectInfo={true}
           showPeriodSelector={false}
+          showAddButton={true}
+          onAddClick={handleAddEntry}
+          clientName="Client" // Это можно заменить на реальное имя клиента из контекста
         />
         
         <ProjectSelect value={project} onChange={setProject} />
