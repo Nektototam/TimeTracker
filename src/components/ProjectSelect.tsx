@@ -181,18 +181,18 @@ export default function ProjectSelect({ value, onChange }: ProjectSelectProps) {
   return (
     <div className="select-container">
       {/* Текущая активная задача - всегда показываем */}
-      <div className="current-task mb-3 text-center">
-        <div className="text-sm text-gray-500">{t('timer.currentTask')}:</div>
-        <div className="text-lg font-semibold">{projectText || t('timer.notSelected')}</div>
+      <div className="current-task mb-4 text-center">
+        <div className="text-sm text-gray-500 mb-1">{t('timer.currentTask')}:</div>
+        <div className="text-lg font-semibold text-primary-dark">{projectText || t('timer.notSelected')}</div>
       </div>
       
-      <div className="flex justify-between items-center mb-2">
+      <div className="flex justify-between items-center mb-3">
         <label className="select-label">
           {t('timer.workType')}:
         </label>
         {timeLimit !== null ? (
           <div className="flex items-center">
-            <span className="time-limit-badge text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-md mr-2">
+            <span className="time-limit-badge text-xs bg-blue-50 text-blue-700 px-2 py-1 rounded-lg mr-2 border border-blue-100">
               {t('timer.limitValue')} {Math.floor(timeLimit / 3600000)}ч {Math.floor((timeLimit % 3600000) / 60000)}м
             </span>
             <Button 
@@ -217,8 +217,7 @@ export default function ProjectSelect({ value, onChange }: ProjectSelectProps) {
             onClick={showTimeLimitEditor}
             variant="outline"
             size="sm"
-            rounded="none"
-            className="border border-gray-300 bg-white"
+            className="py-1.5 px-3 text-sm"
           >
             {t('timer.addLimitation')}
           </Button>
@@ -240,7 +239,7 @@ export default function ProjectSelect({ value, onChange }: ProjectSelectProps) {
               type="submit"
               variant="primary"
               size="sm"
-              rounded="lg"
+              className="px-3"
             >
               ✓
             </Button>
@@ -248,62 +247,66 @@ export default function ProjectSelect({ value, onChange }: ProjectSelectProps) {
               type="button"
               variant="outline"
               size="sm"
-              rounded="lg"
               onClick={handleCancelNewType}
+              className="px-3"
             >
               ✕
             </Button>
           </div>
         </form>
       ) : isEditingTimeLimit ? (
-        <div className="time-limit-form p-3 bg-white rounded-lg shadow-md">
-          <div className="mb-2 font-medium text-gray-700 text-sm">{t('timer.timeLimit.setLimit')}</div>
-          <div className="flex flex-row gap-2 mb-3 justify-center">
+        <div className="time-limit-form p-5 bg-white rounded-lg">
+          <div className="mb-4 text-gray-700 text-sm font-medium">{t('timer.timeLimit.setLimit')}</div>
+          <div className="flex flex-row gap-4 mb-5 justify-center">
             <div className="w-24">
-              <label className="block text-xs text-gray-600 mb-1">{t('timer.hours')}</label>
-              <select
+              <label className="block text-xs text-gray-600 mb-2">{t('timer.hours')}</label>
+              <input
+                type="number"
+                min="0"
+                max="24"
+                step="0.5"
                 value={timeLimitHours}
                 onChange={(e) => setTimeLimitHours(parseFloat(e.target.value))}
-                className="w-full p-2 border border-gray-300 rounded text-sm"
-              >
-                {hourOptions.map(hour => (
-                  <option key={hour} value={hour}>{hour}</option>
-                ))}
-              </select>
+                className="w-full p-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-purple-400"
+                style={{ boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)' }}
+              />
             </div>
             <div className="w-24">
-              <label className="block text-xs text-gray-600 mb-1">{t('timer.minutes')}</label>
-              <select
+              <label className="block text-xs text-gray-600 mb-2">{t('timer.minutes')}</label>
+              <input
+                type="number"
+                min="0"
+                max="45"
+                step="15"
                 value={timeLimitMinutes}
                 onChange={(e) => setTimeLimitMinutes(parseInt(e.target.value))}
-                className="w-full p-2 border border-gray-300 rounded text-sm"
-              >
-                {[0, 15, 30, 45].map(minute => (
-                  <option key={minute} value={minute}>{minute}</option>
-                ))}
-              </select>
+                className="w-full p-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-purple-400"
+                style={{ boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)' }}
+              />
             </div>
           </div>
-          <div className="flex justify-center gap-2">
-            <Button
-              variant="saveButton"
-              onClick={handleTimeLimitSave}
-              rounded="none"
-            >
-              {t('save')}
-            </Button>
+          <div className="flex justify-center gap-3">
             <Button
               variant="cancelButton"
+              size="md"
               onClick={handleTimeLimitCancel}
-              rounded="none"
+              className="min-w-[100px] py-2.5"
             >
               {t('cancel')}
+            </Button>
+            <Button
+              variant="saveButton"
+              size="md"
+              onClick={handleTimeLimitSave}
+              className="min-w-[100px] py-2.5"
+            >
+              {t('save')}
             </Button>
           </div>
         </div>
       ) : (
         <select
-          className="select-input w-full"
+          className="select-input w-full bg-gray-50 focus:bg-white transition-colors"
           value={value}
           onChange={handleChange}
           disabled={isLoading}

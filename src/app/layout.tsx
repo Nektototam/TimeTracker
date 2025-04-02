@@ -6,7 +6,13 @@ import { TimerProvider } from '../contexts/TimerContext';
 import { PomodoroProvider } from '../contexts/PomodoroContext';
 import { LanguageProvider } from '../contexts/LanguageContext';
 
-const inter = Inter({ subsets: ['latin'] });
+// Настраиваем шрифт Inter с расширенным набором весов
+const inter = Inter({ 
+  subsets: ['latin', 'cyrillic'],
+  weight: ['300', '400', '500', '600', '700'],
+  display: 'swap',
+  variable: '--font-inter',
+});
 
 export const metadata: Metadata = {
   title: 'TimeTracker',
@@ -19,7 +25,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html suppressHydrationWarning>
+    <html suppressHydrationWarning lang="ru" className={inter.variable}>
       <body className={inter.className}>
         <AuthProvider>
           <LanguageProvider>

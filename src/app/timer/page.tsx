@@ -29,7 +29,7 @@ function TimerApp() {
   return (
     <div className="app-container">
       <div className="screen">
-        <h1 className="text-center text-[#32325d] font-bold text-2xl mb-4">TimeTracker</h1>
+        <h1 className="text-center text-primary-dark font-bold text-3xl mb-6">TimeTracker</h1>
         
         <ProjectSelect value={project} onChange={setProject} />
         
@@ -51,6 +51,11 @@ function TimerApp() {
         <div className="daily-total">
           <div className="daily-total-label">{t('timer.dailyTotal')}</div>
           <div className="daily-total-value">{dailyTotal}</div>
+          
+          <div className="flex justify-center items-center mt-3 text-sm text-gray-500">
+            <span className="mr-2">📅</span>
+            {new Date().toLocaleDateString()}
+          </div>
         </div>
         
         <NavBar />

@@ -1,6 +1,7 @@
+"use client";
+
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { Button } from './ui/Button';
 
 interface TimerButtonProps {
   isRunning: boolean;
@@ -12,26 +13,44 @@ export default function TimerButton({ isRunning, onClick, onFinish }: TimerButto
   const { t } = useTranslation();
   
   return (
-    <div className="flex gap-4 justify-center mt-4">
-      <Button 
-        variant={isRunning ? "outline" : "buttonStart"}
-        size={isRunning ? "lg" : undefined}
-        onClick={onClick}
-        leftIcon={isRunning ? '⏸' : '▶'}
-        className={!isRunning ? "relative w-44" : ""}
-      >
-        {isRunning ? t('timer.pause') : t('timer.start')}
-      </Button>
+    <div className="flex flex-wrap gap-16 justify-center mt-10 p-4">
+      <div className="m-4">
+        <button 
+          onClick={onClick}
+          className={`
+            bg-[#ecf0f3] text-[#6c5ce7] font-medium 
+            ${isRunning 
+              ? "min-h-10 px-4 py-2 text-sm rounded-[14px]" 
+              : "min-h-12 min-w-[130px] px-6 py-3 text-base rounded-[18px]"
+            }
+            shadow-[6px_6px_10px_0_rgba(0,0,0,0.1),-6px_-6px_10px_0_rgba(255,255,255,0.8)]
+            transition-all duration-200
+            hover:shadow-[4px_4px_6px_0_rgba(0,0,0,0.1),-4px_-4px_6px_0_rgba(255,255,255,0.8)]
+            active:shadow-[inset_4px_4px_6px_0_rgba(0,0,0,0.1),inset_-4px_-4px_6px_0_rgba(255,255,255,0.8)]
+            disabled:opacity-50 disabled:pointer-events-none
+          `}
+        >
+          {isRunning ? t('timer.pause') : "Start Timer"}
+        </button>
+      </div>
       
       {isRunning && onFinish && (
-        <Button 
-          variant="danger"
-          size="lg"
-          onClick={onFinish}
-          leftIcon="✓"
-        >
-          {t('timer.stop')}
-        </Button>
+        <div className="m-4">
+          <button 
+            onClick={onFinish}
+            className="
+              bg-[#ecf0f3] text-[#ff3d71] font-medium
+              min-h-12 min-w-[130px] px-6 py-3 text-base rounded-[18px]
+              shadow-[6px_6px_10px_0_rgba(0,0,0,0.1),-6px_-6px_10px_0_rgba(255,255,255,0.8)]
+              transition-all duration-200
+              hover:shadow-[4px_4px_6px_0_rgba(0,0,0,0.1),-4px_-4px_6px_0_rgba(255,255,255,0.8)]
+              active:shadow-[inset_4px_4px_6px_0_rgba(0,0,0,0.1),inset_-4px_-4px_6px_0_rgba(255,255,255,0.8)]
+              disabled:opacity-50 disabled:pointer-events-none
+            "
+          >
+            {t('timer.stop')}
+          </button>
+        </div>
       )}
     </div>
   );

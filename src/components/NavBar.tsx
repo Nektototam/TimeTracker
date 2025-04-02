@@ -45,14 +45,24 @@ export default function NavBar() {
     }
     return key;
   };
+
+  // Улучшенные иконки навигации
+  const navIcons = {
+    timer: '⏱️',
+    statistics: '📊',
+    reports: '📋',
+    pomodoro: '🍅',
+    settings: '⚙️',
+    logout: '🚪'
+  };
   
   return (
     <nav className="nav-bar">
       <Link
-        href="/"
-        className={`nav-item ${pathname === "/" ? "active" : ""}`}
+        href="/timer"
+        className={`nav-item ${pathname === "/timer" ? "active" : ""}`}
       >
-        <span className="nav-icon">⏱️</span>
+        <span className="nav-icon">{navIcons.timer}</span>
         <span className="nav-text">{t('nav.timer')}</span>
       </Link>
       
@@ -60,7 +70,7 @@ export default function NavBar() {
         href="/statistics"
         className={`nav-item ${pathname === "/statistics" ? "active" : ""}`}
       >
-        <span className="nav-icon">📊</span>
+        <span className="nav-icon">{navIcons.statistics}</span>
         <span className="nav-text">{t('nav.statistics')}</span>
       </Link>
       
@@ -68,7 +78,7 @@ export default function NavBar() {
         href="/reports"
         className={`nav-item ${pathname === "/reports" ? "active" : ""}`}
       >
-        <span className="nav-icon">📝</span>
+        <span className="nav-icon">{navIcons.reports}</span>
         <span className="nav-text">{t('nav.reports')}</span>
       </Link>
       
@@ -76,7 +86,7 @@ export default function NavBar() {
         href="/pomodoro"
         className={`nav-item ${pathname === "/pomodoro" ? "active" : ""}`}
       >
-        <span className="nav-icon">🍅</span>
+        <span className="nav-icon">{navIcons.pomodoro}</span>
         <span className="nav-text">{t('nav.pomodoro')}</span>
       </Link>
       
@@ -84,7 +94,7 @@ export default function NavBar() {
         href="/settings"
         className={`nav-item ${pathname === "/settings" ? "active" : ""}`}
       >
-        <span className="nav-icon">⚙️</span>
+        <span className="nav-icon">{navIcons.settings}</span>
         <span className="nav-text">{t('nav.settings')}</span>
       </Link>
       
@@ -92,7 +102,7 @@ export default function NavBar() {
         onClick={() => signOut()}
         className="nav-item logout"
       >
-        <span className="nav-icon">🚪</span>
+        <span className="nav-icon">{navIcons.logout}</span>
         <span className="nav-text">{t('nav.logout')}</span>
       </button>
     </nav>
