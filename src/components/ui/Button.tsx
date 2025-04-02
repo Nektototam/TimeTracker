@@ -23,16 +23,28 @@ const buttonVariants = cva(
         // Специфичные варианты
         timer: "bg-[#ecf0f3] text-[#6c5ce7] shadow-[6px_6px_10px_0_rgba(0,0,0,0.1),-6px_-6px_10px_0_rgba(255,255,255,0.8)] hover:shadow-[4px_4px_6px_0_rgba(0,0,0,0.1),-4px_-4px_6px_0_rgba(255,255,255,0.8)] active:shadow-[inset_4px_4px_6px_0_rgba(0,0,0,0.1),inset_-4px_-4px_6px_0_rgba(255,255,255,0.8)]",
         timerStop: "bg-[#ecf0f3] text-[#ff3d71] shadow-[6px_6px_10px_0_rgba(0,0,0,0.1),-6px_-6px_10px_0_rgba(255,255,255,0.8)] hover:shadow-[4px_4px_6px_0_rgba(0,0,0,0.1),-4px_-4px_6px_0_rgba(255,255,255,0.8)] active:shadow-[inset_4px_4px_6px_0_rgba(0,0,0,0.1),inset_-4px_-4px_6px_0_rgba(255,255,255,0.8)]",
+        buttonStart: "bg-[#ecf0f3] text-[#00d68f] shadow-[6px_6px_10px_0_rgba(0,0,0,0.1),-6px_-6px_10px_0_rgba(255,255,255,0.8)] hover:shadow-[4px_4px_6px_0_rgba(0,0,0,0.1),-4px_-4px_6px_0_rgba(255,255,255,0.8)] active:shadow-[inset_4px_4px_6px_0_rgba(0,0,0,0.1),inset_-4px_-4px_6px_0_rgba(255,255,255,0.8)]",
         saveButton: "bg-[#ecf0f3] text-[#6c5ce7] shadow-[6px_6px_10px_0_rgba(0,0,0,0.1),-6px_-6px_10px_0_rgba(255,255,255,0.8)] hover:shadow-[4px_4px_6px_0_rgba(0,0,0,0.1),-4px_-4px_6px_0_rgba(255,255,255,0.8)] active:shadow-[inset_4px_4px_6px_0_rgba(0,0,0,0.1),inset_-4px_-4px_6px_0_rgba(255,255,255,0.8)]",
         cancelButton: "bg-[#ecf0f3] text-gray-500 shadow-[6px_6px_10px_0_rgba(0,0,0,0.1),-6px_-6px_10px_0_rgba(255,255,255,0.8)] hover:shadow-[4px_4px_6px_0_rgba(0,0,0,0.1),-4px_-4px_6px_0_rgba(255,255,255,0.8)] active:shadow-[inset_4px_4px_6px_0_rgba(0,0,0,0.1),inset_-4px_-4px_6px_0_rgba(255,255,255,0.8)]",
       },
       // Размеры с правильными пропорциями
       size: {
-        sm: "min-h-8 min-w-[80px] px-3 py-1.5 text-xs rounded-[10px]",
-        md: "min-h-10 min-w-[100px] px-4 py-2 text-sm rounded-[14px]",
-        lg: "min-h-12 min-w-[130px] px-6 py-3 text-base rounded-[18px]",
-        xl: "min-h-14 min-w-[160px] px-8 py-4 text-lg font-semibold rounded-[22px]",
-        icon: "h-10 w-10 p-2 rounded-full",
+        sm: "min-h-8 min-w-[80px] px-3 py-1.5 !text-xs",
+        md: "min-h-10 min-w-[100px] px-4 py-2 !text-sm",
+        lg: "min-h-12 min-w-[130px] px-6 py-3 !text-base",
+        xl: "min-h-14 min-w-[160px] px-8 py-4 !text-lg !font-semibold",
+        icon: "h-10 w-10 p-2",
+      },
+      // Уровни скругления
+      rounded: {
+        none: "rounded-none",
+        sm: "rounded-sm",
+        md: "rounded-md",
+        lg: "rounded-lg",
+        xl: "rounded-xl",
+        full: "rounded-full",
+        // Неоморфные стандартные скругления
+        default: "rounded-[14px]",
       },
       // Уровни тени (в неоморфизме не используются, оставлены для совместимости)
       elevation: {
@@ -51,6 +63,7 @@ const buttonVariants = cva(
       variant: "primary",
       size: "md",
       elevation: "none",
+      rounded: "default",
     },
   }
 );
@@ -66,10 +79,10 @@ export interface ButtonProps
 
 // Компонент кнопки
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant, size, elevation, fullWidth, children, isLoading, leftIcon, rightIcon, ...props }, ref) => {
+  ({ className, variant, size, rounded, elevation, fullWidth, children, isLoading, leftIcon, rightIcon, ...props }, ref) => {
     return (
       <button
-        className={cn(buttonVariants({ variant, size, elevation, fullWidth, className }), 
+        className={cn(buttonVariants({ variant, size, rounded, elevation, fullWidth, className }), 
           props.disabled ? "opacity-50 pointer-events-none" : "")}
         ref={ref}
         disabled={isLoading || props.disabled}
