@@ -19,8 +19,8 @@ export default function TimerButton({ isRunning, onClick, onFinish }: TimerButto
           onClick={onClick}
           className={`
             ${isRunning 
-              ? "bg-[#e8efff] text-[#6c5ce7] min-h-10 px-4 py-2 text-sm rounded-[14px]" 
-              : "bg-[#e8efff] text-[#6c5ce7] min-h-12 min-w-[130px] px-6 py-3 text-base rounded-[18px]"
+              ? "bg-[#e8efff] text-[#6c5ce7] min-h-16 min-w-[160px] px-8 py-4 text-lg rounded-[20px]" 
+              : "bg-[#e8efff] text-[#6c5ce7] min-h-16 min-w-[160px] px-8 py-4 text-lg rounded-[20px]"
             }
             font-medium 
             border-t border-l border-[#ffffff50] border-b-[#00000015] border-r-[#00000015]
@@ -41,7 +41,7 @@ export default function TimerButton({ isRunning, onClick, onFinish }: TimerButto
             onClick={onFinish}
             className="
               bg-[#fff0f5] text-[#e82d61] font-medium
-              min-h-12 min-w-[130px] px-6 py-3 text-base rounded-[18px]
+              min-h-16 min-w-[160px] px-8 py-4 text-lg rounded-[20px]
               border-t border-l border-[#ffffff50] border-b-[#00000015] border-r-[#00000015]
               shadow-[6px_6px_12px_0_rgba(0,0,0,0.15),-6px_-6px_12px_0_rgba(255,255,255,0.9)]
               transition-all duration-200

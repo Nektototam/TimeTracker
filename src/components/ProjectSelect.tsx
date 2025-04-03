@@ -182,19 +182,20 @@ export default function ProjectSelect({ value, onChange }: ProjectSelectProps) {
   return (
     <div className="select-container max-w-xl mx-auto">
       {/* Текущая активная задача - всегда показываем */}
-      <div className="current-task mb-6 p-5 bg-[#f8fafc] rounded-xl shadow-lg">
+      <div className="current-task mb-6 text-center">
         <div className="text-sm text-gray-500 mb-1">{t('timer.currentTask')}:</div>
         <div className="text-lg font-semibold text-primary-dark">{projectText || t('timer.notSelected')}</div>
       </div>
       
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 mb-5 p-5 bg-[#f8fafc] rounded-xl shadow-lg">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 mb-5">
         <label className="select-label text-base font-medium text-gray-700">
           {t('timer.workType')}:
         </label>
         {timeLimit !== null ? (
           <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
-            <span className="time-limit-badge inline-block text-base font-medium text-primary px-4 py-2 rounded-lg
-              bg-[#f1f5fa] shadow-sm">
+            <span className="time-limit-badge inline-block text-base font-medium text-[#6c5ce7] px-4 py-2.5 rounded-[14px]
+              bg-[#e9edf5] border-t border-l border-[#ffffff50] border-b-[#00000015] border-r-[#00000015]
+              shadow-[2px_2px_5px_rgba(0,0,0,0.05),-2px_-2px_5px_rgba(255,255,255,0.8)]">
               {t('timer.limitValue')} {Math.floor(timeLimit / 3600000)}ч {Math.floor((timeLimit % 3600000) / 60000)}м
             </span>
             <div className="flex items-center gap-2">
@@ -202,9 +203,10 @@ export default function ProjectSelect({ value, onChange }: ProjectSelectProps) {
                 onClick={showTimeLimitEditor}
                 variant="ghost"
                 size="icon"
-                className="flex items-center justify-center h-8 w-8 rounded-full
-                  bg-[#f1f5fa] text-primary text-sm shadow-sm
-                  hover:bg-[#e6ebf5]"
+                className="flex items-center justify-center h-10 w-10 rounded-full
+                  bg-[#e8efff] text-[#6c5ce7] text-lg shadow-[3px_3px_6px_rgba(0,0,0,0.1),-3px_-3px_6px_rgba(255,255,255,0.8)]
+                  hover:shadow-[2px_2px_4px_rgba(0,0,0,0.1),-2px_-2px_4px_rgba(255,255,255,0.8)]
+                  active:shadow-[inset_2px_2px_4px_rgba(0,0,0,0.1),inset_-2px_-2px_4px_rgba(255,255,255,0.8)]"
               >
                 📝
               </Button>
@@ -212,9 +214,10 @@ export default function ProjectSelect({ value, onChange }: ProjectSelectProps) {
                 onClick={clearTimeLimit}
                 variant="ghost"
                 size="icon"
-                className="flex items-center justify-center h-8 w-8 rounded-full
-                  bg-[#fff5f7] text-red-500 text-sm shadow-sm
-                  hover:bg-red-50"
+                className="flex items-center justify-center h-10 w-10 rounded-full
+                  bg-[#fff0f5] text-[#e82d61] text-lg shadow-[3px_3px_6px_rgba(0,0,0,0.1),-3px_-3px_6px_rgba(255,255,255,0.8)]
+                  hover:shadow-[2px_2px_4px_rgba(0,0,0,0.1),-2px_-2px_4px_rgba(255,255,255,0.8)]
+                  active:shadow-[inset_2px_2px_4px_rgba(0,0,0,0.1),inset_-2px_-2px_4px_rgba(255,255,255,0.8)]"
               >
                 ❌
               </Button>
@@ -225,7 +228,11 @@ export default function ProjectSelect({ value, onChange }: ProjectSelectProps) {
             onClick={showTimeLimitEditor}
             variant="outline"
             size="sm"
-            className="py-2 px-4 bg-[#f1f5fa] text-primary rounded-lg shadow-sm hover:bg-[#e6ebf5]"
+            className="py-2.5 px-4 min-h-[44px] text-sm bg-[#e8efff] text-[#6c5ce7] rounded-[14px] 
+              border-t border-l border-[#ffffff50] border-b-[#00000015] border-r-[#00000015]
+              shadow-[3px_3px_6px_rgba(0,0,0,0.1),-3px_-3px_6px_rgba(255,255,255,0.8)]
+              hover:shadow-[2px_2px_4px_rgba(0,0,0,0.1),-2px_-2px_4px_rgba(255,255,255,0.8)]
+              active:shadow-[inset_2px_2px_4px_rgba(0,0,0,0.1),inset_-2px_-2px_4px_rgba(255,255,255,0.8)]"
           >
             {t('timer.addLimitation')}
           </Button>
@@ -233,15 +240,17 @@ export default function ProjectSelect({ value, onChange }: ProjectSelectProps) {
       </div>
       
       {isAddingNewType ? (
-        <form onSubmit={handleNewTypeSubmit} className="new-type-form p-5 bg-[#f8fafc] rounded-xl shadow-lg">
+        <form onSubmit={handleNewTypeSubmit} className="new-type-form">
           <div className="flex gap-3">
             <input
               type="text"
               value={newTypeValue}
               onChange={handleNewTypeChange}
-              className="flex-1 py-2 px-3 bg-white text-gray-700 text-base 
-                rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/30
-                min-h-[40px]"
+              className="flex-1 py-2.5 px-4 bg-[#e9edf5] text-gray-700 text-base 
+                rounded-[14px] border-t border-l border-[#ffffff50] border-b-[#00000015] border-r-[#00000015]
+                shadow-[inset_3px_3px_6px_rgba(0,0,0,0.1),inset_-3px_-3px_6px_rgba(255,255,255,0.7)]
+                focus:outline-none focus:shadow-[inset_4px_4px_8px_rgba(0,0,0,0.15),inset_-4px_-4px_8px_rgba(255,255,255,0.8)]
+                transition-all min-h-[44px]"
               placeholder={t('timer.timeLimit.enterValue')}
               autoFocus
             />
@@ -250,16 +259,16 @@ export default function ProjectSelect({ value, onChange }: ProjectSelectProps) {
                 type="submit"
                 variant="primary"
                 size="sm"
-                className="px-3 py-2 min-w-[40px] min-h-[40px] bg-[#f1f5fa] text-primary rounded-lg"
+                className="px-3 py-2 min-w-[44px] min-h-[44px] text-lg"
               >
                 ✓
               </Button>
               <Button 
                 type="button"
-                variant="ghost"
+                variant="outline"
                 size="sm"
                 onClick={handleCancelNewType}
-                className="px-3 py-2 min-w-[40px] min-h-[40px] bg-white text-gray-500 rounded-lg"
+                className="px-3 py-2 min-w-[44px] min-h-[44px] text-lg"
               >
                 ✕
               </Button>
@@ -278,26 +287,26 @@ export default function ProjectSelect({ value, onChange }: ProjectSelectProps) {
           onCancel={handleTimeLimitCancel}
         />
       ) : (
-        <div className="p-5 bg-[#f8fafc] rounded-xl shadow-lg">
-          <select
-            className="select-input w-full py-2 px-3 bg-white text-gray-700 text-base 
-              rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/30
-              disabled:opacity-60 appearance-none pr-10 min-h-[40px]"
-            value={value}
-            onChange={handleChange}
-            disabled={isLoading}
-            style={{ backgroundImage: "url(\"data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e\")", 
-                     backgroundPosition: "right 0.5rem center", 
-                     backgroundRepeat: "no-repeat", 
-                     backgroundSize: "1.5em 1.5em" }}
-          >
-            {allOptions.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-        </div>
+        <select
+          className="select-input w-full py-2.5 px-4 bg-[#e9edf5] text-gray-700 text-base 
+            rounded-[14px] border-t border-l border-[#ffffff50] border-b-[#00000015] border-r-[#00000015]
+            shadow-[inset_3px_3px_6px_rgba(0,0,0,0.1),inset_-3px_-3px_6px_rgba(255,255,255,0.7)]
+            focus:outline-none focus:shadow-[inset_4px_4px_8px_rgba(0,0,0,0.15),inset_-4px_-4px_8px_rgba(255,255,255,0.8)]
+            transition-all disabled:opacity-60 appearance-none pr-10 min-h-[44px]"
+          value={value}
+          onChange={handleChange}
+          disabled={isLoading}
+          style={{ backgroundImage: "url(\"data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e\")", 
+                   backgroundPosition: "right 0.5rem center", 
+                   backgroundRepeat: "no-repeat", 
+                   backgroundSize: "1.5em 1.5em" }}
+        >
+          {allOptions.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </select>
       )}
     </div>
   );

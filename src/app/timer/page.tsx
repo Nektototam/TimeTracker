@@ -31,7 +31,9 @@ function TimerApp() {
       <div className="screen">
         <h1 className="text-center text-primary-dark font-bold text-3xl mb-6">TimeTracker</h1>
         
-        <ProjectSelect value={project} onChange={setProject} />
+        <div className="w-96 min-w-[280px] mx-auto mb-4"> 
+          <ProjectSelect value={project} onChange={setProject} />
+        </div>
         
         <TimerCircle
           isRunning={isRunning}
@@ -42,11 +44,14 @@ function TimerApp() {
           project={projectText}
         />
         
-        <TimerButton 
-          isRunning={isRunning} 
-          onClick={toggleTimer}
-          onFinish={finishTask}
-        />
+        {/* Wrap TimerButton in a div with the same width and centering */}
+        <div className="w-96 min-w-[280px] mx-auto mb-6"> 
+          <TimerButton 
+            isRunning={isRunning} 
+            onClick={toggleTimer}
+            onFinish={finishTask}
+          />
+        </div>
         
         <div className="daily-total">
           <div className="daily-total-label">{t('timer.dailyTotal')}</div>
