@@ -4,6 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useTimer } from '../contexts/TimerContext';
 import { useTranslation } from 'react-i18next';
 import { Button } from './ui/Button';
+import { TimeLimitForm } from './TimeLimitForm';
 
 interface ProjectOption {
   value: string;
@@ -179,45 +180,52 @@ export default function ProjectSelect({ value, onChange }: ProjectSelectProps) {
   };
 
   return (
-    <div className="select-container">
+    <div className="select-container max-w-xl mx-auto">
       {/* Текущая активная задача - всегда показываем */}
-      <div className="current-task mb-4 text-center">
+      <div className="current-task mb-6 p-5 bg-[#f8fafc] rounded-xl shadow-lg">
         <div className="text-sm text-gray-500 mb-1">{t('timer.currentTask')}:</div>
         <div className="text-lg font-semibold text-primary-dark">{projectText || t('timer.notSelected')}</div>
       </div>
       
-      <div className="flex justify-between items-center mb-3">
-        <label className="select-label">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 mb-5 p-5 bg-[#f8fafc] rounded-xl shadow-lg">
+        <label className="select-label text-base font-medium text-gray-700">
           {t('timer.workType')}:
         </label>
         {timeLimit !== null ? (
-          <div className="flex items-center">
-            <span className="time-limit-badge text-xs bg-blue-50 text-blue-700 px-2 py-1 rounded-lg mr-2 border border-blue-100">
+          <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
+            <span className="time-limit-badge inline-block text-base font-medium text-primary px-4 py-2 rounded-lg
+              bg-[#f1f5fa] shadow-sm">
               {t('timer.limitValue')} {Math.floor(timeLimit / 3600000)}ч {Math.floor((timeLimit % 3600000) / 60000)}м
             </span>
-            <Button 
-              onClick={showTimeLimitEditor}
-              variant="ghost"
-              size="icon"
-              className="text-blue-600"
-            >
-              📝
-            </Button>
-            <Button 
-              onClick={clearTimeLimit}
-              variant="ghost"
-              size="icon"
-              className="text-red-600"
-            >
-              ❌
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button 
+                onClick={showTimeLimitEditor}
+                variant="ghost"
+                size="icon"
+                className="flex items-center justify-center h-8 w-8 rounded-full
+                  bg-[#f1f5fa] text-primary text-sm shadow-sm
+                  hover:bg-[#e6ebf5]"
+              >
+                📝
+              </Button>
+              <Button 
+                onClick={clearTimeLimit}
+                variant="ghost"
+                size="icon"
+                className="flex items-center justify-center h-8 w-8 rounded-full
+                  bg-[#fff5f7] text-red-500 text-sm shadow-sm
+                  hover:bg-red-50"
+              >
+                ❌
+              </Button>
+            </div>
           </div>
         ) : (
           <Button 
             onClick={showTimeLimitEditor}
             variant="outline"
             size="sm"
-            className="py-1.5 px-3 text-sm"
+            className="py-2 px-4 bg-[#f1f5fa] text-primary rounded-lg shadow-sm hover:bg-[#e6ebf5]"
           >
             {t('timer.addLimitation')}
           </Button>
@@ -225,98 +233,71 @@ export default function ProjectSelect({ value, onChange }: ProjectSelectProps) {
       </div>
       
       {isAddingNewType ? (
-        <form onSubmit={handleNewTypeSubmit} className="new-type-form">
-          <div className="flex gap-2 items-center">
+        <form onSubmit={handleNewTypeSubmit} className="new-type-form p-5 bg-[#f8fafc] rounded-xl shadow-lg">
+          <div className="flex gap-3">
             <input
               type="text"
               value={newTypeValue}
               onChange={handleNewTypeChange}
-              className="select-input flex-1"
+              className="flex-1 py-2 px-3 bg-white text-gray-700 text-base 
+                rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/30
+                min-h-[40px]"
               placeholder={t('timer.timeLimit.enterValue')}
               autoFocus
             />
-            <Button 
-              type="submit"
-              variant="primary"
-              size="sm"
-              className="px-3"
-            >
-              ✓
-            </Button>
-            <Button 
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={handleCancelNewType}
-              className="px-3"
-            >
-              ✕
-            </Button>
+            <div className="flex gap-2">
+              <Button 
+                type="submit"
+                variant="primary"
+                size="sm"
+                className="px-3 py-2 min-w-[40px] min-h-[40px] bg-[#f1f5fa] text-primary rounded-lg"
+              >
+                ✓
+              </Button>
+              <Button 
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={handleCancelNewType}
+                className="px-3 py-2 min-w-[40px] min-h-[40px] bg-white text-gray-500 rounded-lg"
+              >
+                ✕
+              </Button>
+            </div>
           </div>
         </form>
       ) : isEditingTimeLimit ? (
-        <div className="time-limit-form p-5 bg-white rounded-lg">
-          <div className="mb-4 text-gray-700 text-sm font-medium">{t('timer.timeLimit.setLimit')}</div>
-          <div className="flex flex-row gap-4 mb-5 justify-center">
-            <div className="w-24">
-              <label className="block text-xs text-gray-600 mb-2">{t('timer.hours')}</label>
-              <input
-                type="number"
-                min="0"
-                max="24"
-                step="0.5"
-                value={timeLimitHours}
-                onChange={(e) => setTimeLimitHours(parseFloat(e.target.value))}
-                className="w-full p-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-purple-400"
-                style={{ boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)' }}
-              />
-            </div>
-            <div className="w-24">
-              <label className="block text-xs text-gray-600 mb-2">{t('timer.minutes')}</label>
-              <input
-                type="number"
-                min="0"
-                max="45"
-                step="15"
-                value={timeLimitMinutes}
-                onChange={(e) => setTimeLimitMinutes(parseInt(e.target.value))}
-                className="w-full p-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-purple-400"
-                style={{ boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)' }}
-              />
-            </div>
-          </div>
-          <div className="flex justify-center gap-3">
-            <Button
-              variant="cancelButton"
-              size="md"
-              onClick={handleTimeLimitCancel}
-              className="min-w-[100px] py-2.5"
-            >
-              {t('cancel')}
-            </Button>
-            <Button
-              variant="saveButton"
-              size="md"
-              onClick={handleTimeLimitSave}
-              className="min-w-[100px] py-2.5"
-            >
-              {t('save')}
-            </Button>
-          </div>
-        </div>
+        <TimeLimitForm 
+          initialHours={timeLimitHours} 
+          initialMinutes={timeLimitMinutes}
+          onSave={(hours, minutes) => {
+            const limitMs = (hours * 60 * 60 * 1000) + (minutes * 60 * 1000);
+            setTimeLimit(limitMs);
+            setIsEditingTimeLimit(false);
+          }}
+          onCancel={handleTimeLimitCancel}
+        />
       ) : (
-        <select
-          className="select-input w-full bg-gray-50 focus:bg-white transition-colors"
-          value={value}
-          onChange={handleChange}
-          disabled={isLoading}
-        >
-          {allOptions.map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </select>
+        <div className="p-5 bg-[#f8fafc] rounded-xl shadow-lg">
+          <select
+            className="select-input w-full py-2 px-3 bg-white text-gray-700 text-base 
+              rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/30
+              disabled:opacity-60 appearance-none pr-10 min-h-[40px]"
+            value={value}
+            onChange={handleChange}
+            disabled={isLoading}
+            style={{ backgroundImage: "url(\"data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e\")", 
+                     backgroundPosition: "right 0.5rem center", 
+                     backgroundRepeat: "no-repeat", 
+                     backgroundSize: "1.5em 1.5em" }}
+          >
+            {allOptions.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </div>
       )}
     </div>
   );
