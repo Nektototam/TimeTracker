@@ -65,6 +65,7 @@ body {
   border-radius: var(--border-radius);
   box-shadow: var(--shadow);
   padding: 24px; /* Увеличили отступы для лучшего восприятия */
+  padding-bottom: 90px; /* Добавляем отступ снизу для навигационной панели */
   display: flex;
   flex-direction: column;
   transition: var(--transition);
@@ -468,7 +469,7 @@ h1 {
 
 .activity-list {
   margin-top: 30px;
-  margin-bottom: 60px;
+  margin-bottom: 100px; /* Увеличиваем отступ снизу для избежания перекрытия навигационной панелью */
 }
 
 .activity-list-title {

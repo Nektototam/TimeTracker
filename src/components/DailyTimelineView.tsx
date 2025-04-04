@@ -265,28 +265,37 @@ const DailyTimelineView: React.FC<DailyTimelineViewProps> = ({
                     .map((block, index) => (
                       <div 
                         key={block.id} 
-                        className="day-entry p-4 rounded-[12px] shadow-[6px_6px_12px_0_rgba(0,0,0,0.15),-6px_-6px_12px_0_rgba(255,255,255,0.9)] border-t border-l border-[#ffffff30] border-b-[#00000015] border-r-[#00000015] flex justify-between"
+                        className="day-entry p-4 rounded-[12px] shadow-sm border border-[#0000001a] flex justify-between"
                         style={{ 
                           marginBottom: index !== filteredBlocks.length - 1 ? '16px' : '0',
                           backgroundColor: 
-                            block.projectType === 'development' ? 'var(--primary-color)' : 
-                            block.projectType === 'design' ? 'var(--success-color)' : 
-                            block.projectType === 'marketing' ? 'var(--warning-color)' : 
-                            block.projectType === 'meeting' ? 'var(--danger-color)' : 
-                            block.projectType === 'other' ? 'var(--info-color)' :
-                            getProjectColor(block.projectType),
+                            block.projectType === 'development' ? 'rgba(79, 110, 247, 0.12)' : 
+                            block.projectType === 'design' ? 'rgba(16, 185, 129, 0.12)' : 
+                            block.projectType === 'marketing' ? 'rgba(245, 158, 11, 0.12)' : 
+                            block.projectType === 'meeting' ? 'rgba(239, 68, 68, 0.12)' : 
+                            block.projectType === 'other' ? 'rgba(14, 165, 233, 0.12)' :
+                            `rgba(${getProjectColor(block.projectType)}, 0.12)`,
                           transition: 'var(--transition)'
                         }}
                       >
                         <div className="flex flex-col">
-                          <div className="entry-time text-white text-sm mb-1 font-medium opacity-90">
+                          <div className="entry-time text-secondary-text-color text-sm mb-1 font-medium">
                             {formatTimeOfDay(block.startTime)} - {formatTimeOfDay(block.endTime)}
                           </div>
-                          <div className="entry-type font-semibold text-white">
+                          <div className="entry-type font-semibold text-dark-color">
                             {block.projectName}
                           </div>
                         </div>
-                        <div className="entry-duration text-white font-bold self-center">
+                        <div className="entry-duration font-bold self-center" 
+                          style={{ 
+                            color: 
+                              block.projectType === 'development' ? 'var(--primary-color)' : 
+                              block.projectType === 'design' ? 'var(--success-color)' : 
+                              block.projectType === 'marketing' ? 'var(--warning-color)' : 
+                              block.projectType === 'meeting' ? 'var(--error-color)' : 
+                              block.projectType === 'other' ? 'var(--info-color)' :
+                              getProjectColor(block.projectType)
+                          }}>
                           {formatTime(block.duration)}
                         </div>
                       </div>
