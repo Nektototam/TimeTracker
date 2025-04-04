@@ -7,7 +7,6 @@ import ActivityChart from '../../components/ActivityChart';
 import DailyTimelineView from '../../components/DailyTimelineView';
 import { reportService, ReportData, ProjectSummary, PeriodType } from '../../lib/reportService';
 import { useAuth } from '../../contexts/AuthContext';
-import { useLanguage } from '../../contexts/LanguageContext';
 
 // Вспомогательные функции для форматирования времени
 const formatTime = (milliseconds: number): string => {
@@ -29,8 +28,6 @@ const formatFullTime = (milliseconds: number): string => {
 
 function ReportsPage() {
   const { user } = useAuth();
-  const { translationInstance } = useLanguage();
-  const { t } = translationInstance;
   const [isLoading, setIsLoading] = useState(true);
   const [reportData, setReportData] = useState<ReportData | null>(null);
   
@@ -42,14 +39,6 @@ function ReportsPage() {
   // Состояние для типа отображения (summary или daily)
   const [viewType, setViewType] = useState<'summary' | 'daily'>('summary');
   
-  // Функция перевода
-  const translate = (key: string): string => {
-    const i18nTranslation = t(`reports.${key}`);
-    
-    // Возвращаем перевод напрямую, так как всё должно быть в файлах локализации
-    return i18nTranslation === `reports.${key}` ? key : i18nTranslation;
-  };
-
   // Загрузка данных отчета
   const loadReportData = async () => {
     if (!user) return;
@@ -184,20 +173,20 @@ function ReportsPage() {
     // Функция копирования данных в буфер обмена
     if (!reportData) return;
     
-    let text = `${translate('title')} ${dateRange}\n\n`;
+    let text = `Отчет по времени за период ${dateRange}\n\n`;
     
-    text += `${translate('projects')}:\n`;
+    text += "Проекты:\n";
     reportData.projectSummaries.forEach(project => {
       text += `${project.project_name}: ${formatTime(project.total_duration)} (${project.percentage}%)\n`;
     });
     
-    text += `\n${translate('totalTime')}: ${formatFullTime(reportData.totalDuration)}`;
+    text += `\nВсего: ${formatFullTime(reportData.totalDuration)}`;
     
     navigator.clipboard.writeText(text).then(() => {
-      alert(translate('copied'));
+      alert("Отчет скопирован в буфер обмена");
     }).catch(err => {
       console.error('Ошибка при копировании', err);
-      alert(translate('copyError'));
+      alert("Не удалось скопировать отчет");
     });
   };
   
@@ -233,7 +222,7 @@ function ReportsPage() {
     <div className="app-container">
       <div id="report-screen" className="screen">
         <div className="report-header">
-          <h1>{translate('title')}</h1>
+          <h1>Отчет за период</h1>
         </div>
         
         <div className="period-tabs slide-up">
@@ -241,25 +230,25 @@ function ReportsPage() {
             className={`period-tab ${periodType === 'week' ? 'active' : ''}`}
             onClick={() => setPeriodType('week')}
           >
-            {translate('weekly')}
+            Неделя
           </button>
           <button 
             className={`period-tab ${periodType === 'month' ? 'active' : ''}`}
             onClick={() => setPeriodType('month')}
           >
-            {translate('monthly')}
+            Месяц
           </button>
           <button 
             className={`period-tab ${periodType === 'quarter' ? 'active' : ''}`}
             onClick={() => setPeriodType('quarter')}
           >
-            {translate('quarterly')}
+            Квартал
           </button>
           <button 
             className={`period-tab ${periodType === 'custom' ? 'active' : ''}`}
             onClick={() => setPeriodType('custom')}
           >
-            {translate('custom')}
+            Свой
           </button>
         </div>
         
@@ -274,24 +263,24 @@ function ReportsPage() {
             className={`view-type-button ${viewType === 'summary' ? 'active' : ''}`}
             onClick={() => setViewType('summary')}
           >
-            {translate('summary')}
+            Суммарный отчет
           </button>
           <button 
             className={`view-type-button ${viewType === 'daily' ? 'active' : ''}`}
             onClick={() => setViewType('daily')}
           >
-            {translate('daily')}
+            По дням
           </button>
         </div>
         
         {isLoading ? (
-          <div className="loading-state">{translate('loading')}</div>
+          <div className="loading-state">Загрузка отчета...</div>
         ) : (
           viewType === 'summary' ? (
             // Суммарный отчет
             <>
               <div className="chart-container slide-up">
-                <div className="chart-title">{translate('dailyActivity')}</div>
+                <div className="chart-title">Активность по дням</div>
                 <ActivityChart 
                   data={getDailyChartData()} 
                   height={180}
@@ -300,7 +289,7 @@ function ReportsPage() {
               </div>
               
               <div className="project-summary">
-                <h2 className="project-summary-title">{translate('projects')}</h2>
+                <h2 className="project-summary-title">Проекты</h2>
                 <div className="project-list">
                   {reportData && reportData.projectSummaries.map((project, index) => (
                     <div key={project.project_type} className="project-item">
@@ -324,7 +313,7 @@ function ReportsPage() {
                   ))}
                   
                   {reportData && reportData.projectSummaries.length === 0 && (
-                    <div className="empty-state">{translate('noData')}</div>
+                    <div className="empty-state">Нет данных о проектах за выбранный период</div>
                   )}
                 </div>
               </div>
@@ -341,7 +330,7 @@ function ReportsPage() {
         )}
         
         <div className="report-total slide-up">
-          <div className="report-total-label">{translate('totalTime')}</div>
+          <div className="report-total-label">Всего за период</div>
           <div className="report-total-value">
             {reportData ? formatFullTime(reportData.totalDuration) : '00:00:00'}
           </div>
@@ -350,15 +339,15 @@ function ReportsPage() {
         <div className="report-actions slide-up">
           <button className="report-action" onClick={handlePrint}>
             <span className="report-action-icon">🖨️</span>
-            <span className="report-action-text">{translate('print')}</span>
+            <span className="report-action-text">Печать</span>
           </button>
           <button className="report-action" onClick={handleCopy}>
             <span className="report-action-icon">📋</span>
-            <span className="report-action-text">{translate('copy')}</span>
+            <span className="report-action-text">Копировать</span>
           </button>
           <button className="report-action" onClick={handleExport}>
             <span className="report-action-icon">📤</span>
-            <span className="report-action-text">{translate('export')}</span>
+            <span className="report-action-text">Экспорт</span>
           </button>
         </div>
         
