@@ -14,7 +14,8 @@ function TimerApp() {
   const { 
     project, 
     projectText, 
-    isRunning, 
+    isRunning,
+    isPaused, 
     startTime, 
     elapsedTime, 
     timerStatus, 
@@ -47,7 +48,8 @@ function TimerApp() {
         {/* Wrap TimerButton in a div with the same width and centering */}
         <div className="w-96 min-w-[280px] mx-auto mb-6"> 
           <TimerButton 
-            isRunning={isRunning} 
+            isRunning={isRunning}
+            isPaused={isPaused}
             onClick={toggleTimer}
             onFinish={finishTask}
           />

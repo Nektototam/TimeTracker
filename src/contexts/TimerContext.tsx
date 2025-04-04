@@ -12,8 +12,10 @@ interface TimerContextType {
   project: string;
   projectText: string;
   isRunning: boolean;
+  isPaused: boolean;
   startTime: number;
   elapsedTime: number;
+  pausedElapsedTime: number;
   timerStatus: string;
   timerValue: string;
   dailyTotal: string;
@@ -39,8 +41,10 @@ export function TimerProvider({ children }: { children: React.ReactNode }) {
   // Состояние таймера
   const [project, setProject] = useState('development');
   const [isRunning, setIsRunning] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
   const [startTime, setStartTime] = useState<number>(0);
   const [elapsedTime, setElapsedTime] = useState(0);
+  const [pausedElapsedTime, setPausedElapsedTime] = useState(0);
   const [timerStatus, setTimerStatus] = useState('Готов'); // Временное значение
   const [timerValue, setTimerValue] = useState('00:00:00');
   const [projectText, setProjectText] = useState('Веб-разработка'); // Временное значение
@@ -86,15 +90,39 @@ export function TimerProvider({ children }: { children: React.ReactNode }) {
           setProject(timerState.project);
           setProjectText(timerState.projectText);
           setIsRunning(true);
-          setStartTime(timerState.startTime);
-          setElapsedTime(Date.now() - timerState.startTime);
-          setTimerStatus(t('timer.status.running'));
+          
+          // Восстанавливаем время с учетом прошедшего
+          const savedStartTime = timerState.startTime;
+          setStartTime(savedStartTime);
+          
+          // Обновляем прошедшее время с учетом времени, прошедшего с момента сохранения
+          const currentElapsed = Date.now() - savedStartTime;
+          setElapsedTime(currentElapsed);
+          setTimerValue(formatTime(currentElapsed));
+          
+          // Восстанавливаем метки времени и лимит
           setLastHourMark(timerState.lastHourMark || 0);
           setLast15MinMark(timerState.last15MinMark || 0);
-          setTimeLimit(timerState.timeLimit || null);
+          if (timerState.timeLimit) {
+            setTimeLimit(timerState.timeLimit);
+          }
+          
+          setTimerStatus(t('timer.status.running'));
+        } else if (timerState.isPaused) {
+          // Восстанавливаем состояние паузы
+          setProject(timerState.project);
+          setProjectText(timerState.projectText);
+          setIsPaused(true);
+          setPausedElapsedTime(timerState.pausedElapsedTime || 0);
+          setElapsedTime(timerState.pausedElapsedTime || 0);
+          setTimerValue(formatTime(timerState.pausedElapsedTime || 0));
+          if (timerState.timeLimit) {
+            setTimeLimit(timerState.timeLimit);
+          }
+          setTimerStatus(t('timer.status.paused'));
         }
-      } catch (err) {
-        console.error('Ошибка при загрузке состояния таймера:', err);
+      } catch (error) {
+        console.error('Ошибка при восстановлении состояния таймера:', error);
       }
     }
     
@@ -108,6 +136,16 @@ export function TimerProvider({ children }: { children: React.ReactNode }) {
           startTime,
           lastHourMark,
           last15MinMark,
+          timeLimit
+        };
+        localStorage.setItem('timetracker-timer-state', JSON.stringify(timerState));
+      } else if (isPaused) {
+        const timerState = {
+          isRunning: false,
+          isPaused: true,
+          project,
+          projectText,
+          pausedElapsedTime,
           timeLimit
         };
         localStorage.setItem('timetracker-timer-state', JSON.stringify(timerState));
@@ -180,7 +218,7 @@ export function TimerProvider({ children }: { children: React.ReactNode }) {
   // Сохранение текущей записи и обновление суммарного времени
   const saveCurrentEntry = async (isFinishing: boolean = false): Promise<void> => {
     // Если таймер не запущен или нет прошедшего времени, ничего не делаем
-    if (!isRunning || elapsedTime === 0) return;
+    if (!isRunning && !isPaused) return;
     
     // НОВАЯ ПРОВЕРКА: не сохраняем записи менее 60 секунд, чтобы не создавать "мусор" в базе
     if (elapsedTime < 60000) { // 60 секунд в миллисекундах
@@ -288,15 +326,19 @@ export function TimerProvider({ children }: { children: React.ReactNode }) {
   // Переключение запуска таймера
   const toggleTimer = async () => {
     if (isRunning) {
-      // Остановка таймера
+      // Остановка таймера - теперь это пауза, а не полный сброс
       const now = Date.now();
       const elapsed = now - startTime;
       
-      // Минимальная длительность записи - 5 секунд
+      // Минимальная длительность записи - 5 секунд (только для сохранения)
       if (elapsed < 5000) {
-        console.log('Слишком короткая запись (меньше 5 секунд), игнорируем');
+        console.log('Слишком короткая запись (меньше 5 секунд), не будем сохранять');
+        // Но мы все равно можем поставить на паузу, не сбрасывая таймер
         setIsRunning(false);
-        setTimerStatus(t('timer.status.ready'));
+        setIsPaused(true);
+        // Сохраняем текущее значение для возобновления
+        setPausedElapsedTime(elapsedTime);
+        setTimerStatus(t('timer.status.paused'));
         return;
       }
       
@@ -307,37 +349,69 @@ export function TimerProvider({ children }: { children: React.ReactNode }) {
         console.error('Ошибка при остановке таймера:', error);
       }
       
-      // Сбрасываем таймер
+      // Вместо полного сброса - ставим на паузу
       setIsRunning(false);
-      setElapsedTime(0);
-      setTimerValue('00:00:00');
-      setTimerStatus(t('timer.status.ready'));
+      setIsPaused(true);
+      setPausedElapsedTime(elapsedTime); // Сохраняем текущее значение
+      setTimerStatus(t('timer.status.paused'));
       
-      // Удаляем состояние таймера из localStorage
-      localStorage.removeItem('timetracker-timer-state');
-    } else {
-      // Запуск таймера
-      setIsRunning(true);
-      setStartTime(Date.now());
-      setElapsedTime(0);
-      setTimerStatus(t('timer.status.running'));
-      setLastHourMark(0);
-      setLast15MinMark(0);
-      
-      // Воспроизводим звук начала работы
-      playSound(pomodoroStartAudioRef, "Начало работы", `Начало работы над "${projectText}"`);
-      
-      // Сохраняем состояние в localStorage
+      // Сохраняем состояние паузы в localStorage
       const timerState = {
-        isRunning: true,
+        isRunning: false,
+        isPaused: true,
         project,
         projectText,
-        startTime: Date.now(),
-        lastHourMark: 0,
-        last15MinMark: 0,
+        pausedElapsedTime: elapsedTime,
         timeLimit
       };
       localStorage.setItem('timetracker-timer-state', JSON.stringify(timerState));
+    } else {
+      if (isPaused) {
+        // Возобновление таймера после паузы
+        setIsRunning(true);
+        setIsPaused(false);
+        // Устанавливаем новое время старта с учетом уже прошедшего времени
+        setStartTime(Date.now() - pausedElapsedTime);
+        setTimerStatus(t('timer.status.resumed'));
+        
+        // Сохраняем состояние в localStorage
+        const timerState = {
+          isRunning: true,
+          isPaused: false,
+          project,
+          projectText,
+          startTime: Date.now() - pausedElapsedTime,
+          lastHourMark,
+          last15MinMark,
+          timeLimit
+        };
+        localStorage.setItem('timetracker-timer-state', JSON.stringify(timerState));
+      } else {
+        // Запуск таймера с нуля
+        setIsRunning(true);
+        setStartTime(Date.now());
+        setElapsedTime(0);
+        setPausedElapsedTime(0);
+        setTimerStatus(t('timer.status.running'));
+        setLastHourMark(0);
+        setLast15MinMark(0);
+        
+        // Воспроизводим звук начала работы
+        playSound(pomodoroStartAudioRef, "Начало работы", `Начало работы над "${projectText}"`);
+        
+        // Сохраняем состояние в localStorage
+        const timerState = {
+          isRunning: true,
+          isPaused: false,
+          project,
+          projectText,
+          startTime: Date.now(),
+          lastHourMark: 0,
+          last15MinMark: 0,
+          timeLimit
+        };
+        localStorage.setItem('timetracker-timer-state', JSON.stringify(timerState));
+      }
     }
   };
   
@@ -414,8 +488,10 @@ export function TimerProvider({ children }: { children: React.ReactNode }) {
         project,
         projectText,
         isRunning,
+        isPaused,
         startTime,
         elapsedTime,
+        pausedElapsedTime,
         timerStatus,
         timerValue,
         dailyTotal,

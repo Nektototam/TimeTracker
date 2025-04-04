@@ -5,11 +5,12 @@ import { useTranslation } from 'react-i18next';
 
 interface TimerButtonProps {
   isRunning: boolean;
+  isPaused: boolean;
   onClick: () => void;
   onFinish?: () => void;
 }
 
-export default function TimerButton({ isRunning, onClick, onFinish }: TimerButtonProps) {
+export default function TimerButton({ isRunning, isPaused, onClick, onFinish }: TimerButtonProps) {
   const { t } = useTranslation();
   
   return (
@@ -20,7 +21,9 @@ export default function TimerButton({ isRunning, onClick, onFinish }: TimerButto
           className={`
             ${isRunning 
               ? "bg-[#e8efff] text-[#6c5ce7] min-h-16 min-w-[160px] px-8 py-4 text-lg rounded-[20px]" 
-              : "bg-[#e8efff] text-[#6c5ce7] min-h-16 min-w-[160px] px-8 py-4 text-lg rounded-[20px]"
+              : isPaused 
+                ? "bg-[#f0fff4] text-[#38a169] min-h-16 min-w-[160px] px-8 py-4 text-lg rounded-[20px]"
+                : "bg-[#e8efff] text-[#6c5ce7] min-h-16 min-w-[160px] px-8 py-4 text-lg rounded-[20px]"
             }
             font-medium 
             border-t border-l border-[#ffffff50] border-b-[#00000015] border-r-[#00000015]
@@ -31,11 +34,15 @@ export default function TimerButton({ isRunning, onClick, onFinish }: TimerButto
             disabled:opacity-50 disabled:pointer-events-none
           `}
         >
-          {isRunning ? t('timer.pause') : "Start Timer"}
+          {isRunning 
+            ? t('timer.pause') 
+            : isPaused 
+              ? t('timer.resume') 
+              : t('timer.start')}
         </button>
       </div>
       
-      {isRunning && onFinish && (
+      {(isRunning || isPaused) && onFinish && (
         <div className="m-4">
           <button 
             onClick={onFinish}
