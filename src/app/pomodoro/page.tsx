@@ -7,7 +7,7 @@ import ProtectedRoute from '../../components/ProtectedRoute';
 import PomodoroCycle from '../../components/PomodoroCycle';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { Button } from '../../components/ui/Button';
-import './pomodoro.css';
+import { Input } from '../../components/ui/Input';
 
 export default function Pomodoro() {
   const { translationInstance } = useLanguage();
@@ -57,13 +57,11 @@ export default function Pomodoro() {
   return (
     <ProtectedRoute>
       <div className="app-container">
-        <div id="pomodoro-screen" className="screen">
-          <div className="stats-header">
-            <h1>{translate('title')}</h1>
-          </div>
+        <div className="screen">
+          <h1>{translate('title')}</h1>
           
-          <div className="text-center slide-up">
-            <p className="text-secondary mb-6">{translate('description')}</p>
+          <div className="text-center mb-6">
+            <p className="text-secondary-text-color">{translate('description')}</p>
           </div>
           
           <div className="timer-wrapper">
@@ -74,55 +72,87 @@ export default function Pomodoro() {
             />
           </div>
           
-          <Button
-            variant="outline"
-            size="md"
-            className="w-full max-w-xs mx-auto mt-4"
-            onClick={toggleSettings}
-            rightIcon={showSettings ? '▲' : '▼'}
-          >
-            {translate('settings')}
-          </Button>
+          <hr className="w-full max-w-[300px] mx-auto my-8 border-t-2 border-[#00000015]" />
+          
+          <div className="flex justify-center mt-16">
+            <Button
+              variant="buttonStart"
+              size="lg"
+              onClick={toggleSettings}
+              rightIcon={showSettings ? '▲' : '▼'}
+              style={{ width: '300px', maxWidth: '100%' }}
+            >
+              {translate('settings')}
+            </Button>
+          </div>
           
           {showSettings && (
-            <div className="settings-panel">
-              <div className="setting-item">
-                <label htmlFor="workDuration">{translate('workDuration')}</label>
-                <input
-                  type="number"
-                  id="workDuration"
-                  name="workDuration"
-                  min="1"
-                  max="60"
-                  value={settings.workDuration}
-                  onChange={handleSettingsChange}
-                />
-              </div>
-              
-              <div className="setting-item">
-                <label htmlFor="restDuration">{translate('restDuration')}</label>
-                <input
-                  type="number"
-                  id="restDuration"
-                  name="restDuration"
-                  min="1"
-                  max="30"
-                  value={settings.restDuration}
-                  onChange={handleSettingsChange}
-                />
-              </div>
-              
-              <div className="setting-item">
-                <label htmlFor="cycles">{translate('cycles')}</label>
-                <input
-                  type="number"
-                  id="cycles"
-                  name="cycles"
-                  min="1"
-                  max="10"
-                  value={settings.cycles}
-                  onChange={handleSettingsChange}
-                />
+            <div className="flex justify-center">
+              <div className="select-container mt-4" style={{ maxWidth: '300px', width: '100%' }}>
+                <div className="flex flex-col gap-8">
+                  <div className="flex items-center justify-between">
+                    <label className="text-sm font-medium text-gray-700">
+                      {translate('workDuration')}
+                    </label>
+                    <div style={{ width: '60px' }}>
+                      <Input
+                        type="number"
+                        id="workDuration"
+                        name="workDuration"
+                        min="1"
+                        max="60"
+                        value={settings.workDuration.toString()}
+                        onChange={handleSettingsChange}
+                        variant="neomorphic"
+                        inputSize="sm"
+                        fullWidth={true}
+                        className="text-center"
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <label className="text-sm font-medium text-gray-700">
+                      {translate('restDuration')}
+                    </label>
+                    <div style={{ width: '60px' }}>
+                      <Input
+                        type="number"
+                        id="restDuration"
+                        name="restDuration"
+                        min="1"
+                        max="30"
+                        value={settings.restDuration.toString()}
+                        onChange={handleSettingsChange}
+                        variant="neomorphic"
+                        inputSize="sm"
+                        fullWidth={true}
+                        className="text-center"
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <label className="text-sm font-medium text-gray-700">
+                      {translate('cycles')}
+                    </label>
+                    <div style={{ width: '60px' }}>
+                      <Input
+                        type="number"
+                        id="cycles"
+                        name="cycles"
+                        min="1"
+                        max="10"
+                        value={settings.cycles.toString()}
+                        onChange={handleSettingsChange}
+                        variant="neomorphic"
+                        inputSize="sm"
+                        fullWidth={true}
+                        className="text-center"
+                      />
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           )}
@@ -132,4 +162,4 @@ export default function Pomodoro() {
       </div>
     </ProtectedRoute>
   );
-} 
+}

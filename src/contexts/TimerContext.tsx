@@ -182,6 +182,12 @@ export function TimerProvider({ children }: { children: React.ReactNode }) {
     // Если таймер не запущен или нет прошедшего времени, ничего не делаем
     if (!isRunning || elapsedTime === 0) return;
     
+    // НОВАЯ ПРОВЕРКА: не сохраняем записи менее 60 секунд, чтобы не создавать "мусор" в базе
+    if (elapsedTime < 60000) { // 60 секунд в миллисекундах
+      console.log(`Пропуск записи с малой продолжительностью: ${elapsedTime}ms (${Math.floor(elapsedTime/1000)} сек)`);
+      return;
+    }
+    
     const now = new Date();
     const entryData = {
       user_id: userId,
@@ -192,6 +198,15 @@ export function TimerProvider({ children }: { children: React.ReactNode }) {
     };
     
     try {
+      // Двойная проверка дат перед сохранением
+      const startMs = new Date(entryData.start_time).getTime();
+      const endMs = new Date(entryData.end_time).getTime();
+      
+      if (startMs >= endMs) {
+        console.error('Некорректный интервал времени:', entryData);
+        return;
+      }
+      
       // Сохраняем запись в БД
       await addTimeEntry(entryData);
       

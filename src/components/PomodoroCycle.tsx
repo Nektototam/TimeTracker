@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useTranslation } from 'react-i18next';
-import './PomodoroCycle.css';
 import { Button } from './ui/Button';
 
 interface PomodoroCycleProps {
@@ -147,7 +146,7 @@ const PomodoroCycle: React.FC<PomodoroCycleProps> = ({
           className="progress-ring" 
           style={{
             background: `conic-gradient(
-              ${state === TimerState.WORK ? '#FF6347' : '#4682B4'} ${getProgressPercentage()}%, 
+              ${state === TimerState.WORK ? 'var(--primary-color)' : 'var(--info-color)'} ${getProgressPercentage()}%, 
               #e0e0e0 ${getProgressPercentage()}%
             )`
           }}
@@ -166,20 +165,20 @@ const PomodoroCycle: React.FC<PomodoroCycleProps> = ({
         </div>
       </div>
       
-      <div className="pomodoro-controls">
+      <div className="pomodoro-controls flex flex-row gap-4 mt-6">
         {!isActive ? (
           <Button 
             variant="buttonStart"
+            size="lg"
             onClick={handleStart}
             disabled={state === TimerState.COMPLETED && currentCycle > cycles}
             leftIcon="▶"
-            className="relative w-44"
           >
             {translate('start')}
           </Button>
         ) : (
           <Button 
-            variant="danger"
+            variant="timerStop"
             size="lg"
             onClick={handleStop}
           >
@@ -187,7 +186,7 @@ const PomodoroCycle: React.FC<PomodoroCycleProps> = ({
           </Button>
         )}
         <Button 
-          variant="secondary"
+          variant="timer"
           size="lg"
           onClick={handleReset}
         >
