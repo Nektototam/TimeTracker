@@ -113,24 +113,79 @@ class ReportService {
       const { start, end } = this.getDateRange(period, startDate, endDate);
       
       // Получаем записи времени
+      console.log('Запрашиваем записи с фильтром продолжительности > 59 секунд');
       const { data, error } = await supabase
         .from('time_entries')
         .select('*')
         .eq('user_id', userId)
         .gte('start_time', start.toISOString())
         .lte('end_time', end.toISOString())
+        .gt('duration', 59) // Требуем минимальную продолжительность 60 секунд (1 минута)
         .order('start_time', { ascending: false });
 
       if (error) {
+        console.error('Ошибка запроса:', error);
         throw new Error(`Ошибка при загрузке записей: ${error.message}`);
       }
 
+      // Логирование полученных данных
+      console.log(`Получено записей из БД: ${data?.length || 0}`);
+      
+      // Создаем новую переменную для отфильтрованных данных вместо переназначения константы
+      let entriesForProcessing = data || [];
+      
+      if (entriesForProcessing.length > 0) {
+        // Проверяем, есть ли записи с близкой к нулю продолжительностью (менее минуты)
+        const problematicEntries = entriesForProcessing.filter(entry => {
+          // Проверка по продолжительности в секундах
+          if (entry.duration < 60) {
+            return true;
+          }
+          
+          // Проверка разницы между временными метками (минимум 60 секунд)
+          const startTime = new Date(entry.start_time).getTime();
+          const endTime = new Date(entry.end_time).getTime();
+          const diffInSeconds = (endTime - startTime) / 1000;
+          
+          // Если разница менее 60 секунд - считаем проблемной записью
+          return diffInSeconds < 60;
+        });
+        
+        console.log(`Записей с проблемной продолжительностью: ${problematicEntries.length}`);
+        if (problematicEntries.length > 0) {
+          console.log('Примеры проблемных записей:');
+          problematicEntries.slice(0, 3).forEach(entry => {
+            const startTime = new Date(entry.start_time);
+            const endTime = new Date(entry.end_time);
+            const diffMs = endTime.getTime() - startTime.getTime();
+            console.log(`ID: ${entry.id}, Начало: ${entry.start_time}, Конец: ${entry.end_time}, Длительность: ${entry.duration}, Разница: ${diffMs}мс (${diffMs/1000}с)`);
+          });
+        }
+        
+        // Улучшенная фильтрация с учетом малых различий во времени
+        entriesForProcessing = entriesForProcessing.filter(entry => {
+          // Проверка минимальной продолжительности в секундах (из базы данных)
+          if (entry.duration < 60) {
+            return false;
+          }
+          
+          // Проверка реальной разницы между метками времени (с учетом возможной погрешности)
+          const startTime = new Date(entry.start_time).getTime();
+          const endTime = new Date(entry.end_time).getTime();
+          const diffInSeconds = (endTime - startTime) / 1000;
+          
+          return diffInSeconds >= 60; // Минимум 60 секунд реальной разницы
+        });
+        
+        console.log(`После улучшенной фильтрации осталось: ${entriesForProcessing.length}`);
+      }
+      
       // Группируем записи по типу проекта
       const projectGroups: { [key: string]: TimeEntry[] } = {};
       let totalDuration = 0;
 
-      if (data) {
-        data.forEach(entry => {
+      if (entriesForProcessing.length > 0) {
+        entriesForProcessing.forEach(entry => {
           const projectType = entry.project_type;
           if (!projectGroups[projectType]) {
             projectGroups[projectType] = [];
@@ -207,7 +262,7 @@ class ReportService {
         startDate: start,
         endDate: end,
         totalDuration,
-        entries: data || [],
+        entries: entriesForProcessing,
         projectSummaries
       };
     } catch (error) {

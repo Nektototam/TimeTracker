@@ -2,36 +2,56 @@
 
 import React, { ButtonHTMLAttributes } from 'react';
 import { cva, type VariantProps } from 'class-variance-authority';
-import { cn } from '@/lib/utils';
+import { cn } from '../../lib/utils';
 
-// Определяем варианты стилей для кнопки
+// Определяем варианты стилей для кнопки в стиле неоморфизма
 const buttonVariants = cva(
-  // Базовые стили для всех кнопок
-  "flex items-center justify-center rounded-app font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2",
+  // Базовые стили для всех кнопок в стиле неоморфизма
+  "inline-flex items-center justify-center font-medium transition-all duration-200 select-none relative overflow-hidden",
   {
     variants: {
       // Варианты внешнего вида
       variant: {
-        primary: "bg-primary hover:bg-primary-dark text-white shadow-sm focus:ring-primary/50",
-        secondary: "bg-secondary hover:bg-secondary/80 text-white shadow-sm focus:ring-secondary/50",
-        outline: "border border-gray-300 bg-transparent hover:bg-gray-50 text-gray-700 focus:ring-primary/50",
-        ghost: "bg-transparent hover:bg-gray-100 text-gray-700 focus:ring-primary/50",
-        danger: "bg-error hover:bg-error/90 text-white shadow-sm focus:ring-error/50",
-        success: "bg-success hover:bg-success/90 text-white shadow-sm focus:ring-success/50",
+        // Основные варианты с более насыщенными цветами
+        primary: "bg-[#e9edf5] text-[#6c5ce7] border-t border-l border-[#ffffff50] border-b-[#00000015] border-r-[#00000015] shadow-[6px_6px_12px_0_rgba(0,0,0,0.15),-6px_-6px_12px_0_rgba(255,255,255,0.9)] hover:shadow-[4px_4px_8px_0_rgba(0,0,0,0.15),-4px_-4px_8px_0_rgba(255,255,255,0.9)] active:shadow-[inset_4px_4px_8px_0_rgba(0,0,0,0.15),inset_-4px_-4px_8px_0_rgba(255,255,255,0.9)]",
+        secondary: "bg-[#e9edf5] text-[#8f7efc] border-t border-l border-[#ffffff50] border-b-[#00000015] border-r-[#00000015] shadow-[6px_6px_12px_0_rgba(0,0,0,0.15),-6px_-6px_12px_0_rgba(255,255,255,0.9)] hover:shadow-[4px_4px_8px_0_rgba(0,0,0,0.15),-4px_-4px_8px_0_rgba(255,255,255,0.9)] active:shadow-[inset_4px_4px_8px_0_rgba(0,0,0,0.15),inset_-4px_-4px_8px_0_rgba(255,255,255,0.9)]",
+        outline: "bg-[#e9edf5] text-gray-700 border border-[#00000020] shadow-[6px_6px_12px_0_rgba(0,0,0,0.15),-6px_-6px_12px_0_rgba(255,255,255,0.9)] hover:shadow-[4px_4px_8px_0_rgba(0,0,0,0.15),-4px_-4px_8px_0_rgba(255,255,255,0.9)] active:shadow-[inset_4px_4px_8px_0_rgba(0,0,0,0.15),inset_-4px_-4px_8px_0_rgba(255,255,255,0.9)]",
+        ghost: "bg-transparent text-gray-700 hover:bg-gray-100 active:bg-gray-200",
+        danger: "bg-[#e9edf5] text-[#e82d61] font-medium border-t border-l border-[#ffffff50] border-b-[#00000015] border-r-[#00000015] shadow-[6px_6px_12px_0_rgba(0,0,0,0.15),-6px_-6px_12px_0_rgba(255,255,255,0.9)] hover:shadow-[4px_4px_8px_0_rgba(0,0,0,0.15),-4px_-4px_8px_0_rgba(255,255,255,0.9)] active:shadow-[inset_4px_4px_8px_0_rgba(0,0,0,0.15),inset_-4px_-4px_8px_0_rgba(255,255,255,0.9)]",
+        success: "bg-[#e9edf5] text-[#00b677] font-medium border-t border-l border-[#ffffff50] border-b-[#00000015] border-r-[#00000015] shadow-[6px_6px_12px_0_rgba(0,0,0,0.15),-6px_-6px_12px_0_rgba(255,255,255,0.9)] hover:shadow-[4px_4px_8px_0_rgba(0,0,0,0.15),-4px_-4px_8px_0_rgba(255,255,255,0.9)] active:shadow-[inset_4px_4px_8px_0_rgba(0,0,0,0.15),inset_-4px_-4px_8px_0_rgba(255,255,255,0.9)]",
+        
+        // Специфичные варианты с более насыщенными цветами
+        timer: "bg-[#e8efff] text-[#6c5ce7] font-medium border-t border-l border-[#ffffff50] border-b-[#00000015] border-r-[#00000015] shadow-[6px_6px_12px_0_rgba(0,0,0,0.15),-6px_-6px_12px_0_rgba(255,255,255,0.9)] hover:shadow-[4px_4px_8px_0_rgba(0,0,0,0.15),-4px_-4px_8px_0_rgba(255,255,255,0.9)] active:shadow-[inset_4px_4px_8px_0_rgba(0,0,0,0.15),inset_-4px_-4px_8px_0_rgba(255,255,255,0.9)]",
+        timerStop: "bg-[#fff0f5] text-[#e82d61] font-medium border-t border-l border-[#ffffff50] border-b-[#00000015] border-r-[#00000015] shadow-[6px_6px_12px_0_rgba(0,0,0,0.15),-6px_-6px_12px_0_rgba(255,255,255,0.9)] hover:shadow-[4px_4px_8px_0_rgba(0,0,0,0.15),-4px_-4px_8px_0_rgba(255,255,255,0.9)] active:shadow-[inset_4px_4px_8px_0_rgba(0,0,0,0.15),inset_-4px_-4px_8px_0_rgba(255,255,255,0.9)]",
+        buttonStart: "bg-[#edfff8] text-[#00b677] font-medium border-t border-l border-[#ffffff50] border-b-[#00000015] border-r-[#00000015] shadow-[6px_6px_12px_0_rgba(0,0,0,0.15),-6px_-6px_12px_0_rgba(255,255,255,0.9)] hover:shadow-[4px_4px_8px_0_rgba(0,0,0,0.15),-4px_-4px_8px_0_rgba(255,255,255,0.9)] active:shadow-[inset_4px_4px_8px_0_rgba(0,0,0,0.15),inset_-4px_-4px_8px_0_rgba(255,255,255,0.9)]",
+        saveButton: "bg-[#e8efff] text-[#6c5ce7] font-medium border-t border-l border-[#ffffff50] border-b-[#00000015] border-r-[#00000015] shadow-[6px_6px_12px_0_rgba(0,0,0,0.15),-6px_-6px_12px_0_rgba(255,255,255,0.9)] hover:shadow-[4px_4px_8px_0_rgba(0,0,0,0.15),-4px_-4px_8px_0_rgba(255,255,255,0.9)] active:shadow-[inset_4px_4px_8px_0_rgba(0,0,0,0.15),inset_-4px_-4px_8px_0_rgba(255,255,255,0.9)]",
+        cancelButton: "bg-[#f2f4f7] text-gray-700 border-t border-l border-[#ffffff50] border-b-[#00000015] border-r-[#00000015] shadow-[6px_6px_12px_0_rgba(0,0,0,0.15),-6px_-6px_12px_0_rgba(255,255,255,0.9)] hover:shadow-[4px_4px_8px_0_rgba(0,0,0,0.15),-4px_-4px_8px_0_rgba(255,255,255,0.9)] active:shadow-[inset_4px_4px_8px_0_rgba(0,0,0,0.15),inset_-4px_-4px_8px_0_rgba(255,255,255,0.9)]",
       },
-      // Размеры
+      // Размеры с правильными пропорциями
       size: {
-        sm: "h-8 px-3 text-sm",
-        md: "h-10 px-4",
-        lg: "h-12 px-6 text-lg",
-        icon: "h-10 w-10",
+        sm: "min-h-8 min-w-[80px] px-3 py-1.5 !text-xs",
+        md: "min-h-10 min-w-[100px] px-4 py-2 !text-sm",
+        lg: "min-h-12 min-w-[130px] px-6 py-3 !text-base",
+        xl: "min-h-14 min-w-[160px] px-8 py-4 !text-lg !font-semibold",
+        icon: "h-10 w-10 p-2",
       },
-      // Закругленность углов
+      // Уровни скругления
       rounded: {
-        default: "rounded-app",
-        full: "rounded-app-full",
-        sm: "rounded-app-sm",
-        lg: "rounded-app-lg",
+        none: "rounded-none",
+        sm: "rounded-sm",
+        md: "rounded-md",
+        lg: "rounded-lg",
+        xl: "rounded-xl",
+        full: "rounded-full",
+        // Неоморфные стандартные скругления
+        default: "rounded-[14px]",
+      },
+      // Уровни тени (в неоморфизме не используются, оставлены для совместимости)
+      elevation: {
+        none: "",
+        sm: "",
+        md: "",
+        lg: "",
       },
       // Ширина кнопки
       fullWidth: {
@@ -42,6 +62,7 @@ const buttonVariants = cva(
     defaultVariants: {
       variant: "primary",
       size: "md",
+      elevation: "none",
       rounded: "default",
     },
   }
@@ -58,10 +79,11 @@ export interface ButtonProps
 
 // Компонент кнопки
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant, size, rounded, fullWidth, children, isLoading, leftIcon, rightIcon, ...props }, ref) => {
+  ({ className, variant, size, rounded, elevation, fullWidth, children, isLoading, leftIcon, rightIcon, ...props }, ref) => {
     return (
       <button
-        className={cn(buttonVariants({ variant, size, rounded, fullWidth, className }))}
+        className={cn(buttonVariants({ variant, size, rounded, elevation, fullWidth, className }), 
+          props.disabled ? "opacity-50 pointer-events-none" : "")}
         ref={ref}
         disabled={isLoading || props.disabled}
         {...props}

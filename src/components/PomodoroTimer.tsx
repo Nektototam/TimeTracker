@@ -1,8 +1,9 @@
 import React from 'react';
 import { usePomodoro } from '../contexts/PomodoroContext';
+import { Button } from './ui/Button';
 
 interface PomodoroTimerProps {
-  // Пропсы не требуются, так как таймер использует контекст
+  // Пропы не используются, контекст предоставляет все необходимое
 }
 
 export default function PomodoroTimer({}: PomodoroTimerProps) {
@@ -49,36 +50,42 @@ export default function PomodoroTimer({}: PomodoroTimerProps) {
         </div>
       </div>
       
-      <div className="pomodoro-buttons">
+      <div className="flex gap-4 justify-center mt-4">
         {!isRunning ? (
-          <button 
-            className="pomodoro-button start"
+          <Button 
+            variant="buttonStart"
             onClick={startTimer}
+            leftIcon="▶"
+            className="relative w-44"
           >
-            <span>▶</span> Старт
-          </button>
+            Старт
+          </Button>
         ) : (
-          <button 
-            className="pomodoro-button stop"
+          <Button 
+            variant="timerStop"
+            size="lg"
             onClick={pauseTimer}
+            leftIcon="⏸"
           >
-            <span>⏸</span> Пауза
-          </button>
+            Пауза
+          </Button>
         )}
         
-        <button 
-          className="pomodoro-button reset"
+        <Button 
+          variant="secondary"
+          size="lg"
           onClick={resetTimer}
+          leftIcon="↺"
         >
-          <span>↺</span> Сброс
-        </button>
+          Сброс
+        </Button>
       </div>
       
       <div className="pomodoro-settings">
-        <h3 className="pomodoro-settings-title">Настройки</h3>
+        <h3 className="pomodoro-settings-title text-lg font-medium mb-5 text-gray-700">Настройки</h3>
         
-        <div className="pomodoro-settings-row">
-          <label className="pomodoro-settings-label">
+        <div className="pomodoro-settings-row flex items-center justify-between mb-4">
+          <label className="pomodoro-settings-label text-sm text-gray-600">
             Длительность работы (мин)
           </label>
           <input
@@ -87,13 +94,17 @@ export default function PomodoroTimer({}: PomodoroTimerProps) {
             max="60"
             value={workDuration}
             onChange={handleWorkDurationChange}
-            className="pomodoro-settings-input"
+            className="w-28 py-2.5 px-3 bg-[#e9edf5] text-gray-700 text-sm 
+              rounded-[14px] border-t border-l border-[#ffffff50] border-b-[#00000015] border-r-[#00000015]
+              shadow-[inset_3px_3px_6px_rgba(0,0,0,0.1),inset_-3px_-3px_6px_rgba(255,255,255,0.7)]
+              focus:outline-none focus:shadow-[inset_4px_4px_8px_rgba(0,0,0,0.15),inset_-4px_-4px_8px_rgba(255,255,255,0.8)]
+              transition-all disabled:opacity-60"
             disabled={isRunning}
           />
         </div>
         
-        <div className="pomodoro-settings-row">
-          <label className="pomodoro-settings-label">
+        <div className="pomodoro-settings-row flex items-center justify-between mb-4">
+          <label className="pomodoro-settings-label text-sm text-gray-600">
             Длительность отдыха (мин)
           </label>
           <input
@@ -102,7 +113,11 @@ export default function PomodoroTimer({}: PomodoroTimerProps) {
             max="30"
             value={restDuration}
             onChange={handleRestDurationChange}
-            className="pomodoro-settings-input"
+            className="w-28 py-2.5 px-3 bg-[#e9edf5] text-gray-700 text-sm 
+              rounded-[14px] border-t border-l border-[#ffffff50] border-b-[#00000015] border-r-[#00000015]
+              shadow-[inset_3px_3px_6px_rgba(0,0,0,0.1),inset_-3px_-3px_6px_rgba(255,255,255,0.7)]
+              focus:outline-none focus:shadow-[inset_4px_4px_8px_rgba(0,0,0,0.15),inset_-4px_-4px_8px_rgba(255,255,255,0.8)]
+              transition-all disabled:opacity-60"
             disabled={isRunning}
           />
         </div>
