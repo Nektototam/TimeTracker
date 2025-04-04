@@ -88,47 +88,82 @@ const DailyTimelineView: React.FC<DailyTimelineViewProps> = ({
     return projectNames[type] || 'Загрузка...';
   };
   
-  // Группируем записи по дням
+  // Группируем записи по дням с предварительной фильтрацией
   const groupEntriesByDay = (): DayData[] => {
-    // Создаем мапу для группировки записей
-    const daysMap = new Map<string, DayData>();
+    console.log("Начинаем группировку записей для визуализации, всего:", entries.length);
     
-    // Сортируем записи по времени начала
-    const sortedEntries = [...entries].sort(
-      (a, b) => new Date(a.start_time).getTime() - new Date(b.start_time).getTime()
-    );
-    
-    // Группируем записи по дням
-    sortedEntries.forEach(entry => {
-      const startTime = new Date(entry.start_time);
-      const dateKey = startTime.toISOString().split('T')[0];
-      
-      if (!daysMap.has(dateKey)) {
-        daysMap.set(dateKey, {
-          date: startTime,
-          blocks: [],
-          totalDuration: 0
-        });
+    // Расширенная фильтрация для коротких интервалов с гибким подходом
+    const validEntries = entries.filter(entry => {
+      // Проверка продолжительности из базы данных
+      if (!entry || entry.duration < 60) {
+        return false;
       }
       
-      const day = daysMap.get(dateKey)!;
+      // Проверка наличия временных меток
+      if (!entry.start_time || !entry.end_time) {
+        return false;
+      }
       
-      day.blocks.push({
+      // Проверка реальной разницы между метками времени (минимум 60 секунд)
+      const startTime = new Date(entry.start_time).getTime();
+      const endTime = new Date(entry.end_time).getTime();
+      const diffInSeconds = (endTime - startTime) / 1000;
+      
+      return diffInSeconds >= 60;
+    });
+    
+    console.log(`После фильтрации для таймлайна: ${validEntries.length} из ${entries.length} записей`);
+    
+    if (validEntries.length === 0) {
+      return [];
+    }
+    
+    // Группируем по дням
+    const dayGroups: { [key: string]: TimeEntry[] } = {};
+    
+    validEntries.forEach(entry => {
+      const dateKey = new Date(entry.start_time).toISOString().split('T')[0];
+      if (!dayGroups[dateKey]) {
+        dayGroups[dateKey] = [];
+      }
+      dayGroups[dateKey].push(entry);
+    });
+    
+    // Преобразуем группы в дни и считаем общую продолжительность
+    const days: DayData[] = [];
+    
+    Object.entries(dayGroups).forEach(([dateKey, dayEntries]) => {
+      // Считаем общую продолжительность дня
+      const totalDuration = dayEntries.reduce((sum, entry) => sum + entry.duration, 0);
+      
+      // Пропускаем дни с продолжительностью меньше минуты
+      if (totalDuration < 60) {
+        console.log(`Пропускаем день ${dateKey}: недостаточная активность (${totalDuration}с)`);
+        return;
+      }
+      
+      // Создаем блоки активности
+      const blocks: TimeBlock[] = dayEntries.map(entry => ({
         id: entry.id,
         startTime: new Date(entry.start_time),
         endTime: new Date(entry.end_time),
+        duration: entry.duration,
         projectType: entry.project_type,
-        projectName: getProjectName(entry.project_type),
-        duration: entry.duration
-      });
+        projectName: getProjectName(entry.project_type)
+      }));
       
-      day.totalDuration += entry.duration;
+      // Добавляем день в список
+      days.push({
+        date: new Date(dateKey),
+        blocks,
+        totalDuration
+      });
     });
     
-    // Преобразуем мапу в массив и сортируем по датам
-    return Array.from(daysMap.values()).sort(
-      (a, b) => a.date.getTime() - b.date.getTime()
-    );
+    console.log(`Отфильтровано дней: ${days.length}`);
+    
+    // Сортируем по дате (сначала новые)
+    return days.sort((a, b) => b.date.getTime() - a.date.getTime());
   };
   
   const days = groupEntriesByDay();
@@ -173,104 +208,107 @@ const DailyTimelineView: React.FC<DailyTimelineViewProps> = ({
     }
   };
   
-  // Если записей нет, показываем сообщение
-  if (days.length === 0) {
-    return (
-      <div className="daily-timeline-empty">
-        Нет данных за выбранный период
-      </div>
-    );
-  }
-  
   return (
     <div className="daily-timeline-view">
-      {days.map(day => (
-        <div key={day.date.toISOString()} className="day-container">
-          <div className="day-header">
-            <div className="day-date">{formatDate(day.date)}</div>
-            <div className="day-total">Всего: {formatTime(day.totalDuration)}</div>
-          </div>
-          
-          <div className="timeline-container">
-            {/* Временная шкала часов (с 8 утра до 20 вечера) */}
-            <div className="timeline-hours">
-              {Array.from({ length: 13 }).map((_, index) => (
-                <div key={index} className="hour-marker">
-                  <div className="hour-label">{(index + 8).toString().padStart(2, '0')}:00</div>
+      {days && days.length > 0 ? (
+        days
+          .filter(day => day.totalDuration >= 60)
+          .map((day, dayIndex) => (
+            <div key={day.date.toISOString()} className="day-container mb-12 last:mb-0">
+              {/* Простой стильный разделитель между днями */}
+              {dayIndex > 0 && (
+                <div className="day-separator mb-8 mt-4">
+                  <div className="h-[3px] bg-gradient-to-r from-transparent via-gray-300 to-transparent w-full"></div>
                 </div>
-              ))}
-            </div>
-            
-            {/* Блоки активности */}
-            <div className="timeline-blocks">
-              {day.blocks.map(block => {
-                // Рассчитываем позицию и ширину блока
-                const dayStart = new Date(day.date);
-                dayStart.setHours(8, 0, 0, 0); // начало в 8:00
-                
-                const dayEnd = new Date(day.date);
-                dayEnd.setHours(20, 0, 0, 0); // конец в 20:00
-                
-                const dayDuration = dayEnd.getTime() - dayStart.getTime(); // 12 часов в миллисекундах
-                
-                // Обрезаем время начала и окончания до границ дня для визуализации
-                const visibleStartTime = Math.max(block.startTime.getTime(), dayStart.getTime());
-                const visibleEndTime = Math.min(block.endTime.getTime(), dayEnd.getTime());
-                
-                // Если блок не попадает в видимый диапазон, пропускаем его
-                if (visibleEndTime <= visibleStartTime) return null;
-                
-                // Рассчитываем левую позицию и ширину в процентах
-                const leftPos = ((visibleStartTime - dayStart.getTime()) / dayDuration) * 100;
-                const widthPercent = ((visibleEndTime - visibleStartTime) / dayDuration) * 100;
-                
-                return (
-                  <div
-                    key={block.id}
-                    className="timeline-block"
-                    style={{
-                      left: `${leftPos}%`,
-                      width: `${widthPercent}%`,
-                      backgroundColor: getProjectColor(block.projectType)
-                    }}
-                    title={`${block.projectName}: ${formatTimeOfDay(block.startTime)} - ${formatTimeOfDay(block.endTime)}`}
-                  >
-                    <div className="block-content">
-                      <div className="block-time">
-                        {formatTimeOfDay(block.startTime)} - {formatTimeOfDay(block.endTime)}
-                      </div>
-                      <div className="block-project">{block.projectName}</div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-          
-          {/* Список записей по дню */}
-          <div className="day-entries">
-            {day.blocks.map(block => (
-              <div key={block.id} className="day-entry">
-                <div className="entry-time">
-                  {formatTimeOfDay(block.startTime)} - {formatTimeOfDay(block.endTime)}
-                </div>
-                <div 
-                  className="entry-type" 
-                  style={{
-                    backgroundColor: getProjectColor(block.projectType),
-                    padding: '2px 8px',
-                    borderRadius: '4px',
-                    color: '#fff'
-                  }}
-                >
-                  {block.projectName}
-                </div>
-                <div className="entry-duration">{formatTime(block.duration)}</div>
+              )}
+              
+              <div className="day-header flex justify-between items-center mb-6 rounded-xl shadow-sm border-t border-l border-[#ffffff50]" 
+                   style={{ 
+                     transition: 'var(--transition)',
+                     background: 'white',
+                     padding: '16px'
+                   }}>
+                <div className="day-date font-semibold text-lg">{formatDate(day.date)}</div>
+                <div className="day-total text-primary-color font-medium">Всего: {formatTime(day.totalDuration)}</div>
               </div>
-            ))}
-          </div>
+              
+              {/* Список активностей по дню в неоморфном стиле без часовых меток */}
+              <div className="day-entries mt-4 space-y-4">
+                {(() => {
+                  // Дополнительная фильтрация непосредственно перед отображением
+                  const filteredBlocks = day.blocks.filter(block => {
+                    // Проверка продолжительности
+                    if (block.duration < 60) {
+                      console.log(`Блок отфильтрован (недостаточная длительность): ${block.duration}с`);
+                      return false;
+                    }
+                    
+                    // Строгая проверка на равенство времени начала и конца
+                    if (block.startTime.getTime() >= block.endTime.getTime()) {
+                      console.log(`Блок отфильтрован (некорректный интервал): ${formatTimeOfDay(block.startTime)} - ${formatTimeOfDay(block.endTime)}`);
+                      return false;
+                    }
+                    
+                    return true;
+                  });
+                  
+                  console.log(`Отображено блоков: ${filteredBlocks.length} из ${day.blocks.length}`);
+                  
+                  // Если после фильтрации не осталось блоков, возвращаем null
+                  if (filteredBlocks.length === 0) {
+                    return null;
+                  }
+                  
+                  // Отображаем отфильтрованные блоки
+                  return filteredBlocks
+                    .sort((a, b) => a.startTime.getTime() - b.startTime.getTime())
+                    .map((block, index) => (
+                      <div 
+                        key={block.id} 
+                        className="day-entry p-4 rounded-[12px] shadow-sm border border-[#0000001a] flex justify-between"
+                        style={{ 
+                          marginBottom: index !== filteredBlocks.length - 1 ? '16px' : '0',
+                          backgroundColor: 
+                            block.projectType === 'development' ? 'rgba(79, 110, 247, 0.12)' : 
+                            block.projectType === 'design' ? 'rgba(16, 185, 129, 0.12)' : 
+                            block.projectType === 'marketing' ? 'rgba(245, 158, 11, 0.12)' : 
+                            block.projectType === 'meeting' ? 'rgba(239, 68, 68, 0.12)' : 
+                            block.projectType === 'other' ? 'rgba(14, 165, 233, 0.12)' :
+                            `rgba(${getProjectColor(block.projectType)}, 0.12)`,
+                          transition: 'var(--transition)'
+                        }}
+                      >
+                        <div className="flex flex-col">
+                          <div className="entry-time text-secondary-text-color text-sm mb-1 font-medium">
+                            {formatTimeOfDay(block.startTime)} - {formatTimeOfDay(block.endTime)}
+                          </div>
+                          <div className="entry-type font-semibold text-dark-color">
+                            {block.projectName}
+                          </div>
+                        </div>
+                        <div className="entry-duration font-bold self-center" 
+                          style={{ 
+                            color: 
+                              block.projectType === 'development' ? 'var(--primary-color)' : 
+                              block.projectType === 'design' ? 'var(--success-color)' : 
+                              block.projectType === 'marketing' ? 'var(--warning-color)' : 
+                              block.projectType === 'meeting' ? 'var(--error-color)' : 
+                              block.projectType === 'other' ? 'var(--info-color)' :
+                              getProjectColor(block.projectType)
+                          }}>
+                          {formatTime(block.duration)}
+                        </div>
+                      </div>
+                    ));
+                })()}
+              </div>
+            </div>
+          ))
+      ) : (
+        <div className="daily-timeline-empty text-center py-6 text-secondary-text-color">
+          Нет данных за выбранный период
         </div>
-      ))}
+      )}
     </div>
   );
 };

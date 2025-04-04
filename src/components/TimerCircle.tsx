@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useTimer } from '../contexts/TimerContext';
+import { useTranslation } from 'react-i18next';
 
 interface TimerCircleProps {
   isRunning: boolean;
@@ -19,9 +20,20 @@ export default function TimerCircle({
   project,
 }: TimerCircleProps) {
   const { timeLimit, formatTime } = useTimer();
+  const { t } = useTranslation();
   const [progressRotation, setProgressRotation] = useState(0);
   const [rightVisible, setRightVisible] = useState(false);
   const [rightRotation, setRightRotation] = useState('0deg');
+  const [pulseEffect, setPulseEffect] = useState(false);
+  
+  // Добавляем эффект пульсации при запуске таймера
+  useEffect(() => {
+    if (isRunning) {
+      setPulseEffect(true);
+      const timer = setTimeout(() => setPulseEffect(false), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [isRunning]);
   
   useEffect(() => {
     // Выводим имя проекта при изменении
@@ -60,16 +72,18 @@ export default function TimerCircle({
     if (!timeLimit) return null;
     
     const remainingTime = Math.max(0, timeLimit - elapsedTime);
+    const isAlmostFinished = remainingTime < timeLimit * 0.1; // Меньше 10% времени осталось
+    
     return (
-      <div className="time-limit-info text-xs text-gray-500 mt-1">
-        Ограничение: {formatTime(remainingTime)}
+      <div className={`time-limit-info ${isAlmostFinished ? 'bg-red-100 text-red-600' : ''}`}>
+        {t('timer.limitValue')} {formatTime(remainingTime)}
       </div>
     );
   };
 
   return (
-    <div className="flex flex-col items-center my-5 mb-10">
-      <div className="timer-circle">
+    <div className="flex flex-col items-center my-6 mb-10">
+      <div className={`timer-circle ${pulseEffect ? 'animate-pulse' : ''} ${isRunning ? 'scale-105' : ''}`}>
         {/* Фон круга */}
         <div className="timer-circle-bg"></div>
         
@@ -77,23 +91,27 @@ export default function TimerCircle({
         <div className="timer-circle-progress">
           <div 
             className="left-side"
-            style={{ transform: `rotate(${progressRotation}deg)` }}
+            style={{ 
+              transform: `rotate(${progressRotation}deg)`,
+              transition: 'transform 0.5s cubic-bezier(0.4, 0, 0.2, 1)'
+            }}
           ></div>
           <div 
             className="right-side"
             style={{ 
               visibility: rightVisible ? 'visible' : 'hidden',
-              transform: `rotate(${rightRotation})`
+              transform: `rotate(${rightRotation})`,
+              transition: 'transform 0.5s cubic-bezier(0.4, 0, 0.2, 1)'
             }}
           ></div>
         </div>
         
         {/* Внутренний круг */}
-        <div className="timer-circle-inner">
+        <div className={`timer-circle-inner ${isRunning ? 'ring-2 ring-primary-light ring-opacity-20' : ''}`}>
           <div className="timer-circle-status">{status}</div>
-          <div className="timer-circle-time">{timeValue}</div>
+          <div className={`timer-circle-time ${isRunning ? 'text-primary-dark' : ''}`}>{timeValue}</div>
           <div className="timer-circle-project" data-testid="project-name">
-            {project || 'Не выбрано'}
+            {project || t('timer.notSelected')}
           </div>
           {getTimeLimitDisplay()}
         </div>

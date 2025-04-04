@@ -7,6 +7,7 @@ import ActivityChart from '../../components/ActivityChart';
 import DailyTimelineView from '../../components/DailyTimelineView';
 import { reportService, ReportData, ProjectSummary, PeriodType } from '../../lib/reportService';
 import { useAuth } from '../../contexts/AuthContext';
+import { Button } from '../../components/ui/Button';
 
 // Вспомогательные функции для форматирования времени
 const formatTime = (milliseconds: number): string => {
@@ -40,14 +41,16 @@ function ReportsPage() {
   const [viewType, setViewType] = useState<'summary' | 'daily'>('summary');
   
   // Загрузка данных отчета
-  const loadReportData = async () => {
+  const loadReportData = async (periodType: PeriodType = 'week', customStart?: string, customEnd?: string) => {
     if (!user) return;
     
     setIsLoading(true);
+    
     try {
-      let data: ReportData;
+      let data;
+      console.log('Запрос отчетных данных...');
       
-      // Загружаем данные в зависимости от периода
+      // Загрузка данных через правильный метод сервиса
       switch (periodType) {
         case 'week':
           data = await reportService.getWeeklyReport(user.id);
@@ -59,30 +62,37 @@ function ReportsPage() {
           data = await reportService.getQuarterlyReport(user.id);
           break;
         case 'custom':
-          // Для примера используем месяц, потом можно реализовать выбор произвольного периода
-          const startDate = new Date();
-          startDate.setDate(1);
-          const endDate = new Date();
-          endDate.setMonth(endDate.getMonth() + 1, 0);
-          
-          data = await reportService.getCustomReport(
-            user.id, 
-            startDate.toISOString(), 
-            endDate.toISOString()
-          );
+          if (customStart && customEnd) {
+            data = await reportService.getCustomReport(user.id, customStart, customEnd);
+          } else {
+            // Для примера используем текущий месяц
+            const startDate = new Date();
+            startDate.setDate(1);
+            const endDate = new Date();
+            endDate.setMonth(endDate.getMonth() + 1, 0);
+            
+            data = await reportService.getCustomReport(
+              user.id, 
+              startDate.toISOString(), 
+              endDate.toISOString()
+            );
+          }
           break;
-        default:
-          data = await reportService.getWeeklyReport(user.id);
       }
       
+      console.log(`Получено ${data?.entries?.length || 0} записей после фильтрации на сервере`);
+      
+      // Сохраняем данные и обновляем состояние
       setReportData(data);
       
-      // Обновляем отображаемый диапазон дат на основе полученных данных
-      if (data) {
+      // Обновляем отображаемые даты
+      if (data?.startDate && data?.endDate) {
         updateDateRangeFromData(data.startDate, data.endDate);
       }
+      
     } catch (error) {
-      console.error('Ошибка загрузки отчета:', error);
+      console.error('Ошибка при загрузке данных отчета:', error);
+      //toast.error('Не удалось загрузить данные отчета');
     } finally {
       setIsLoading(false);
     }
@@ -90,7 +100,7 @@ function ReportsPage() {
   
   // Обновляем отчет при изменении периода или пользователя
   useEffect(() => {
-    loadReportData();
+    loadReportData(periodType);
   }, [user, periodType, currentDate]);
   
   // Обновляем отображаемый диапазон дат на основе полученных данных
@@ -101,44 +111,6 @@ function ReportsPage() {
     };
     
     setDateRange(`${formatDate(startDate)} - ${formatDate(endDate)}`);
-  };
-  
-  // Перемещение на предыдущий период
-  const goToPrevPeriod = () => {
-    const newDate = new Date(currentDate);
-    
-    switch (periodType) {
-      case 'week':
-        newDate.setDate(newDate.getDate() - 7);
-        break;
-      case 'month':
-        newDate.setMonth(newDate.getMonth() - 1);
-        break;
-      case 'quarter':
-        newDate.setMonth(newDate.getMonth() - 3);
-        break;
-    }
-    
-    setCurrentDate(newDate);
-  };
-  
-  // Перемещение на следующий период
-  const goToNextPeriod = () => {
-    const newDate = new Date(currentDate);
-    
-    switch (periodType) {
-      case 'week':
-        newDate.setDate(newDate.getDate() + 7);
-        break;
-      case 'month':
-        newDate.setMonth(newDate.getMonth() + 1);
-        break;
-      case 'quarter':
-        newDate.setMonth(newDate.getMonth() + 3);
-        break;
-    }
-    
-    setCurrentDate(newDate);
   };
   
   // Подготовка данных для графика активности
@@ -220,135 +192,155 @@ function ReportsPage() {
   
   return (
     <div className="app-container">
-      <div id="report-screen" className="screen">
-        <div className="report-header">
-          <h1>Отчет за период</h1>
+      <div className="screen">
+        {/* Заголовок и контроль периода */}
+        <h1 className="text-3xl font-bold mb-4">Отчеты</h1>
+        
+        <div className="card mb-6">
+          <div className="card-content">
+            <div className="period-selector">
+              <div className="flex flex-col items-center gap-4 w-full">
+                <div className="w-full max-w-[180px]">
+                  <select
+                    value={periodType}
+                    onChange={(e) => setPeriodType(e.target.value as PeriodType)}
+                    className="w-full px-4 py-2 text-center rounded-full bg-[#e9edf5] text-gray-700 border-t border-l border-[#ffffff50] border-b-[#00000015] border-r-[#00000015] shadow-[inset_3px_3px_6px_rgba(0,0,0,0.1),inset_-3px_-3px_6px_rgba(255,255,255,0.7)] focus:outline-none focus:shadow-[inset_4px_4px_8px_rgba(0,0,0,0.15),inset_-4px_-4px_8px_rgba(255,255,255,0.8)]"
+                  >
+                    <option value="week">Неделя</option>
+                    <option value="month">Месяц</option>
+                    <option value="quarter">Квартал</option>
+                    <option value="custom">Произвольный</option>
+                  </select>
+                </div>
+                
+                <div className="period-range text-center font-medium text-secondary-text-color">
+                  {dateRange}
+                </div>
+              </div>
+              
+              <div className="view-type-selector mt-4">
+                <div className="flex justify-center gap-4">
+                  <Button 
+                    variant={viewType === 'summary' ? 'primary' : 'outline'}
+                    size="md"
+                    rounded="full"
+                    onClick={() => setViewType('summary')}
+                  >
+                    Сводка
+                  </Button>
+                  <Button 
+                    variant={viewType === 'daily' ? 'primary' : 'outline'}
+                    size="md"
+                    rounded="full"
+                    onClick={() => setViewType('daily')}
+                  >
+                    По дням
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
         
-        <div className="period-tabs slide-up">
-          <button 
-            className={`period-tab ${periodType === 'week' ? 'active' : ''}`}
-            onClick={() => setPeriodType('week')}
-          >
-            Неделя
-          </button>
-          <button 
-            className={`period-tab ${periodType === 'month' ? 'active' : ''}`}
-            onClick={() => setPeriodType('month')}
-          >
-            Месяц
-          </button>
-          <button 
-            className={`period-tab ${periodType === 'quarter' ? 'active' : ''}`}
-            onClick={() => setPeriodType('quarter')}
-          >
-            Квартал
-          </button>
-          <button 
-            className={`period-tab ${periodType === 'custom' ? 'active' : ''}`}
-            onClick={() => setPeriodType('custom')}
-          >
-            Свой
-          </button>
-        </div>
-        
-        <div className="date-selector slide-up">
-          <button className="date-nav prev" onClick={goToPrevPeriod}>◀</button>
-          <span className="date-range">{dateRange}</span>
-          <button className="date-nav next" onClick={goToNextPeriod}>▶</button>
-        </div>
-        
-        <div className="view-type-selector slide-up">
-          <button 
-            className={`view-type-button ${viewType === 'summary' ? 'active' : ''}`}
-            onClick={() => setViewType('summary')}
-          >
-            Суммарный отчет
-          </button>
-          <button 
-            className={`view-type-button ${viewType === 'daily' ? 'active' : ''}`}
-            onClick={() => setViewType('daily')}
-          >
-            По дням
-          </button>
-        </div>
-        
+        {/* Остальная часть страницы */}
         {isLoading ? (
-          <div className="loading-state">Загрузка отчета...</div>
+          <div className="flex justify-center items-center h-40">
+            <div className="loading-state">Загрузка отчета...</div>
+          </div>
         ) : (
           viewType === 'summary' ? (
             // Суммарный отчет
             <>
-              <div className="chart-container slide-up">
-                <div className="chart-title">Активность по дням</div>
-                <ActivityChart 
-                  data={getDailyChartData()} 
-                  height={180}
-                  barColor="var(--primary-color)"
-                />
+              <div className="card mb-6 slide-up">
+                <div className="card-content">
+                  <h2 className="text-lg font-semibold mb-3">Активность по дням</h2>
+                  <ActivityChart 
+                    data={getDailyChartData()} 
+                    height={180}
+                    barColor="var(--primary-color)"
+                  />
+                </div>
               </div>
               
-              <div className="project-summary">
-                <h2 className="project-summary-title">Проекты</h2>
-                <div className="project-list">
-                  {reportData && reportData.projectSummaries.map((project, index) => (
-                    <div key={project.project_type} className="project-item">
-                      <div className="project-item-info">
-                        <span className="project-item-name">{project.project_name}</span>
-                        <span className="project-item-time">{formatTime(project.total_duration)}</span>
+              <div className="card mb-6 slide-up">
+                <div className="card-content">
+                  <h2 className="text-lg font-semibold mb-4">Проекты</h2>
+                  <div className="project-list space-y-4">
+                    {reportData && reportData.projectSummaries.map((project, index) => (
+                      <div key={project.project_type} className="project-item">
+                        <div className="flex justify-between items-center mb-1">
+                          <span className="project-item-name font-medium">{project.project_name}</span>
+                          <span className="project-item-time text-secondary-text-color">{formatTime(project.total_duration)}</span>
+                        </div>
+                        <div className="project-item-bar h-2 bg-gray-100 rounded-full overflow-hidden">
+                          <div 
+                            className="project-item-progress h-full rounded-full" 
+                            style={{
+                              width: `${project.percentage}%`, 
+                              backgroundColor: index === 0 ? 'var(--primary-color)' : 
+                                              index === 1 ? 'var(--success-color)' : 
+                                              index === 2 ? 'var(--warning-color)' : 
+                                              'var(--info-color)'
+                            }}
+                          ></div>
+                        </div>
                       </div>
-                      <div className="project-item-bar">
-                        <div 
-                          className="project-item-progress" 
-                          style={{
-                            width: `${project.percentage}%`, 
-                            backgroundColor: index === 0 ? 'var(--primary-color)' : 
-                                            index === 1 ? 'var(--success-color)' : 
-                                            index === 2 ? 'var(--warning-color)' : 
-                                            'var(--info-color)'
-                          }}
-                        ></div>
-                      </div>
-                    </div>
-                  ))}
-                  
-                  {reportData && reportData.projectSummaries.length === 0 && (
-                    <div className="empty-state">Нет данных о проектах за выбранный период</div>
-                  )}
+                    ))}
+                    
+                    {reportData && reportData.projectSummaries.length === 0 && (
+                      <div className="text-center py-6 text-secondary-text-color">Нет данных о проектах за выбранный период</div>
+                    )}
+                  </div>
                 </div>
               </div>
             </>
           ) : (
             // Подробный отчет по дням
-            <div className="daily-view slide-up">
-              <DailyTimelineView 
-                entries={reportData?.entries || []} 
-                formatTime={formatTime}
-              />
+            <div className="card mb-6 slide-up">
+              <div className="card-content">
+                <DailyTimelineView 
+                  entries={reportData?.entries || []} 
+                  formatTime={formatTime}
+                />
+              </div>
             </div>
           )
         )}
         
-        <div className="report-total slide-up">
-          <div className="report-total-label">Всего за период</div>
-          <div className="report-total-value">
-            {reportData ? formatFullTime(reportData.totalDuration) : '00:00:00'}
+        <div className="card mb-6 slide-up">
+          <div className="card-content flex justify-between items-center">
+            <div className="font-semibold">Всего за период</div>
+            <div className="text-lg font-bold text-primary-color">
+              {reportData ? formatFullTime(reportData.totalDuration) : '00:00:00'}
+            </div>
           </div>
         </div>
         
-        <div className="report-actions slide-up">
-          <button className="report-action" onClick={handlePrint}>
-            <span className="report-action-icon">🖨️</span>
-            <span className="report-action-text">Печать</span>
-          </button>
-          <button className="report-action" onClick={handleCopy}>
-            <span className="report-action-icon">📋</span>
-            <span className="report-action-text">Копировать</span>
-          </button>
-          <button className="report-action" onClick={handleExport}>
-            <span className="report-action-icon">📤</span>
-            <span className="report-action-text">Экспорт</span>
-          </button>
+        <div className="flex justify-center gap-4 mb-20 slide-up">
+          <Button 
+            variant="primary"
+            size="md"
+            leftIcon="🖨️"
+            onClick={handlePrint}
+          >
+            Печать
+          </Button>
+          <Button 
+            variant="primary"
+            size="md"
+            leftIcon="📋"
+            onClick={handleCopy}
+          >
+            Копировать
+          </Button>
+          <Button 
+            variant="primary"
+            size="md"
+            leftIcon="📤"
+            onClick={handleExport}
+          >
+            Экспорт
+          </Button>
         </div>
         
         <NavBar />
@@ -363,4 +355,4 @@ export default function Reports() {
       <ReportsPage />
     </ProtectedRoute>
   );
-} 
+}

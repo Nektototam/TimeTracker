@@ -1,0 +1,179 @@
+{
+  "welcome": "Welcome",
+  "login": "Login",
+  "register": "Register",
+  "email": "Email",
+  "password": "Password",
+  "confirmPassword": "Confirm Password",
+  "forgotPassword": "Forgot Password?",
+  "submit": "Submit",
+  "cancel": "Cancel",
+  "save": "Save",
+  "delete": "Delete",
+  "edit": "Edit",
+  "add": "Add",
+  "back": "Back",
+  
+  "nav": {
+    "timer": "Timer",
+    "statistics": "Statistics",
+    "reports": "Reports",
+    "pomodoro": "Pomodoro",
+    "settings": "Settings",
+    "logout": "Logout"
+  },
+  
+  "timer": {
+    "start": "Start Timer",
+    "stop": "Stop Timer",
+    "pause": "Pause",
+    "resume": "Resume",
+    "workType": "Work Type",
+    "selectWorkType": "Select Work Type",
+    "project": "Project",
+    "selectProject": "Select Project",
+    "description": "Description",
+    "noProjects": "No Projects",
+    "dailyTotal": "Today's Previous Work",
+    "currentTask": "Current Task",
+    "notSelected": "Not Selected",
+    "addLimitation": "+ Limitation",
+    "limitation": "Limitation",
+    "setLimitation": "Set Time Limitation",
+    "hours": "Hours",
+    "minutes": "Minutes",
+    "limitValue": "Limitation: ",
+    "status": {
+      "ready": "Ready",
+      "running": "Timer Running"
+    },
+    "standard": {
+      "development": "Web Development",
+      "design": "Design",
+      "marketing": "Marketing",
+      "meeting": "Meeting",
+      "other": "Other",
+      "new": "+ Add New Type"
+    },
+    "timeLimit": {
+      "enterValue": "Enter a new type name",
+      "setLimit": "Set time limitation:",
+      "warning": "Please set a time limitation greater than 0 or cancel"
+    }
+  },
+  
+  "pomodoro": {
+    "title": "Pomodoro Timer",
+    "description": "Work with full concentration, then take breaks to rest.",
+    "work": "Work",
+    "rest": "Rest",
+    "cycle": "Cycle",
+    "reset": "Reset",
+    "start": "Start",
+    "stop": "Stop",
+    "pause": "Pause",
+    "settings": "Settings",
+    "workDuration": "Work Duration (min)",
+    "restDuration": "Rest Duration (min)",
+    "cycles": "Number of Cycles",
+    "longRestDuration": "Long Rest Duration (min)",
+    "autoStart": "Automatically Start Next Period",
+    "completed": "Completed"
+  },
+  
+  "statistics": {
+    "title": "Statistics",
+    "today": "Today",
+    "week": "This Week",
+    "month": "This Month",
+    "allTime": "All Time",
+    "loading": "Loading statistics...",
+    "noData": "No data for selected period",
+    "totalTime": "Total Time",
+    "projects": "Projects",
+    "recentActivity": "Recent Activity",
+    "dailyActivity": "Daily Activity",
+    "weeklyActivity": "Weekly Activity",
+    "mostActiveDay": "Most Active Day",
+    "averageDaily": "Average Daily"
+  },
+  
+  "reports": {
+    "title": "Report for Period",
+    "weekly": "Week",
+    "monthly": "Month",
+    "quarterly": "Quarter",
+    "custom": "Custom",
+    "summary": "Summary Report",
+    "daily": "Daily View",
+    "loading": "Loading report...",
+    "noData": "No data for selected period",
+    "totalTime": "Total for Period",
+    "projects": "Projects",
+    "dailyActivity": "Daily Activity",
+    "print": "Print",
+    "copy": "Copy",
+    "export": "Export",
+    "copied": "Report copied to clipboard",
+    "copyError": "Failed to copy report"
+  },
+  
+  "settings": {
+    "title": "Settings",
+    "loading": "Loading settings...",
+    "profile": "User Profile",
+    "notifications": "Notifications",
+    "interface": "Interface",
+    "sound": "Sound Notifications",
+    "browser": "Browser Notifications",
+    "theme": "Theme",
+    "language": "Language",
+    "timeFormat": "Time Format",
+    "deviceOnly": "These settings are saved for this device only",
+    "syncedSettings": "These settings are synced across all devices",
+    "dataRetention": "Data Retention Period",
+    "clean": "Clean Old Records",
+    "cleaning": "Cleaning...",
+    "cleanSuccess": "Cleaned successfully",
+    "cleanError": "Error while cleaning",
+    "saving": "Saving...",
+    "saveSuccess": "Saved successfully",
+    "saveError": "Error saving",
+    "workTypes": "Work Types",
+    "addWorkType": "Add Work Type",
+    "workTypesDesc": "Manage your work types and projects",
+    "standardTypes": "Standard Types",
+    "customTypes": "Custom Types",
+    "standard": "Standard",
+    "timeTracking": "Time Tracking",
+    "roundTime": "Round Time",
+    "noRounding": "No Rounding",
+    "dataAndStorage": "Data and Storage",
+    "storageSettings": "Storage Settings",
+    "retentionPeriod": "Retention Period",
+    "cleanOldRecords": "Clean Old Records",
+    "deleteOlderThan": "Deletes all records older than the selected retention period",
+    "data": "Data",
+    "exportData": "Export Data",
+    "retention": {
+      "title": "Data Retention Period",
+      "30days": "30 days",
+      "90days": "90 days",
+      "180days": "180 days",
+      "365days": "1 year",
+      "never": "Never delete"
+    }
+  },
+  
+  "languages": {
+    "ru": "Русский",
+    "en": "English",
+    "he": "עברית"
+  },
+  
+  "themes": {
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System"
+  }
+} 

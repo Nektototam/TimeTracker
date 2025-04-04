@@ -1,7 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useCustomProjectTypes } from '../hooks/useCustomProjectTypes';
 import { useAuth } from '../contexts/AuthContext';
 import { useTimer } from '../contexts/TimerContext';
+import { useTranslation } from 'react-i18next';
+import { Button } from './ui/Button';
+import { TimeLimitForm } from './TimeLimitForm';
 
 interface ProjectOption {
   value: string;
@@ -13,20 +16,21 @@ interface ProjectSelectProps {
   onChange: (value: string) => void;
 }
 
-// Стандартные типы работ
-const standardProjectOptions: ProjectOption[] = [
-  { value: 'development', label: 'Веб-разработка' },
-  { value: 'design', label: 'Дизайн' },
-  { value: 'marketing', label: 'Маркетинг' },
-  { value: 'meeting', label: 'Совещание' },
-  { value: 'other', label: 'Другое' },
-  { value: 'new', label: '+ Добавить новый тип' },
-];
-
 export default function ProjectSelect({ value, onChange }: ProjectSelectProps) {
   const { user } = useAuth();
   const { projectTypes, isLoading, addProjectType } = useCustomProjectTypes(user?.id);
   const { switchProject, setTimeLimit, timeLimit, setProjectText, projectText } = useTimer();
+  const { t } = useTranslation();
+  
+  // Стандартные типы работ, мемоизируем для стабильности
+  const standardProjectOptions = useMemo(() => [
+    { value: 'development', label: t('timer.standard.development') },
+    { value: 'design', label: t('timer.standard.design') },
+    { value: 'marketing', label: t('timer.standard.marketing') },
+    { value: 'meeting', label: t('timer.standard.meeting') },
+    { value: 'other', label: t('timer.standard.other') },
+    { value: 'new', label: t('timer.standard.new') },
+  ], [t]);
   
   const [isAddingNewType, setIsAddingNewType] = useState(false);
   const [newTypeValue, setNewTypeValue] = useState('');
@@ -41,11 +45,11 @@ export default function ProjectSelect({ value, onChange }: ProjectSelectProps) {
   }));
   
   // Создаем полный список опций, включая пользовательские типы
-  const allOptions = [
+  const allOptions = useMemo(() => [
     ...standardProjectOptions.slice(0, -1), // Исключаем последний пункт "Добавить новый тип"
     ...customOptions,
     standardProjectOptions[standardProjectOptions.length - 1] // Добавляем "Добавить новый тип" в конец
-  ];
+  ], [standardProjectOptions, customOptions]);
 
   // Если выбранный тип отсутствует в списке опций, сбрасываем на development
   useEffect(() => {
@@ -176,128 +180,126 @@ export default function ProjectSelect({ value, onChange }: ProjectSelectProps) {
   };
 
   return (
-    <div className="select-container">
+    <div className="select-container max-w-xl mx-auto">
       {/* Текущая активная задача - всегда показываем */}
-      <div className="current-task mb-3 text-center">
-        <div className="text-sm text-gray-500">Текущая задача:</div>
-        <div className="text-lg font-semibold">{projectText || 'Не выбрано'}</div>
+      <div className="current-task mb-6 text-center">
+        <div className="text-sm text-gray-500 mb-1">{t('timer.currentTask')}:</div>
+        <div className="text-lg font-semibold text-primary-dark">{projectText || t('timer.notSelected')}</div>
       </div>
       
-      <div className="flex justify-between items-center mb-2">
-        <label className="select-label">
-          Тип работы:
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 mb-5">
+        <label className="select-label text-base font-medium text-gray-700">
+          {t('timer.workType')}:
         </label>
         {timeLimit !== null ? (
-          <div className="flex items-center">
-            <span className="time-limit-badge text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-md mr-2">
-              Ограничение: {Math.floor(timeLimit / 3600000)}ч {Math.floor((timeLimit % 3600000) / 60000)}м
+          <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
+            <span className="time-limit-badge inline-block text-base font-medium text-[#6c5ce7] px-4 py-2.5 rounded-[14px]
+              bg-[#e9edf5] border-t border-l border-[#ffffff50] border-b-[#00000015] border-r-[#00000015]
+              shadow-[2px_2px_5px_rgba(0,0,0,0.05),-2px_-2px_5px_rgba(255,255,255,0.8)]">
+              {t('timer.limitValue')} {Math.floor(timeLimit / 3600000)}ч {Math.floor((timeLimit % 3600000) / 60000)}м
             </span>
-            <button 
-              onClick={showTimeLimitEditor}
-              className="text-xs text-blue-600 mr-1"
-            >
-              📝
-            </button>
-            <button 
-              onClick={clearTimeLimit}
-              className="text-xs text-red-600"
-            >
-              ❌
-            </button>
+            <div className="flex items-center gap-2">
+              <Button 
+                onClick={showTimeLimitEditor}
+                variant="ghost"
+                size="icon"
+                className="flex items-center justify-center h-10 w-10 rounded-full
+                  bg-[#e8efff] text-[#6c5ce7] text-lg shadow-[3px_3px_6px_rgba(0,0,0,0.1),-3px_-3px_6px_rgba(255,255,255,0.8)]
+                  hover:shadow-[2px_2px_4px_rgba(0,0,0,0.1),-2px_-2px_4px_rgba(255,255,255,0.8)]
+                  active:shadow-[inset_2px_2px_4px_rgba(0,0,0,0.1),inset_-2px_-2px_4px_rgba(255,255,255,0.8)]"
+              >
+                📝
+              </Button>
+              <Button 
+                onClick={clearTimeLimit}
+                variant="ghost"
+                size="icon"
+                className="flex items-center justify-center h-10 w-10 rounded-full
+                  bg-[#fff0f5] text-[#e82d61] text-lg shadow-[3px_3px_6px_rgba(0,0,0,0.1),-3px_-3px_6px_rgba(255,255,255,0.8)]
+                  hover:shadow-[2px_2px_4px_rgba(0,0,0,0.1),-2px_-2px_4px_rgba(255,255,255,0.8)]
+                  active:shadow-[inset_2px_2px_4px_rgba(0,0,0,0.1),inset_-2px_-2px_4px_rgba(255,255,255,0.8)]"
+              >
+                ❌
+              </Button>
+            </div>
           </div>
         ) : (
-          <button 
+          <Button 
             onClick={showTimeLimitEditor}
-            className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded-md"
+            variant="outline"
+            size="sm"
+            className="py-2.5 px-4 min-h-[44px] text-sm bg-[#e8efff] text-[#6c5ce7] rounded-[14px] 
+              border-t border-l border-[#ffffff50] border-b-[#00000015] border-r-[#00000015]
+              shadow-[3px_3px_6px_rgba(0,0,0,0.1),-3px_-3px_6px_rgba(255,255,255,0.8)]
+              hover:shadow-[2px_2px_4px_rgba(0,0,0,0.1),-2px_-2px_4px_rgba(255,255,255,0.8)]
+              active:shadow-[inset_2px_2px_4px_rgba(0,0,0,0.1),inset_-2px_-2px_4px_rgba(255,255,255,0.8)]"
           >
-            + Ограничение
-          </button>
+            {t('timer.addLimitation')}
+          </Button>
         )}
       </div>
       
       {isAddingNewType ? (
         <form onSubmit={handleNewTypeSubmit} className="new-type-form">
-          <div className="flex gap-2 items-center">
+          <div className="flex gap-3">
             <input
               type="text"
               value={newTypeValue}
               onChange={handleNewTypeChange}
-              className="select-input flex-1"
-              placeholder="Введите название нового типа"
+              className="flex-1 py-2.5 px-4 bg-[#e9edf5] text-gray-700 text-base 
+                rounded-[14px] border-t border-l border-[#ffffff50] border-b-[#00000015] border-r-[#00000015]
+                shadow-[inset_3px_3px_6px_rgba(0,0,0,0.1),inset_-3px_-3px_6px_rgba(255,255,255,0.7)]
+                focus:outline-none focus:shadow-[inset_4px_4px_8px_rgba(0,0,0,0.15),inset_-4px_-4px_8px_rgba(255,255,255,0.8)]
+                transition-all min-h-[44px]"
+              placeholder={t('timer.timeLimit.enterValue')}
               autoFocus
             />
-            <button 
-              type="submit" 
-              className="bg-primary text-white py-2 px-3 rounded-[10px] hover:bg-primary-dark transition-colors"
-            >
-              ✓
-            </button>
-            <button 
-              type="button" 
-              onClick={handleCancelNewType}
-              className="bg-[#f8f9fe] text-secondary py-2 px-3 rounded-[10px] hover:bg-[#eceef7] transition-colors"
-            >
-              ✕
-            </button>
+            <div className="flex gap-2">
+              <Button 
+                type="submit"
+                variant="primary"
+                size="sm"
+                className="px-3 py-2 min-w-[44px] min-h-[44px] text-lg"
+              >
+                ✓
+              </Button>
+              <Button 
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={handleCancelNewType}
+                className="px-3 py-2 min-w-[44px] min-h-[44px] text-lg"
+              >
+                ✕
+              </Button>
+            </div>
           </div>
         </form>
       ) : isEditingTimeLimit ? (
-        <div className="time-limit-form p-3 bg-white rounded-lg shadow-md">
-          <div className="mb-2 font-medium text-gray-700 text-sm">Установите ограничение времени:</div>
-          <div className="flex flex-row gap-2 mb-3 justify-center">
-            <div className="w-24">
-              <label className="block text-xs text-gray-600 mb-1">Часы</label>
-              <select
-                value={timeLimitHours}
-                onChange={(e) => setTimeLimitHours(parseFloat(e.target.value))}
-                className="select-input w-full px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-primary text-sm"
-              >
-                {hourOptions.map(hour => (
-                  <option key={hour} value={hour}>
-                    {hour % 1 === 0 ? hour : hour.toFixed(1)} ч
-                  </option>
-                ))}
-              </select>
-            </div>
-            
-            <div className="w-24">
-              <label className="block text-xs text-gray-600 mb-1">Минуты</label>
-              <select
-                value={timeLimitMinutes}
-                onChange={(e) => setTimeLimitMinutes(parseInt(e.target.value))}
-                className="select-input w-full px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-primary text-sm"
-              >
-                {[0, 15, 30, 45].map(min => (
-                  <option key={min} value={min}>
-                    {min} мин
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-          
-          <div className="flex gap-2 justify-center">
-            <button
-              type="button"
-              onClick={handleTimeLimitSave}
-              className="bg-primary text-white py-1 px-3 rounded-md hover:bg-primary-dark transition-colors text-sm"
-            >
-              Сохранить
-            </button>
-            <button
-              type="button" 
-              onClick={handleTimeLimitCancel}
-              className="bg-gray-100 text-gray-700 py-1 px-3 rounded-md hover:bg-gray-200 transition-colors text-sm"
-            >
-              Отмена
-            </button>
-          </div>
-        </div>
+        <TimeLimitForm 
+          initialHours={timeLimitHours} 
+          initialMinutes={timeLimitMinutes}
+          onSave={(hours, minutes) => {
+            const limitMs = (hours * 60 * 60 * 1000) + (minutes * 60 * 1000);
+            setTimeLimit(limitMs);
+            setIsEditingTimeLimit(false);
+          }}
+          onCancel={handleTimeLimitCancel}
+        />
       ) : (
         <select
-          className="select-input w-full"
+          className="select-input w-full py-2.5 px-4 bg-[#e9edf5] text-gray-700 text-base 
+            rounded-[14px] border-t border-l border-[#ffffff50] border-b-[#00000015] border-r-[#00000015]
+            shadow-[inset_3px_3px_6px_rgba(0,0,0,0.1),inset_-3px_-3px_6px_rgba(255,255,255,0.7)]
+            focus:outline-none focus:shadow-[inset_4px_4px_8px_rgba(0,0,0,0.15),inset_-4px_-4px_8px_rgba(255,255,255,0.8)]
+            transition-all disabled:opacity-60 appearance-none pr-10 min-h-[44px]"
           value={value}
           onChange={handleChange}
+          disabled={isLoading}
+          style={{ backgroundImage: "url(\"data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e\")", 
+                   backgroundPosition: "right 0.5rem center", 
+                   backgroundRepeat: "no-repeat", 
+                   backgroundSize: "1.5em 1.5em" }}
         >
           {allOptions.map((option) => (
             <option key={option.value} value={option.value}>
