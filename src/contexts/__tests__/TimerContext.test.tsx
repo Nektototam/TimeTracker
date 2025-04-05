@@ -1,5 +1,5 @@
 import React, { act } from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { TimerProvider, useTimer } from '../../contexts/TimerContext';
 
@@ -115,7 +115,7 @@ describe('TimerContext', () => {
   });
 
   // Тест 2: Проверка функции toggleTimer (запуск таймера)
-  test('toggleTimer changes the timer state correctly', async () => {
+  test('toggleTimer starts the timer when not running', async () => {
     await act(async () => {
       render(
         <TimerProvider>
@@ -134,10 +134,21 @@ describe('TimerContext', () => {
     // Проверяем, что таймер запущен
     expect(screen.getByTestId('is-running')).toHaveTextContent('running');
     expect(screen.getByTestId('is-paused')).toHaveTextContent('not-paused');
+
+    // Перематываем время на 5 секунд вперед
+    await act(async () => {
+      jest.advanceTimersByTime(5000);
+    });
+
+    // Ждем обновления UI
+    await waitFor(() => {
+      const elapsedTimeValue = parseInt(screen.getByTestId('elapsed-time').textContent || '0');
+      expect(elapsedTimeValue).toBeGreaterThanOrEqual(5000);
+    });
   });
 
   // Тест 3: Проверка функции toggleTimer (пауза таймера)
-  test('toggleTimer pauses the timer when already running', async () => {
+  test('toggleTimer pauses the timer when running', async () => {
     await act(async () => {
       render(
         <TimerProvider>
@@ -156,6 +167,11 @@ describe('TimerContext', () => {
     // Проверяем, что таймер запущен
     expect(screen.getByTestId('is-running')).toHaveTextContent('running');
     
+    // Перематываем время на 5 секунд вперед
+    await act(async () => {
+      jest.advanceTimersByTime(5000);
+    });
+    
     // Паузим таймер
     await act(async () => {
       toggleButton.click();
@@ -164,6 +180,20 @@ describe('TimerContext', () => {
     // Проверяем, что таймер на паузе
     expect(screen.getByTestId('is-running')).toHaveTextContent('not-running');
     expect(screen.getByTestId('is-paused')).toHaveTextContent('paused');
+    
+    // Получаем значение времени на момент паузы
+    const pausedTime = parseInt(screen.getByTestId('elapsed-time').textContent || '0');
+    
+    // Перематываем время вперед еще на 5 секунд
+    await act(async () => {
+      jest.advanceTimersByTime(5000);
+    });
+    
+    // Проверяем, что время не изменилось
+    await waitFor(() => {
+      const currentTime = parseInt(screen.getByTestId('elapsed-time').textContent || '0');
+      expect(currentTime).toBe(pausedTime);
+    });
   });
 
   // Тест 4: Проверка функции finishTask
@@ -182,6 +212,11 @@ describe('TimerContext', () => {
     // Запускаем таймер
     await act(async () => {
       toggleButton.click();
+    });
+    
+    // Перематываем время на 5 секунд вперед
+    await act(async () => {
+      jest.advanceTimersByTime(5000);
     });
     
     // Завершаем задачу
@@ -207,6 +242,16 @@ describe('TimerContext', () => {
 
     const switchButton = screen.getByTestId('switch-project');
     
+    // Запускаем таймер
+    await act(async () => {
+      toggleButton.click();
+    });
+
+    // Перематываем время на 5 секунд
+    await act(async () => {
+      jest.advanceTimersByTime(5000);
+    });
+
     // Переключаем проект
     await act(async () => {
       switchButton.click();
@@ -269,14 +314,17 @@ describe('TimerContext', () => {
       toggleButton.click();
     });
 
-    // Проверяем запись в localStorage - достаточно немного подождать для сохранения
+    // Перематываем время на 5 секунд
     await act(async () => {
-      await new Promise(resolve => setTimeout(resolve, 0));
+      jest.advanceTimersByTime(5000);
     });
-    
-    const savedState = JSON.parse(localStorage.getItem('timetracker-timer-state') || '{}');
-    expect(savedState.isRunning).toBe(true);
-    expect(savedState.project).toBe('development');
+
+    // Проверяем запись в localStorage
+    await waitFor(() => {
+      const savedState = JSON.parse(localStorage.getItem('timetracker-timer-state') || '{}');
+      expect(savedState.isRunning).toBe(true);
+      expect(savedState.project).toBe('development');
+    });
   });
 
   // Тест 9: Проверка обновления dailyTotal
