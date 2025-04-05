@@ -1,5 +1,5 @@
-import React from 'react';
-import { render, screen, act, waitFor } from '@testing-library/react';
+import React, { act } from 'react';
+import { render, screen, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { TimerProvider, useTimer } from '../../contexts/TimerContext';
 
@@ -88,12 +88,14 @@ describe('TimerContext', () => {
   });
 
   // Тест 1: Проверка начальных значений контекста
-  test('provides default values', () => {
-    render(
-      <TimerProvider>
-        <TestComponent />
-      </TimerProvider>
-    );
+  test('provides default values', async () => {
+    await act(async () => {
+      render(
+        <TimerProvider>
+          <TestComponent />
+        </TimerProvider>
+      );
+    });
 
     expect(screen.getByTestId('project')).toHaveTextContent('development');
     expect(screen.getByTestId('is-running')).toHaveTextContent('not-running');
@@ -103,16 +105,18 @@ describe('TimerContext', () => {
 
   // Тест 2: Проверка функции toggleTimer (запуск таймера)
   test('toggleTimer starts the timer when not running', async () => {
-    render(
-      <TimerProvider>
-        <TestComponent />
-      </TimerProvider>
-    );
+    await act(async () => {
+      render(
+        <TimerProvider>
+          <TestComponent />
+        </TimerProvider>
+      );
+    });
 
     const toggleButton = screen.getByTestId('toggle-timer');
     
     // Запускаем таймер
-    act(() => {
+    await act(async () => {
       toggleButton.click();
     });
 
@@ -121,83 +125,92 @@ describe('TimerContext', () => {
     expect(screen.getByTestId('is-paused')).toHaveTextContent('not-paused');
 
     // Перематываем время на 5 секунд вперед
-    act(() => {
+    await act(async () => {
       jest.advanceTimersByTime(5000);
     });
 
     // Ждем обновления UI
     await waitFor(() => {
-      expect(parseInt(screen.getByTestId('elapsed-time').textContent || '0')).toBeGreaterThanOrEqual(5000);
+      const elapsedTimeValue = parseInt(screen.getByTestId('elapsed-time').textContent || '0');
+      expect(elapsedTimeValue).toBeGreaterThanOrEqual(5000);
     });
   });
 
   // Тест 3: Проверка функции toggleTimer (пауза таймера)
   test('toggleTimer pauses the timer when running', async () => {
-    render(
-      <TimerProvider>
-        <TestComponent />
-      </TimerProvider>
-    );
+    await act(async () => {
+      render(
+        <TimerProvider>
+          <TestComponent />
+        </TimerProvider>
+      );
+    });
 
     const toggleButton = screen.getByTestId('toggle-timer');
     
     // Запускаем таймер
-    act(() => {
+    await act(async () => {
       toggleButton.click();
     });
 
-    // Перематываем время на 5 секунд
-    act(() => {
+    // Проверяем, что таймер запущен
+    expect(screen.getByTestId('is-running')).toHaveTextContent('running');
+    
+    // Перематываем время на 5 секунд вперед
+    await act(async () => {
       jest.advanceTimersByTime(5000);
     });
-
-    // Ставим на паузу
-    act(() => {
+    
+    // Паузим таймер
+    await act(async () => {
       toggleButton.click();
     });
-
+    
     // Проверяем, что таймер на паузе
     expect(screen.getByTestId('is-running')).toHaveTextContent('not-running');
     expect(screen.getByTestId('is-paused')).toHaveTextContent('paused');
-
-    // Сохраняем текущее время
-    const pausedTime = screen.getByTestId('elapsed-time').textContent;
-
-    // Перематываем еще на 5 секунд
-    act(() => {
+    
+    // Получаем значение времени на момент паузы
+    const pausedTime = parseInt(screen.getByTestId('elapsed-time').textContent || '0');
+    
+    // Перематываем время вперед еще на 5 секунд
+    await act(async () => {
       jest.advanceTimersByTime(5000);
     });
-
+    
     // Проверяем, что время не изменилось
     await waitFor(() => {
-      expect(screen.getByTestId('elapsed-time').textContent).toBe(pausedTime);
+      const currentTime = parseInt(screen.getByTestId('elapsed-time').textContent || '0');
+      expect(currentTime).toBe(pausedTime);
     });
   });
 
   // Тест 4: Проверка функции finishTask
-  test('finishTask stops the timer and resets values', async () => {
-    render(
-      <TimerProvider>
-        <TestComponent />
-      </TimerProvider>
-    );
+  test('finishTask resets the timer', async () => {
+    await act(async () => {
+      render(
+        <TimerProvider>
+          <TestComponent />
+        </TimerProvider>
+      );
+    });
 
     const toggleButton = screen.getByTestId('toggle-timer');
     const finishButton = screen.getByTestId('finish-task');
     
     // Запускаем таймер
-    act(() => {
+    await act(async () => {
       toggleButton.click();
     });
-
-    // Перематываем время на 5 секунд
-    act(() => {
+    
+    // Перематываем время на 5 секунд вперед
+    await act(async () => {
       jest.advanceTimersByTime(5000);
     });
-
+    
     // Завершаем задачу
     await act(async () => {
-      await finishButton.click();
+      finishButton.click();
     });
 
     // Проверяем, что таймер сброшен
@@ -210,28 +223,30 @@ describe('TimerContext', () => {
 
   // Тест 5: Проверка функции switchProject
   test('switchProject changes project and resets timer', async () => {
-    render(
-      <TimerProvider>
-        <TestComponent />
-      </TimerProvider>
-    );
+    await act(async () => {
+      render(
+        <TimerProvider>
+          <TestComponent />
+        </TimerProvider>
+      );
+    });
 
     const toggleButton = screen.getByTestId('toggle-timer');
     const switchButton = screen.getByTestId('switch-project');
     
     // Запускаем таймер
-    act(() => {
+    await act(async () => {
       toggleButton.click();
     });
 
     // Перематываем время на 5 секунд
-    act(() => {
+    await act(async () => {
       jest.advanceTimersByTime(5000);
     });
 
     // Переключаем проект
     await act(async () => {
-      await switchButton.click();
+      switchButton.click();
     });
 
     // Проверяем, что проект изменился и таймер сбросился
@@ -243,28 +258,32 @@ describe('TimerContext', () => {
   });
 
   // Тест 6: Проверка функции форматирования времени
-  test('formatTime correctly formats time', () => {
-    render(
-      <TimerProvider>
-        <TestComponent />
-      </TimerProvider>
-    );
+  test('formatTime correctly formats time', async () => {
+    await act(async () => {
+      render(
+        <TimerProvider>
+          <TestComponent />
+        </TimerProvider>
+      );
+    });
 
     // 3661000 мс = 1 час 1 минута 1 секунда
     expect(screen.getByTestId('format-time')).toHaveTextContent('01:01:01');
   });
 
   // Тест 7: Проверка функции setTimeLimit
-  test('setTimeLimit updates time limit', () => {
-    render(
-      <TimerProvider>
-        <TestComponent />
-      </TimerProvider>
-    );
+  test('setTimeLimit updates time limit', async () => {
+    await act(async () => {
+      render(
+        <TimerProvider>
+          <TestComponent />
+        </TimerProvider>
+      );
+    });
 
     const setLimitButton = screen.getByTestId('set-time-limit');
     
-    act(() => {
+    await act(async () => {
       setLimitButton.click();
     });
 
@@ -274,21 +293,23 @@ describe('TimerContext', () => {
 
   // Тест 8: Проверка сохранения состояния в localStorage
   test('saves timer state to localStorage', async () => {
-    render(
-      <TimerProvider>
-        <TestComponent />
-      </TimerProvider>
-    );
+    await act(async () => {
+      render(
+        <TimerProvider>
+          <TestComponent />
+        </TimerProvider>
+      );
+    });
 
     const toggleButton = screen.getByTestId('toggle-timer');
     
     // Запускаем таймер
-    act(() => {
+    await act(async () => {
       toggleButton.click();
     });
 
     // Перематываем время на 5 секунд
-    act(() => {
+    await act(async () => {
       jest.advanceTimersByTime(5000);
     });
 
@@ -314,11 +335,13 @@ describe('TimerContext', () => {
       ]),
     }));
 
-    render(
-      <TimerProvider>
-        <TestComponent />
-      </TimerProvider>
-    );
+    await act(async () => {
+      render(
+        <TimerProvider>
+          <TestComponent />
+        </TimerProvider>
+      );
+    });
 
     // Проверяем, что dailyTotal корректно вычислен
     await waitFor(() => {
