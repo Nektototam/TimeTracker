@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useCustomProjectTypes } from '../hooks/useCustomProjectTypes';
-import { supabase } from '../lib/supabase';
+import { api } from '../lib/api';
 import { CustomProjectType } from '../types/supabase';
 import { useLanguage } from '../contexts/LanguageContext';
 import { Button } from './ui/Button';
@@ -68,15 +68,8 @@ export default function WorkTypeManager({ userId }: WorkTypeManagerProps) {
     
     // Сначала проверяем, есть ли записи с этим типом работы
     try {
-      const { data, error } = await supabase
-        .from('time_entries')
-        .select('id')
-        .eq('project_type', id)
-        .limit(1);
-      
-      if (error) throw new Error(error.message);
-      
-      if (data && data.length > 0) {
+      const { items } = await api.timeEntries.list({ projectType: id, limit: 1 });
+      if (items && items.length > 0) {
         setDeleteError('Нельзя удалить тип, который используется в записях. Сначала измените тип в записях.');
         return;
       }

@@ -1,4 +1,4 @@
-import { supabase } from './supabase';
+import { api } from './api';
 
 // Интерфейс для настроек, хранящихся в базе данных
 export interface DBSettings {
@@ -47,44 +47,15 @@ class SettingsService {
   // Загружаем настройки из базы данных
   async loadDBSettings(): Promise<DBSettings> {
     try {
-      const { data: userData } = await supabase.auth.getUser();
-      const userId = userData.user?.id;
-      
-      if (!userId) {
-        console.error('Пользователь не авторизован');
-        return defaultDBSettings;
-      }
-      
-      const { data: settings, error } = await supabase
-        .from('user_settings')
-        .select('*')
-        .eq('user_id', userId)
-        .single();
-      
-      if (error) {
-        console.error('Ошибка загрузки настроек из БД:', error);
-        
-        // Если настройки не найдены, создаем настройки по умолчанию
-        if (error.code === 'PGRST116') {
-          return await this.createDefaultDBSettings();
-        }
-        
-        return defaultDBSettings;
-      }
-      
-      if (!settings) {
-        // Если настройки не найдены, создаем настройки по умолчанию
-        return await this.createDefaultDBSettings();
-      }
-      
+      const { settings } = await api.settings.get();
       return {
-        pomodoro_work_time: settings.pomodoro_work_time,
-        pomodoro_rest_time: settings.pomodoro_rest_time,
-        pomodoro_long_rest_time: settings.pomodoro_long_rest_time,
-        auto_start: settings.auto_start,
-        round_times: settings.round_times,
+        pomodoro_work_time: settings.pomodoroWorkTime,
+        pomodoro_rest_time: settings.pomodoroRestTime,
+        pomodoro_long_rest_time: settings.pomodoroLongRestTime,
+        auto_start: settings.autoStart,
+        round_times: settings.roundTimes,
         language: settings.language,
-        data_retention_period: settings.data_retention_period || defaultDBSettings.data_retention_period
+        data_retention_period: settings.dataRetentionPeriod
       };
     } catch (error) {
       console.error('Ошибка загрузки настроек из БД:', error);
@@ -94,70 +65,21 @@ class SettingsService {
   
   // Создаем настройки по умолчанию в базе данных
   async createDefaultDBSettings(): Promise<DBSettings> {
-    try {
-      const { data: userData } = await supabase.auth.getUser();
-      const userId = userData.user?.id;
-      
-      if (!userId) {
-        console.error('Пользователь не авторизован');
-        return defaultDBSettings;
-      }
-      
-      const { data, error } = await supabase
-        .from('user_settings')
-        .insert([{
-          user_id: userId,
-          ...defaultDBSettings
-        }])
-        .select()
-        .single();
-      
-      if (error) {
-        console.error('Ошибка создания настроек по умолчанию:', error);
-        return defaultDBSettings;
-      }
-      
-      return data as DBSettings;
-    } catch (error) {
-      console.error('Ошибка создания настроек по умолчанию:', error);
-      return defaultDBSettings;
-    }
+    return defaultDBSettings;
   }
   
   // Сохраняем настройки в базу данных
   async saveDBSettings(settings: DBSettings): Promise<boolean> {
     try {
-      const { data: userData } = await supabase.auth.getUser();
-      const userId = userData.user?.id;
-      
-      if (!userId) {
-        console.error('Пользователь не авторизован');
-        return false;
-      }
-      
-      const { error } = await supabase
-        .from('user_settings')
-        .update({
-          pomodoro_work_time: settings.pomodoro_work_time,
-          pomodoro_rest_time: settings.pomodoro_rest_time,
-          pomodoro_long_rest_time: settings.pomodoro_long_rest_time,
-          auto_start: settings.auto_start,
-          round_times: settings.round_times,
-          language: settings.language,
-          data_retention_period: settings.data_retention_period
-        })
-        .eq('user_id', userId);
-      
-      if (error) {
-        // Если настройки не существуют, попробуем создать их
-        if (error.code === 'PGRST116') {
-          return await this.createAndSaveDBSettings(settings);
-        }
-        
-        console.error('Ошибка сохранения настроек в БД:', error);
-        return false;
-      }
-      
+      await api.settings.update({
+        pomodoroWorkTime: settings.pomodoro_work_time,
+        pomodoroRestTime: settings.pomodoro_rest_time,
+        pomodoroLongRestTime: settings.pomodoro_long_rest_time,
+        autoStart: settings.auto_start,
+        roundTimes: settings.round_times,
+        language: settings.language,
+        dataRetentionPeriod: settings.data_retention_period
+      });
       return true;
     } catch (error) {
       console.error('Ошибка сохранения настроек в БД:', error);
@@ -167,32 +89,7 @@ class SettingsService {
   
   // Создаем и сохраняем настройки в базу данных
   async createAndSaveDBSettings(settings: DBSettings): Promise<boolean> {
-    try {
-      const { data: userData } = await supabase.auth.getUser();
-      const userId = userData.user?.id;
-      
-      if (!userId) {
-        console.error('Пользователь не авторизован');
-        return false;
-      }
-      
-      const { error } = await supabase
-        .from('user_settings')
-        .insert([{
-          user_id: userId,
-          ...settings
-        }]);
-      
-      if (error) {
-        console.error('Ошибка создания настроек в БД:', error);
-        return false;
-      }
-      
-      return true;
-    } catch (error) {
-      console.error('Ошибка создания настроек в БД:', error);
-      return false;
-    }
+    return this.saveDBSettings(settings);
   }
   
   // Загружаем настройки из localStorage
@@ -265,34 +162,7 @@ class SettingsService {
   // Очистить устаревшие записи о времени
   async cleanOldTimeEntries(): Promise<boolean> {
     try {
-      const { data: userData } = await supabase.auth.getUser();
-      const userId = userData.user?.id;
-      
-      if (!userId) {
-        console.error('Пользователь не авторизован');
-        return false;
-      }
-      
-      // Загружаем настройки пользователя для определения срока хранения
-      const dbSettings = await this.loadDBSettings();
-      const retentionPeriodMonths = dbSettings.data_retention_period;
-      
-      // Расчитываем дату, старше которой записи будут удалены
-      const cutoffDate = new Date();
-      cutoffDate.setMonth(cutoffDate.getMonth() - retentionPeriodMonths);
-      
-      // Удаляем записи старше cutoffDate
-      const { error } = await supabase
-        .from('time_entries')
-        .delete()
-        .eq('user_id', userId)
-        .lt('start_time', cutoffDate.toISOString());
-      
-      if (error) {
-        console.error('Ошибка при очистке старых записей:', error);
-        return false;
-      }
-      
+      await api.settings.cleanup();
       return true;
     } catch (error) {
       console.error('Ошибка при очистке старых записей:', error);

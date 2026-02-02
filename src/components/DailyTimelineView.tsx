@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { TimeEntry } from '../lib/reportService';
-import { supabase } from '../lib/supabase';
+import { api } from '../lib/api';
 
 interface TimeBlock {
   id: string;
@@ -56,16 +56,12 @@ const DailyTimelineView: React.FC<DailyTimelineViewProps> = ({
       const customTypes = projectTypes.filter(type => !standardTypes[type]);
       
       if (customTypes.length > 0) {
-        const { data } = await supabase
-          .from('custom_project_types')
-          .select('id, name')
-          .in('id', customTypes);
-          
-        if (data) {
-          data.forEach(item => {
+        const { items } = await api.projectTypes.list();
+        items
+          .filter(item => customTypes.includes(item.id))
+          .forEach(item => {
             names[item.id] = item.name;
           });
-        }
       }
       
       // Для типов без названий устанавливаем значение по умолчанию

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '../lib/supabase';
+import { api, ApiTimeEntry } from '../lib/api';
 import { TimeEntry } from '../types/supabase';
 
 interface UseTimeEntriesReturn {
@@ -23,14 +23,8 @@ export function useTimeEntries(): UseTimeEntriesReturn {
     async function fetchTimeEntries() {
       try {
         setIsLoading(true);
-        const { data, error } = await supabase
-          .from('time_entries')
-          .select('*')
-          .order('start_time', { ascending: false });
-
-        if (error) throw new Error(error.message);
-        
-        setEntries(data || []);
+        const { items } = await api.timeEntries.list();
+        setEntries(items.map(mapToTimeEntry));
       } catch (err) {
         console.error('Ошибка при загрузке записей времени:', err);
         setError(err instanceof Error ? err : new Error('Неизвестная ошибка'));
@@ -42,23 +36,36 @@ export function useTimeEntries(): UseTimeEntriesReturn {
     fetchTimeEntries();
   }, []);
 
+  function mapToTimeEntry(entry: ApiTimeEntry): TimeEntry {
+    return {
+      id: entry.id,
+      user_id: entry.userId,
+      project_type: entry.projectType,
+      start_time: entry.startTime,
+      end_time: entry.endTime,
+      duration: entry.durationMs,
+      description: entry.description || undefined,
+      created_at: entry.createdAt,
+      time_limit: entry.timeLimitMs || undefined
+    };
+  }
+
   // Добавление новой записи о времени
   async function addTimeEntry(entry: Omit<TimeEntry, 'id' | 'created_at'>): Promise<TimeEntry | null> {
     try {
-      const { data, error } = await supabase
-        .from('time_entries')
-        .insert([entry])
-        .select()
-        .single();
+      const payload = {
+        projectType: entry.project_type,
+        startTime: new Date(entry.start_time).toISOString(),
+        endTime: new Date(entry.end_time).toISOString(),
+        durationMs: entry.duration,
+        description: entry.description,
+        timeLimitMs: entry.time_limit
+      };
 
-      if (error) throw new Error(error.message);
-      
-      // Обновляем локальное состояние
-      if (data) {
-        setEntries(prev => [data, ...prev]);
-      }
-      
-      return data;
+      const { item } = await api.timeEntries.create(payload);
+      const mapped = mapToTimeEntry(item);
+      setEntries(prev => [mapped, ...prev]);
+      return mapped;
     } catch (err) {
       console.error('Ошибка при добавлении записи времени:', err);
       setError(err instanceof Error ? err : new Error('Неизвестная ошибка'));
@@ -69,23 +76,21 @@ export function useTimeEntries(): UseTimeEntriesReturn {
   // Обновление существующей записи
   async function updateTimeEntry(id: string, entry: Partial<TimeEntry>): Promise<TimeEntry | null> {
     try {
-      const { data, error } = await supabase
-        .from('time_entries')
-        .update(entry)
-        .eq('id', id)
-        .select()
-        .single();
+      const payload = {
+        projectType: entry.project_type,
+        startTime: entry.start_time ? new Date(entry.start_time).toISOString() : undefined,
+        endTime: entry.end_time ? new Date(entry.end_time).toISOString() : undefined,
+        durationMs: entry.duration,
+        description: entry.description,
+        timeLimitMs: entry.time_limit
+      };
 
-      if (error) throw new Error(error.message);
-      
-      // Обновляем локальное состояние
-      if (data) {
-        setEntries(prev => prev.map(item => 
-          item.id === id ? { ...item, ...data } : item
-        ));
-      }
-      
-      return data;
+      const { item } = await api.timeEntries.update(id, payload);
+      const mapped = mapToTimeEntry(item);
+      setEntries(prev => prev.map(itemEntry =>
+        itemEntry.id === id ? { ...itemEntry, ...mapped } : itemEntry
+      ));
+      return mapped;
     } catch (err) {
       console.error('Ошибка при обновлении записи времени:', err);
       setError(err instanceof Error ? err : new Error('Неизвестная ошибка'));
@@ -96,16 +101,8 @@ export function useTimeEntries(): UseTimeEntriesReturn {
   // Удаление записи
   async function deleteTimeEntry(id: string): Promise<boolean> {
     try {
-      const { error } = await supabase
-        .from('time_entries')
-        .delete()
-        .eq('id', id);
-
-      if (error) throw new Error(error.message);
-      
-      // Обновляем локальное состояние
+      await api.timeEntries.delete(id);
       setEntries(prev => prev.filter(item => item.id !== id));
-      
       return true;
     } catch (err) {
       console.error('Ошибка при удалении записи времени:', err);
@@ -117,22 +114,8 @@ export function useTimeEntries(): UseTimeEntriesReturn {
   // Получение записей за сегодня
   async function getTodayEntries(): Promise<TimeEntry[]> {
     try {
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      
-      const tomorrow = new Date(today);
-      tomorrow.setDate(tomorrow.getDate() + 1);
-      
-      const { data, error } = await supabase
-        .from('time_entries')
-        .select('*')
-        .gte('start_time', today.toISOString())
-        .lt('start_time', tomorrow.toISOString())
-        .order('start_time', { ascending: false });
-
-      if (error) throw new Error(error.message);
-      
-      return data || [];
+      const { items } = await api.timeEntries.today();
+      return items.map(mapToTimeEntry);
     } catch (err) {
       console.error('Ошибка при получении записей за сегодня:', err);
       setError(err instanceof Error ? err : new Error('Неизвестная ошибка'));
@@ -143,16 +126,11 @@ export function useTimeEntries(): UseTimeEntriesReturn {
   // Получение записей за период времени
   async function getEntriesByDateRange(startDate: Date, endDate: Date): Promise<TimeEntry[]> {
     try {
-      const { data, error } = await supabase
-        .from('time_entries')
-        .select('*')
-        .gte('start_time', startDate.toISOString())
-        .lte('start_time', endDate.toISOString())
-        .order('start_time', { ascending: false });
-
-      if (error) throw new Error(error.message);
-      
-      return data || [];
+      const { items } = await api.timeEntries.list({
+        from: startDate.toISOString(),
+        to: endDate.toISOString()
+      });
+      return items.map(mapToTimeEntry);
     } catch (err) {
       console.error('Ошибка при получении записей за период:', err);
       setError(err instanceof Error ? err : new Error('Неизвестная ошибка'));

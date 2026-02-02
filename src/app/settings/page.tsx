@@ -8,6 +8,7 @@ import WorkTypeManager from '../../components/WorkTypeManager';
 import LanguageSwitcher from '../../components/LanguageSwitcher';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { Button } from '../../components/ui/Button';
+import settingsService from '../../lib/settingsService';
 
 interface Settings {
   // DB настройки
@@ -59,12 +60,33 @@ function SettingsPage() {
     return i18nTranslation === `settings.${key}` ? key : i18nTranslation;
   };
 
-  // Загрузка настроек при монтировании компонента (имитация)
+  // Загрузка настроек при монтировании компонента
   useEffect(() => {
-    // Имитируем загрузку данных
-    setTimeout(() => {
-      setIsLoading(false);
-    }, 1000);
+    const load = async () => {
+      setIsLoading(true);
+      try {
+        const loadedSettings = await settingsService.loadAllSettings();
+        setSettings({
+          pomodoro_work_time: loadedSettings.pomodoro_work_time,
+          pomodoro_rest_time: loadedSettings.pomodoro_rest_time,
+          pomodoro_long_rest_time: loadedSettings.pomodoro_long_rest_time,
+          auto_start: loadedSettings.auto_start,
+          round_times: loadedSettings.round_times,
+          language: loadedSettings.language,
+          data_retention_period: loadedSettings.data_retention_period,
+          theme: loadedSettings.theme,
+          timeFormat: loadedSettings.timeFormat,
+          soundNotifications: loadedSettings.soundNotifications,
+          browserNotifications: loadedSettings.browserNotifications
+        });
+      } catch (error) {
+        console.error('Ошибка загрузки настроек:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    load();
   }, []);
   
   // Обновление состояния настроек
@@ -81,8 +103,19 @@ function SettingsPage() {
     
     setSaveStatus('saving');
     try {
-      // Имитируем сохранение
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await settingsService.saveAllSettings({
+        pomodoro_work_time: settings.pomodoro_work_time,
+        pomodoro_rest_time: settings.pomodoro_rest_time,
+        pomodoro_long_rest_time: settings.pomodoro_long_rest_time,
+        auto_start: settings.auto_start,
+        round_times: settings.round_times,
+        language: settings.language,
+        data_retention_period: settings.data_retention_period,
+        theme: settings.theme,
+        timeFormat: settings.timeFormat,
+        soundNotifications: settings.soundNotifications,
+        browserNotifications: settings.browserNotifications
+      });
       setSaveStatus('success');
       // Сбрасываем статус успеха через 3 секунды
       setTimeout(() => {
@@ -136,8 +169,7 @@ function SettingsPage() {
     if (confirm('Вы уверены, что хотите очистить все записи старше установленного срока хранения? Это действие необратимо.')) {
       setCleaningStatus('cleaning');
       try {
-        // Имитируем очистку
-        await new Promise(resolve => setTimeout(resolve, 1500));
+        await settingsService.cleanOldTimeEntries();
         setCleaningStatus('success');
         // Сбрасываем статус успеха через 3 секунды
         setTimeout(() => {

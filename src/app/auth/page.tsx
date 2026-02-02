@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from 'react';
-import { supabase } from '../../lib/supabase';
 import { useRouter } from 'next/navigation';
+import { api } from '../../lib/api';
+import { useAuth } from '../../contexts/AuthContext';
 
 export default function Auth() {
   const [email, setEmail] = useState('');
@@ -12,6 +13,7 @@ export default function Auth() {
   const [mode, setMode] = useState<'signin'|'signup'>('signin');
   const [rememberMe, setRememberMe] = useState(false);
   const router = useRouter();
+  const { refresh } = useAuth();
 
   async function handleAuth(e: React.FormEvent) {
     e.preventDefault();
@@ -20,32 +22,12 @@ export default function Auth() {
     
     try {
       if (mode === 'signup') {
-        const { error } = await supabase.auth.signUp({ 
-          email, 
-          password,
-          options: {
-            emailRedirectTo: `${window.location.origin}/auth/callback`
-          }
-        });
-        
-        if (error) throw error;
-        
-        setMessage('Проверьте вашу почту для подтверждения регистрации!');
+        await api.auth.register(email, password);
+        await refresh();
+        setMessage('Регистрация успешна. Теперь можно войти.');
       } else {
-        const { error } = await supabase.auth.signInWithPassword({ 
-          email, 
-          password
-        });
-        
-        if (error) throw error;
-        
-        // Если "запомнить меня" выбран, устанавливаем долгую сессию
-        if (rememberMe) {
-          await supabase.auth.refreshSession({
-            refresh_token: (await supabase.auth.getSession()).data.session?.refresh_token || ''
-          });
-        }
-        
+        await api.auth.login(email, password);
+        await refresh();
         router.push('/');
       }
     } catch (error: any) {
