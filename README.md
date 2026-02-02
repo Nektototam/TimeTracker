@@ -17,10 +17,10 @@ TimeTracker - это веб-приложение для отслеживания
 
 ## Настройка базы данных
 
-Для работы приложения требуется собственный backend и база PostgreSQL (Railway). Выполните следующие шаги:
+Для разработки используется SQLite, для продакшна — PostgreSQL (Railway).
 
-1. Создайте Postgres в Railway
-2. Настройте переменные окружения для API (см. apps/api/.env.example)
+1. Локально используйте SQLite (см. apps/api/.env.example)
+2. Для продакшна настройте Postgres в Railway
 3. Запустите миграции Prisma
 
 ### Legacy: SQL-скрипт для таблицы настроек пользователя (Supabase)

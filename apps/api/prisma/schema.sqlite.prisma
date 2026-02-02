@@ -1,0 +1,86 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String    @id @default(uuid())
+  email        String    @unique
+  passwordHash String    @map("password_hash")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+
+  timeEntries       TimeEntry[]
+  settings          UserSettings?
+  customProjectType CustomProjectType[]
+  sessions          Session[]
+
+  @@map("users")
+}
+
+model Session {
+  id           String   @id @default(uuid())
+  userId       String   @map("user_id")
+  refreshToken String   @unique @map("refresh_token")
+  userAgent    String?  @map("user_agent")
+  ipAddress    String?  @map("ip_address")
+  expiresAt    DateTime @map("expires_at")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("sessions")
+}
+
+model TimeEntry {
+  id          String   @id @default(uuid())
+  userId      String   @map("user_id")
+  projectType String   @map("project_type")
+  startTime   DateTime @map("start_time")
+  endTime     DateTime @map("end_time")
+  durationMs  Int      @map("duration_ms")
+  description String?
+  timeLimitMs Int?     @map("time_limit_ms")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, startTime])
+  @@map("time_entries")
+}
+
+model UserSettings {
+  id                  String   @id @default(uuid())
+  userId              String   @unique @map("user_id")
+  pomodoroWorkTime    Int      @default(25) @map("pomodoro_work_time")
+  pomodoroRestTime    Int      @default(5) @map("pomodoro_rest_time")
+  pomodoroLongRestTime Int     @default(15) @map("pomodoro_long_rest_time")
+  autoStart           Boolean  @default(false) @map("auto_start")
+  roundTimes          String   @default("off") @map("round_times")
+  language            String   @default("ru")
+  dataRetentionPeriod Int      @default(3) @map("data_retention_period")
+  createdAt           DateTime @default(now()) @map("created_at")
+  updatedAt           DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_settings")
+}
+
+model CustomProjectType {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  name      String
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, name])
+  @@map("custom_project_types")
+}
