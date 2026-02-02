@@ -22,7 +22,8 @@ export async function buildServer() {
   await app.register(cookie);
 
   await app.register(jwt, {
-    secret: process.env.JWT_SECRET || ""
+    secret: process.env.JWT_SECRET || "",
+    decode: { complete: false }
   });
 
   if (!process.env.JWT_SECRET) {

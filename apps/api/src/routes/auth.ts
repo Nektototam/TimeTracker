@@ -139,17 +139,31 @@ export async function authRoutes(app: FastifyInstance) {
     return reply.send({ accessToken });
   });
 
-  app.get("/me", { preHandler: app.authenticate }, async (request: FastifyRequest) => {
-    const userId = (request.user as any)?.sub as string | undefined;
-    if (!userId) {
-      return { user: null };
+  app.get("/me", async (request: FastifyRequest, reply: FastifyReply) => {
+    try {
+      await request.jwtVerify();
+      const payload = request.user as { sub: string; email: string } | undefined;
+      
+      request.log.info({ 
+        payload,
+        hasPayload: !!payload,
+        payloadKeys: payload ? Object.keys(payload) : []
+      }, "JWT verified in /auth/me");
+      
+      if (!payload?.sub) {
+        request.log.warn("No userId in JWT payload");
+        return { user: null };
+      }
+
+      const user = await prisma.user.findUnique({
+        where: { id: payload.sub },
+        select: { id: true, email: true }
+      });
+
+      return { user };
+    } catch (error) {
+      request.log.error(error, "JWT verification failed in /auth/me");
+      return reply.code(401).send({ error: "Unauthorized" });
     }
-
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-      select: { id: true, email: true }
-    });
-
-    return { user };
   });
 }
