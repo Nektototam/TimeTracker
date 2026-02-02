@@ -1,10 +1,12 @@
 import "dotenv/config";
 import { buildServer } from "./server";
+import { ensureBootstrapUser } from "./lib/bootstrap";
 
 const port = Number(process.env.PORT || 4000);
 
 const start = async () => {
   const app = await buildServer();
+  await ensureBootstrapUser(app.log);
   await app.listen({ port, host: "0.0.0.0" });
   app.log.info(`API listening on :${port}`);
 };

@@ -4,6 +4,9 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { api } from '../../lib/api';
 import { useAuth } from '../../contexts/AuthContext';
+import { Button } from '../../components/ui/Button';
+import { Input } from '../../components/ui/Input';
+import { Checkbox } from '../../components/ui/Checkbox';
 
 export default function Auth() {
   const [email, setEmail] = useState('');
@@ -54,19 +57,20 @@ export default function Auth() {
         <form onSubmit={handleAuth} className="auth-form">
           <div className="mb-4">
             <label className="auth-label">Email</label>
-            <input
+            <Input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="auth-input"
               required
               disabled={loading}
+              fullWidth
             />
           </div>
           
           <div className="mb-4">
             <label className="auth-label">Пароль</label>
-            <input
+            <Input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
@@ -74,6 +78,7 @@ export default function Auth() {
               required
               disabled={loading}
               minLength={6}
+              fullWidth
             />
           </div>
           
@@ -81,8 +86,7 @@ export default function Auth() {
             <div className="mb-6">
               <div className="flex items-center">
                 <label className="remember-me-container">
-                  <input
-                    type="checkbox"
+                  <Checkbox
                     checked={rememberMe}
                     onChange={(e) => setRememberMe(e.target.checked)}
                     disabled={loading}
@@ -93,35 +97,41 @@ export default function Auth() {
             </div>
           )}
           
-          <button 
-            type="submit" 
+          <Button
+            type="submit"
             disabled={loading}
-            className="w-full bg-primary text-white py-2 rounded-lg hover:bg-primary-dark transition-colors"
+            variant="primary"
+            fullWidth
+            className="py-2"
           >
             {loading ? 'Загрузка...' : (mode === 'signin' ? 'Войти' : 'Зарегистрироваться')}
-          </button>
+          </Button>
         </form>
         
         <div className="text-center mt-4">
           {mode === 'signin' ? (
             <p>
               Нет аккаунта?{' '}
-              <button 
+              <Button
+                type="button"
+                variant="link"
                 onClick={() => setMode('signup')}
-                className="text-primary hover:underline"
+                className="p-0 h-auto"
               >
                 Зарегистрироваться
-              </button>
+              </Button>
             </p>
           ) : (
             <p>
               Уже есть аккаунт?{' '}
-              <button 
+              <Button
+                type="button"
+                variant="link"
                 onClick={() => setMode('signin')}
-                className="text-primary hover:underline"
+                className="p-0 h-auto"
               >
                 Войти
-              </button>
+              </Button>
             </p>
           )}
         </div>

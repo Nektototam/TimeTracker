@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button } from './ui/Button';
+import { Input } from './ui/Input';
 
 interface TimeLimitFormProps {
   initialHours?: number;
@@ -41,35 +42,29 @@ export function TimeLimitForm({
       <div className="flex justify-around items-end mb-6 space-x-8">
         <div className="mr-6">
           <label className="block text-sm text-gray-600 mb-2">{t('timer.hours')}</label>
-          <input
+          <Input
             type="number"
             min="0"
             max="24"
             step="0.5"
             value={hours}
             onChange={(e) => setHours(parseFloat(e.target.value))}
-            className="w-20 min-h-[50px] py-3 px-4 bg-[#e9edf5] text-gray-700 text-base 
-              rounded-[16px] border-t border-l border-[#ffffff50] border-b-[#00000015] border-r-[#00000015]
-              shadow-[inset_3px_3px_6px_rgba(0,0,0,0.1),inset_-3px_-3px_6px_rgba(255,255,255,0.7)]
-              focus:outline-none focus:shadow-[inset_4px_4px_8px_rgba(0,0,0,0.15),inset_-4px_-4px_8px_rgba(255,255,255,0.8)]
-              transition-all"
+            className="w-20 min-h-[50px] text-base"
+            fullWidth={false}
           />
         </div>
         
         <div className="ml-6">
           <label className="block text-sm text-gray-600 mb-2">{t('timer.minutes')}</label>
-          <input
+          <Input
             type="number"
             min="0"
             max="45"
             step="15"
             value={minutes}
             onChange={(e) => setMinutes(parseInt(e.target.value))}
-            className="w-20 min-h-[50px] py-3 px-4 bg-[#e9edf5] text-gray-700 text-base 
-              rounded-[16px] border-t border-l border-[#ffffff50] border-b-[#00000015] border-r-[#00000015]
-              shadow-[inset_3px_3px_6px_rgba(0,0,0,0.1),inset_-3px_-3px_6px_rgba(255,255,255,0.7)]
-              focus:outline-none focus:shadow-[inset_4px_4px_8px_rgba(0,0,0,0.15),inset_-4px_-4px_8px_rgba(255,255,255,0.8)]
-              transition-all"
+            className="w-20 min-h-[50px] text-base"
+            fullWidth={false}
           />
         </div>
       </div>

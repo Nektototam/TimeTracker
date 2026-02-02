@@ -3,6 +3,7 @@ import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
 import { TimerProvider, useTimer } from '../../contexts/TimerContext';
+import { Button } from '../../components/ui/Button';
 
 // Устанавливаем увеличенный таймаут для всех тестов в файле
 jest.setTimeout(10000);
@@ -72,11 +73,19 @@ const TestComponent: React.FC = () => {
       <div data-testid="elapsed-time">{elapsedTime}</div>
       <div data-testid="timer-value">{timerValue}</div>
       <div data-testid="daily-total">{formatTime(dailyTotal)}</div>
-      <button data-testid="toggle-timer" onClick={() => toggleTimer('development')}>Toggle</button>
-      <button data-testid="finish-task" onClick={() => finishTask()}>Finish</button>
-      <button data-testid="switch-project" onClick={() => switchProject('new-project')}>Switch</button>
+      <Button data-testid="toggle-timer" onClick={() => toggleTimer('development')} variant="outline" size="sm">
+        Toggle
+      </Button>
+      <Button data-testid="finish-task" onClick={() => finishTask()} variant="outline" size="sm">
+        Finish
+      </Button>
+      <Button data-testid="switch-project" onClick={() => switchProject('new-project')} variant="outline" size="sm">
+        Switch
+      </Button>
       <div data-testid="format-time">{formatTime(3661000)}</div> {/* 1 час 1 минута 1 секунда */}
-      <button data-testid="set-time-limit" onClick={() => setTimeLimit(3600)}>Set Limit</button>
+      <Button data-testid="set-time-limit" onClick={() => setTimeLimit(3600)} variant="outline" size="sm">
+        Set Limit
+      </Button>
     </div>
   );
 };

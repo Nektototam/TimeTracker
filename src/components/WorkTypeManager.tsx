@@ -4,6 +4,7 @@ import { api } from '../lib/api';
 import { CustomProjectType } from '../types/supabase';
 import { useLanguage } from '../contexts/LanguageContext';
 import { Button } from './ui/Button';
+import { Input } from './ui/Input';
 
 interface WorkTypeManagerProps {
   userId: string;
@@ -122,12 +123,13 @@ export default function WorkTypeManager({ userId }: WorkTypeManagerProps) {
               <li key={type.id} className="type-item">
                 {editMode && editMode.id === type.id ? (
                   <form onSubmit={handleUpdateType} className="edit-form">
-                    <input
+                    <Input
                       type="text"
                       value={editMode.name}
                       onChange={(e) => setEditMode({ ...editMode, name: e.target.value })}
                       className="type-input"
                       autoFocus
+                      fullWidth
                     />
                     <div className="type-actions">
                       <Button 
@@ -181,12 +183,13 @@ export default function WorkTypeManager({ userId }: WorkTypeManagerProps) {
         )}
         
         <form onSubmit={handleAddType} className="add-type-form">
-          <input
+          <Input
             type="text"
             value={newTypeName}
             onChange={(e) => setNewTypeName(e.target.value)}
             placeholder={translate('addWorkType')}
             className="type-input"
+            fullWidth
           />
           <Button 
             variant="primary" 

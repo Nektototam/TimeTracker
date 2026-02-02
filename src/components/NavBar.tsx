@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
+import { Button } from './ui/Button';
 
 export default function NavBar() {
   const pathname = usePathname();
@@ -98,13 +99,15 @@ export default function NavBar() {
         <span className="nav-text">{t('nav.settings')}</span>
       </Link>
       
-      <button
+      <Button
         onClick={() => signOut()}
+        variant="ghost"
+        size="sm"
         className="nav-item logout"
       >
         <span className="nav-icon">{navIcons.logout}</span>
         <span className="nav-text">{t('nav.logout')}</span>
-      </button>
+      </Button>
     </nav>
   );
 } 

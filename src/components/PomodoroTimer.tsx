@@ -1,6 +1,7 @@
 import React from 'react';
 import { usePomodoro } from '../contexts/PomodoroContext';
 import { Button } from './ui/Button';
+import { Input } from './ui/Input';
 
 interface PomodoroTimerProps {
   // Пропы не используются, контекст предоставляет все необходимое
@@ -88,17 +89,14 @@ export default function PomodoroTimer({}: PomodoroTimerProps) {
           <label className="pomodoro-settings-label text-sm text-gray-600">
             Длительность работы (мин)
           </label>
-          <input
+          <Input
             type="number"
             min="1"
             max="60"
             value={workDuration}
             onChange={handleWorkDurationChange}
-            className="w-28 py-2.5 px-3 bg-[#e9edf5] text-gray-700 text-sm 
-              rounded-[14px] border-t border-l border-[#ffffff50] border-b-[#00000015] border-r-[#00000015]
-              shadow-[inset_3px_3px_6px_rgba(0,0,0,0.1),inset_-3px_-3px_6px_rgba(255,255,255,0.7)]
-              focus:outline-none focus:shadow-[inset_4px_4px_8px_rgba(0,0,0,0.15),inset_-4px_-4px_8px_rgba(255,255,255,0.8)]
-              transition-all disabled:opacity-60"
+            className="w-28 text-sm"
+            fullWidth={false}
             disabled={isRunning}
           />
         </div>
@@ -107,17 +105,14 @@ export default function PomodoroTimer({}: PomodoroTimerProps) {
           <label className="pomodoro-settings-label text-sm text-gray-600">
             Длительность отдыха (мин)
           </label>
-          <input
+          <Input
             type="number"
             min="1"
             max="30"
             value={restDuration}
             onChange={handleRestDurationChange}
-            className="w-28 py-2.5 px-3 bg-[#e9edf5] text-gray-700 text-sm 
-              rounded-[14px] border-t border-l border-[#ffffff50] border-b-[#00000015] border-r-[#00000015]
-              shadow-[inset_3px_3px_6px_rgba(0,0,0,0.1),inset_-3px_-3px_6px_rgba(255,255,255,0.7)]
-              focus:outline-none focus:shadow-[inset_4px_4px_8px_rgba(0,0,0,0.15),inset_-4px_-4px_8px_rgba(255,255,255,0.8)]
-              transition-all disabled:opacity-60"
+            className="w-28 text-sm"
+            fullWidth={false}
             disabled={isRunning}
           />
         </div>

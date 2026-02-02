@@ -2,6 +2,8 @@
 
 # dependencies
 /node_modules
+/apps/api/node_modules
+**/node_modules
 /.pnp
 .pnp.*
 .yarn/*
@@ -30,8 +32,11 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
-.env*
+# env files (keep examples)
+.env
+.env.*
+!.env.example
+!.env.*.example
 
 # vercel
 .vercel
@@ -39,3 +44,19 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# api build artifacts
+/apps/api/dist
+/apps/api/.tsbuildinfo
+/apps/api/src/generated/
+/apps/api/dev.db
+/apps/api/dev.db-journal
+/apps/api/dev.db-shm
+/apps/api/dev.db-wal
+
+# logs
+*.log
+
+# mac/linux
+.DS_Store
+Thumbs.db

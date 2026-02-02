@@ -2,6 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
+import { Button } from '../../components/ui/Button';
 
 export default function TestButtonsSimple() {
   return (
@@ -15,21 +16,21 @@ export default function TestButtonsSimple() {
         
         <div className="flex flex-col gap-10 items-center">
           <div className="flex flex-wrap gap-6 justify-center items-end">
-            <button className="min-h-8 min-w-[80px] px-3 py-1.5 text-xs bg-blue-500 text-white rounded-lg">
+            <Button variant="primary" size="sm" className="min-h-8 min-w-[80px] text-xs">
               Текст XS
-            </button>
+            </Button>
             
-            <button className="min-h-10 min-w-[100px] px-4 py-2 text-sm bg-blue-500 text-white rounded-lg">
+            <Button variant="primary" size="md" className="min-h-10 min-w-[100px] text-sm">
               Текст SM
-            </button>
+            </Button>
             
-            <button className="min-h-12 min-w-[130px] px-6 py-3 text-base bg-blue-500 text-white rounded-lg">
+            <Button variant="primary" size="lg" className="min-h-12 min-w-[130px] text-base">
               Текст BASE
-            </button>
+            </Button>
             
-            <button className="min-h-14 min-w-[160px] px-8 py-4 text-lg font-semibold bg-blue-500 text-white rounded-lg">
+            <Button variant="primary" size="xl" className="min-h-14 min-w-[160px] text-lg font-semibold">
               Текст LG
-            </button>
+            </Button>
           </div>
           
           <p className="text-center text-gray-500 text-base">

@@ -8,6 +8,9 @@ import WorkTypeManager from '../../components/WorkTypeManager';
 import LanguageSwitcher from '../../components/LanguageSwitcher';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { Button } from '../../components/ui/Button';
+import { Input } from '../../components/ui/Input';
+import { Select } from '../../components/ui/Select';
+import { Checkbox } from '../../components/ui/Checkbox';
 import settingsService from '../../lib/settingsService';
 
 interface Settings {
@@ -211,8 +214,7 @@ function SettingsPage() {
           <div className="settings-item">
             <div className="settings-item-label">{translate('sound')}</div>
             <label className="toggle-switch">
-              <input 
-                type="checkbox" 
+              <Checkbox
                 checked={settings.soundNotifications}
                 onChange={(e) => updateSettings('soundNotifications', e.target.checked)}
                 disabled={isLoading}
@@ -224,8 +226,7 @@ function SettingsPage() {
           <div className="settings-item">
             <div className="settings-item-label">{translate('browser')}</div>
             <label className="toggle-switch">
-              <input 
-                type="checkbox" 
+              <Checkbox
                 checked={settings.browserNotifications}
                 onChange={(e) => {
                   if (e.target.checked && Notification.permission !== "granted") {
@@ -247,7 +248,7 @@ function SettingsPage() {
           
           <div className="settings-item">
             <div className="settings-item-label">{t('pomodoro.workDuration')}</div>
-            <input
+            <Input
               type="number"
               className="settings-input"
               min="1"
@@ -255,12 +256,13 @@ function SettingsPage() {
               value={settings.pomodoro_work_time}
               onChange={(e) => updateSettings('pomodoro_work_time', Number(e.target.value))}
               disabled={isLoading}
+              fullWidth={false}
             />
           </div>
           
           <div className="settings-item">
             <div className="settings-item-label">{t('pomodoro.restDuration')}</div>
-            <input
+            <Input
               type="number"
               className="settings-input"
               min="1"
@@ -268,12 +270,13 @@ function SettingsPage() {
               value={settings.pomodoro_rest_time}
               onChange={(e) => updateSettings('pomodoro_rest_time', Number(e.target.value))}
               disabled={isLoading}
+              fullWidth={false}
             />
           </div>
           
           <div className="settings-item">
             <div className="settings-item-label">{t('pomodoro.longRestDuration')}</div>
-            <input
+            <Input
               type="number"
               className="settings-input"
               min="5"
@@ -281,14 +284,14 @@ function SettingsPage() {
               value={settings.pomodoro_long_rest_time}
               onChange={(e) => updateSettings('pomodoro_long_rest_time', Number(e.target.value))}
               disabled={isLoading}
+              fullWidth={false}
             />
           </div>
           
           <div className="settings-item">
             <div className="settings-item-label">{t('pomodoro.autoStart')}</div>
             <label className="toggle-switch">
-              <input 
-                type="checkbox"
+              <Checkbox
                 checked={settings.auto_start}
                 onChange={(e) => updateSettings('auto_start', e.target.checked)}
                 disabled={isLoading}
@@ -304,7 +307,7 @@ function SettingsPage() {
           <div className="settings-item">
             <div className="settings-item-label">{translate('theme')}</div>
             <div className="settings-item-desc">{translate('deviceOnly')}</div>
-            <select 
+            <Select 
               className="settings-select"
               value={settings.theme}
               onChange={(e) => updateSettings('theme', e.target.value)}
@@ -313,7 +316,7 @@ function SettingsPage() {
               <option value="light">{t('themes.light')}</option>
               <option value="dark">{t('themes.dark')}</option>
               <option value="system">{t('themes.system')}</option>
-            </select>
+            </Select>
           </div>
           
           <div className="settings-item">
@@ -325,7 +328,7 @@ function SettingsPage() {
           <div className="settings-item">
             <div className="settings-item-label">{translate('timeFormat')}</div>
             <div className="settings-item-desc">{translate('deviceOnly')}</div>
-            <select 
+            <Select 
               className="settings-select"
               value={settings.timeFormat}
               onChange={(e) => updateSettings('timeFormat', e.target.value)}
@@ -333,7 +336,7 @@ function SettingsPage() {
             >
               <option value="24h">24 часа (14:30)</option>
               <option value="12h">12 часов (2:30 PM)</option>
-            </select>
+            </Select>
           </div>
         </div>
         
@@ -343,7 +346,7 @@ function SettingsPage() {
           
           <div className="settings-item">
             <div className="settings-item-label">{translate('roundTime')}</div>
-            <select 
+            <Select 
               className="settings-select"
               value={settings.round_times}
               onChange={(e) => updateSettings('round_times', e.target.value)}
@@ -353,7 +356,7 @@ function SettingsPage() {
               <option value="5min">До 5 минут</option>
               <option value="10min">До 10 минут</option>
               <option value="15min">До 15 минут</option>
-            </select>
+            </Select>
           </div>
         </div>
         
@@ -363,7 +366,7 @@ function SettingsPage() {
           
           <div className="settings-item">
             <div className="settings-item-label">{translate('retentionPeriod')}</div>
-            <select
+            <Select
               className="settings-select"
               value={settings.data_retention_period}
               onChange={(e) => updateSettings('data_retention_period', Number(e.target.value))}
@@ -373,7 +376,7 @@ function SettingsPage() {
               <option value={3}>{t('settings.retention.90days')}</option>
               <option value={6}>{t('settings.retention.180days')}</option>
               <option value={12}>{t('settings.retention.365days')}</option>
-            </select>
+            </Select>
           </div>
           
           <div className="settings-item">

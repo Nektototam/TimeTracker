@@ -5,6 +5,7 @@ import { useLanguage } from '../contexts/LanguageContext';
 import { useTranslation } from 'react-i18next';
 import { languages } from '../../i18n';
 import { Button } from './ui/Button';
+import { Select } from './ui/Select';
 
 interface LanguageSwitcherProps {
   variant?: 'buttons' | 'select';
@@ -45,7 +46,7 @@ const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
 
   // Селект для переключения языка
   return (
-    <select
+    <Select
       className={`language-switcher-select ${className}`}
       value={currentLanguage}
       onChange={(e) => handleLanguageChange(e.target.value)}
@@ -56,7 +57,7 @@ const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
           {t(`languages.${lang}`)}
         </option>
       ))}
-    </select>
+    </Select>
   );
 };
 

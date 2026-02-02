@@ -4,6 +4,7 @@ version: '3'
 
 vars:
   GREETING: Hello, world!
+  API_DIR: apps/api
 
 tasks:
   default:
@@ -11,3 +12,33 @@ tasks:
     cmds:
       - echo "{{.GREETING}}"
     silent: true
+
+  install:
+    desc: Install frontend and API dependencies
+    cmds:
+      - npm install --legacy-peer-deps
+      - npm --prefix {{.API_DIR}} install --legacy-peer-deps
+
+  prisma:
+    desc: Generate Prisma client and run migrations (dev)
+    cmds:
+      - npm --prefix {{.API_DIR}} run prisma:generate
+      - npm --prefix {{.API_DIR}} run prisma:migrate
+
+  api:dev:
+    desc: Start API in dev mode
+    cmds:
+      - npm --prefix {{.API_DIR}} run dev
+
+  web:dev:
+    desc: Start Next.js dev server
+    cmds:
+      - npm run dev
+
+  start:
+    desc: Install, migrate, and run API + web (dev)
+    deps: [install, prisma]
+    cmds:
+      - task: api:dev
+      - task: web:dev
+    parallel: true

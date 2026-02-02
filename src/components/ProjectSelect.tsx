@@ -4,6 +4,8 @@ import { useAuth } from '../contexts/AuthContext';
 import { useTimer } from '../contexts/TimerContext';
 import { useTranslation } from 'react-i18next';
 import { Button } from './ui/Button';
+import { Input } from './ui/Input';
+import { Select } from './ui/Select';
 import { TimeLimitForm } from './TimeLimitForm';
 
 interface ProjectOption {
@@ -242,15 +244,11 @@ export default function ProjectSelect({ value, onChange }: ProjectSelectProps) {
       {isAddingNewType ? (
         <form onSubmit={handleNewTypeSubmit} className="new-type-form">
           <div className="flex gap-3">
-            <input
+            <Input
               type="text"
               value={newTypeValue}
               onChange={handleNewTypeChange}
-              className="flex-1 py-2.5 px-4 bg-[#e9edf5] text-gray-700 text-base 
-                rounded-[14px] border-t border-l border-[#ffffff50] border-b-[#00000015] border-r-[#00000015]
-                shadow-[inset_3px_3px_6px_rgba(0,0,0,0.1),inset_-3px_-3px_6px_rgba(255,255,255,0.7)]
-                focus:outline-none focus:shadow-[inset_4px_4px_8px_rgba(0,0,0,0.15),inset_-4px_-4px_8px_rgba(255,255,255,0.8)]
-                transition-all min-h-[44px]"
+              className="flex-1 min-h-[44px] text-base"
               placeholder={t('timer.timeLimit.enterValue')}
               autoFocus
             />
@@ -287,26 +285,18 @@ export default function ProjectSelect({ value, onChange }: ProjectSelectProps) {
           onCancel={handleTimeLimitCancel}
         />
       ) : (
-        <select
-          className="select-input w-full py-2.5 px-4 bg-[#e9edf5] text-gray-700 text-base 
-            rounded-[14px] border-t border-l border-[#ffffff50] border-b-[#00000015] border-r-[#00000015]
-            shadow-[inset_3px_3px_6px_rgba(0,0,0,0.1),inset_-3px_-3px_6px_rgba(255,255,255,0.7)]
-            focus:outline-none focus:shadow-[inset_4px_4px_8px_rgba(0,0,0,0.15),inset_-4px_-4px_8px_rgba(255,255,255,0.8)]
-            transition-all disabled:opacity-60 appearance-none pr-10 min-h-[44px]"
+        <Select
+          className="select-input w-full py-2.5 px-4 text-base min-h-[44px]"
           value={value}
           onChange={handleChange}
           disabled={isLoading}
-          style={{ backgroundImage: "url(\"data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e\")", 
-                   backgroundPosition: "right 0.5rem center", 
-                   backgroundRepeat: "no-repeat", 
-                   backgroundSize: "1.5em 1.5em" }}
         >
           {allOptions.map((option) => (
             <option key={option.value} value={option.value}>
               {option.label}
             </option>
           ))}
-        </select>
+        </Select>
       )}
     </div>
   );

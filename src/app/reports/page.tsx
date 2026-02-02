@@ -8,6 +8,7 @@ import DailyTimelineView from '../../components/DailyTimelineView';
 import { reportService, ReportData, ProjectSummary, PeriodType } from '../../lib/reportService';
 import { useAuth } from '../../contexts/AuthContext';
 import { Button } from '../../components/ui/Button';
+import { Select } from '../../components/ui/Select';
 
 // Вспомогательные функции для форматирования времени
 const formatTime = (milliseconds: number): string => {
@@ -201,16 +202,16 @@ function ReportsPage() {
             <div className="period-selector">
               <div className="flex flex-col items-center gap-4 w-full">
                 <div className="w-full max-w-[180px]">
-                  <select
+                  <Select
                     value={periodType}
                     onChange={(e) => setPeriodType(e.target.value as PeriodType)}
-                    className="w-full px-4 py-2 text-center rounded-full bg-[#e9edf5] text-gray-700 border-t border-l border-[#ffffff50] border-b-[#00000015] border-r-[#00000015] shadow-[inset_3px_3px_6px_rgba(0,0,0,0.1),inset_-3px_-3px_6px_rgba(255,255,255,0.7)] focus:outline-none focus:shadow-[inset_4px_4px_8px_rgba(0,0,0,0.15),inset_-4px_-4px_8px_rgba(255,255,255,0.8)]"
+                    className="w-full px-4 py-2 text-center rounded-full"
                   >
                     <option value="week">Неделя</option>
                     <option value="month">Месяц</option>
                     <option value="quarter">Квартал</option>
                     <option value="custom">Произвольный</option>
-                  </select>
+                  </Select>
                 </div>
                 
                 <div className="period-range text-center font-medium text-secondary-text-color">
