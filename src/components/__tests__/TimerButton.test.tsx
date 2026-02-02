@@ -41,15 +41,8 @@ describe('TimerButton', () => {
     expect(mockOnClick).toHaveBeenCalledTimes(1);
   });
   
-  // Test 12: Testing button rendering with extremely long text
+  // Test 12: Testing button rendering with long text
   test('handles long text content gracefully', () => {
-    // Override the mock for this test only
-    jest.mock('react-i18next', () => ({
-      useTranslation: () => ({
-        t: () => 'This is an extremely long button text that should still be displayed correctly in the component layout'
-      })
-    }));
-    
     const mockOnClick = jest.fn();
     
     render(

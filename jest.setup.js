@@ -53,63 +53,42 @@ jest.mock('react-i18next', () => ({
 window.HTMLMediaElement.prototype.play = jest.fn();
 window.HTMLMediaElement.prototype.pause = jest.fn();
 
-// Мок для Supabase
-jest.mock('@supabase/supabase-js', () => ({
-  createClient: jest.fn(() => ({
+// Мок для API клиента
+jest.mock('./src/lib/api', () => ({
+  api: {
     auth: {
-      getSession: jest.fn().mockResolvedValue({ 
-        data: { session: null }, 
-        error: null 
-      }),
-      getUser: jest.fn().mockResolvedValue({
-        data: { user: null },
-        error: null
-      }),
-      signOut: jest.fn().mockResolvedValue({ error: null }),
-      signInWithPassword: jest.fn().mockResolvedValue({
-        data: { session: {}, user: {} },
-        error: null
-      }),
+      me: jest.fn().mockResolvedValue({ user: null }),
+      login: jest.fn().mockResolvedValue({ accessToken: 'mock-token', user: {} }),
+      logout: jest.fn().mockResolvedValue({}),
     },
-    from: jest.fn().mockReturnValue({
-      select: jest.fn().mockReturnThis(),
-      insert: jest.fn().mockReturnThis(),
-      upsert: jest.fn().mockReturnThis(),
-      update: jest.fn().mockReturnThis(),
-      delete: jest.fn().mockReturnThis(),
-      eq: jest.fn().mockReturnThis(),
-      order: jest.fn().mockReturnThis(),
-      limit: jest.fn().mockReturnThis(),
-      maybeSingle: jest.fn().mockReturnThis(),
-      single: jest.fn().mockReturnThis(),
-      then: jest.fn().mockImplementation(callback => Promise.resolve(callback({ data: [], error: null }))),
-    }),
-  })),
-}));
-
-// Непосредственный мок для lib/supabase.ts
-jest.mock('./src/lib/supabase', () => ({
-  supabase: {
-    auth: {
-      getSession: jest.fn().mockResolvedValue({ 
-        data: { session: null }, 
-        error: null 
-      }),
-      getUser: jest.fn().mockResolvedValue({
-        data: { user: null },
-        error: null
-      }),
+    timeEntries: {
+      getToday: jest.fn().mockResolvedValue({ items: [] }),
+      getAll: jest.fn().mockResolvedValue({ items: [] }),
+      create: jest.fn().mockResolvedValue({ id: 'mock-id' }),
+      update: jest.fn().mockResolvedValue({}),
+      delete: jest.fn().mockResolvedValue({}),
     },
-    from: jest.fn().mockReturnValue({
-      select: jest.fn().mockReturnThis(),
-      insert: jest.fn().mockReturnThis(),
-      upsert: jest.fn().mockReturnThis(),
-      update: jest.fn().mockReturnThis(),
-      delete: jest.fn().mockReturnThis(),
-      eq: jest.fn().mockReturnThis(),
-      order: jest.fn().mockReturnThis(),
-      limit: jest.fn().mockReturnThis(),
-      then: jest.fn().mockImplementation(callback => Promise.resolve(callback({ data: [], error: null }))),
-    }),
-  }
+    settings: {
+      get: jest.fn().mockResolvedValue({
+        pomodoroWorkTime: 25,
+        pomodoroRestTime: 5,
+        pomodoroLongRestTime: 15,
+        autoStart: false,
+        roundTimes: 'off',
+        language: 'ru',
+        dataRetentionPeriod: 3,
+      }),
+      update: jest.fn().mockResolvedValue({}),
+    },
+    projectTypes: {
+      getAll: jest.fn().mockResolvedValue({ items: [] }),
+      create: jest.fn().mockResolvedValue({ id: 'mock-id' }),
+      delete: jest.fn().mockResolvedValue({}),
+    },
+  },
+  authToken: {
+    get: jest.fn().mockReturnValue(null),
+    set: jest.fn(),
+    clear: jest.fn(),
+  },
 }));
