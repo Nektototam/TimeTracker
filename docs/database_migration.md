@@ -6,7 +6,7 @@
 
 ## Как применить миграцию
 
-1. Зайдите в панель управления Supabase: https://app.supabase.io/
+1. Зайдите в панель управления Supabase: <https://app.supabase.io/>
 2. Выберите ваш проект
 3. Перейдите в раздел "SQL Editor" (SQL редактор)
 4. Создайте новый запрос
@@ -42,4 +42,4 @@ WHERE table_name = 'user_settings'
 AND column_name = 'data_retention_period';
 ```
 
-Должен вернуться один результат с типом `integer`. 
+Должен вернуться один результат с типом `integer`.

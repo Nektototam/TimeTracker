@@ -11,19 +11,19 @@
 ## 1) Архитектура и репозиторий
 
 - [ ] Перевести проект в монорепо:
-	- apps/web (Next.js)
-	- apps/api (Fastify)
-	- packages/shared (общие типы/DTO)
+  - apps/web (Next.js)
+  - apps/api (Fastify)
+  - packages/shared (общие типы/DTO)
 - [ ] Зафиксировать API-контракт (REST) между web и api.
 
 ## 2) База данных (Railway Postgres)
 
 - [ ] Схема данных (минимум):
-	- users
-	- sessions (или refresh_tokens)
-	- time_entries
-	- user_settings
-	- custom_project_types
+  - users
+  - sessions (или refresh_tokens)
+  - time_entries
+  - user_settings
+  - custom_project_types
 - [ ] Миграции через Prisma Migrate.
 - [ ] Индексы и ограничения целостности.
 
