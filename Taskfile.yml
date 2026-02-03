@@ -3,42 +3,307 @@
 version: '3'
 
 vars:
-  GREETING: Hello, world!
   API_DIR: apps/api
+  NODE_ENV: development
+
+env:
+  NODE_ENV: '{{.NODE_ENV}}'
 
 tasks:
+  # ============================================================================
+  # DEFAULT
+  # ============================================================================
   default:
-    desc: Print a greeting message
+    desc: Show available tasks
     cmds:
-      - echo "{{.GREETING}}"
+      - task --list
     silent: true
 
+  # ============================================================================
+  # INSTALLATION
+  # ============================================================================
   install:
-    desc: Install frontend and API dependencies
+    desc: Install all dependencies (frontend + API)
     cmds:
       - npm install --legacy-peer-deps
       - npm --prefix {{.API_DIR}} install --legacy-peer-deps
 
-  prisma:
-    desc: Generate Prisma client and run migrations (dev)
+  install:web:
+    desc: Install frontend dependencies only
     cmds:
-      - npm --prefix {{.API_DIR}} run prisma:generate
-      - npm --prefix {{.API_DIR}} run prisma:migrate
+      - npm install --legacy-peer-deps
 
-  api:dev:
-    desc: Start API in dev mode
+  install:api:
+    desc: Install API dependencies only
     cmds:
-      - npm --prefix {{.API_DIR}} run dev
+      - npm --prefix {{.API_DIR}} install --legacy-peer-deps
 
-  web:dev:
-    desc: Start Next.js dev server
+  # ============================================================================
+  # DEVELOPMENT
+  # ============================================================================
+  dev:
+    desc: Start both frontend and API in dev mode
+    deps: [prisma:generate]
+    cmds:
+      - task: dev:api
+      - task: dev:web
+    parallel: true
+
+  dev:web:
+    desc: Start Next.js dev server with Turbopack
     cmds:
       - npm run dev
 
-  start:
-    desc: Install, migrate, and run API + web (dev)
-    deps: [install, prisma]
+  dev:api:
+    desc: Start API in dev mode (tsx watch)
+    dir: '{{.API_DIR}}'
     cmds:
-      - task: api:dev
-      - task: web:dev
+      - npm run dev
+
+  # ============================================================================
+  # BUILD
+  # ============================================================================
+  build:
+    desc: Build both frontend and API for production
+    cmds:
+      - task: build:api
+      - task: build:web
+
+  build:web:
+    desc: Build Next.js for production
+    cmds:
+      - npm run build
+
+  build:api:
+    desc: Build API (TypeScript compile)
+    dir: '{{.API_DIR}}'
+    cmds:
+      - npm run build
+
+  # ============================================================================
+  # START (PRODUCTION)
+  # ============================================================================
+  start:
+    desc: Start both frontend and API in production mode
+    cmds:
+      - task: start:api
+      - task: start:web
     parallel: true
+
+  start:web:
+    desc: Start Next.js production server
+    cmds:
+      - npm run start
+
+  start:api:
+    desc: Start API production server
+    dir: '{{.API_DIR}}'
+    cmds:
+      - npm run start
+
+  # ============================================================================
+  # TESTING
+  # ============================================================================
+  test:
+    desc: Run all tests
+    cmds:
+      - npm run test
+
+  test:watch:
+    desc: Run tests in watch mode
+    cmds:
+      - npm run test -- --watch
+
+  test:coverage:
+    desc: Run tests with coverage report
+    cmds:
+      - npm run test -- --coverage
+
+  test:ci:
+    desc: Run tests for CI (no watch, with coverage)
+    cmds:
+      - npm run test -- --ci --coverage --watchAll=false
+
+  # ============================================================================
+  # LINTING & FORMATTING
+  # ============================================================================
+  lint:
+    desc: Run ESLint on all files
+    cmds:
+      - npm run lint
+
+  lint:fix:
+    desc: Run ESLint with auto-fix
+    cmds:
+      - npm run lint -- --fix
+
+  # ============================================================================
+  # TYPE CHECKING
+  # ============================================================================
+  typecheck:
+    desc: Run TypeScript type check (frontend + API)
+    cmds:
+      - task: typecheck:web
+      - task: typecheck:api
+
+  typecheck:web:
+    desc: TypeScript check for frontend
+    cmds:
+      - npx tsc --noEmit
+
+  typecheck:api:
+    desc: TypeScript check for API
+    dir: '{{.API_DIR}}'
+    cmds:
+      - npx tsc --noEmit
+
+  # ============================================================================
+  # PRISMA (DATABASE)
+  # ============================================================================
+  prisma:generate:
+    desc: Generate Prisma client
+    dir: '{{.API_DIR}}'
+    cmds:
+      - npx prisma generate
+    sources:
+      - prisma/schema.prisma
+    generates:
+      - node_modules/.prisma/client/**/*
+
+  prisma:migrate:
+    desc: Run Prisma migrations (dev)
+    dir: '{{.API_DIR}}'
+    cmds:
+      - npx prisma migrate dev
+
+  prisma:migrate:deploy:
+    desc: Deploy Prisma migrations (production)
+    dir: '{{.API_DIR}}'
+    cmds:
+      - npx prisma migrate deploy
+
+  prisma:studio:
+    desc: Open Prisma Studio (database GUI)
+    dir: '{{.API_DIR}}'
+    cmds:
+      - npx prisma studio
+
+  prisma:reset:
+    desc: Reset database and apply all migrations
+    dir: '{{.API_DIR}}'
+    cmds:
+      - npx prisma migrate reset --force
+
+  prisma:seed:
+    desc: Seed the database
+    dir: '{{.API_DIR}}'
+    cmds:
+      - npx prisma db seed
+
+  prisma:push:
+    desc: Push schema changes without migrations (dev only)
+    dir: '{{.API_DIR}}'
+    cmds:
+      - npx prisma db push
+
+  # ============================================================================
+  # DATABASE
+  # ============================================================================
+  db:setup:
+    desc: Full database setup (generate + migrate)
+    cmds:
+      - task: prisma:generate
+      - task: prisma:migrate
+
+  db:reset:
+    desc: Reset and reseed database
+    cmds:
+      - task: prisma:reset
+      - task: prisma:seed
+
+  # ============================================================================
+  # CLEAN
+  # ============================================================================
+  clean:
+    desc: Remove all build artifacts and caches
+    cmds:
+      - rm -rf .next
+      - rm -rf {{.API_DIR}}/dist
+      - rm -rf coverage
+      - rm -rf .turbo
+
+  clean:deps:
+    desc: Remove node_modules
+    cmds:
+      - rm -rf node_modules
+      - rm -rf {{.API_DIR}}/node_modules
+
+  clean:all:
+    desc: Remove everything (deps + builds + caches)
+    cmds:
+      - task: clean
+      - task: clean:deps
+
+  # ============================================================================
+  # CI / VALIDATION
+  # ============================================================================
+  check:
+    desc: Run all checks (typecheck + lint + test)
+    cmds:
+      - task: typecheck
+      - task: lint
+      - task: test
+
+  ci:
+    desc: Full CI pipeline
+    cmds:
+      - task: install
+      - task: prisma:generate
+      - task: typecheck
+      - task: lint
+      - task: test:ci
+      - task: build
+
+  precommit:
+    desc: Pre-commit checks (lint:fix + typecheck + test)
+    cmds:
+      - task: lint:fix
+      - task: typecheck
+      - task: test
+
+  # ============================================================================
+  # SETUP
+  # ============================================================================
+  setup:
+    desc: Initial project setup
+    cmds:
+      - task: install
+      - task: prisma:generate
+      - task: prisma:migrate
+      - echo "Setup complete! Run 'task dev' to start development"
+
+  setup:env:
+    desc: Copy example env files
+    cmds:
+      - cp -n {{.API_DIR}}/.env.example {{.API_DIR}}/.env || true
+      - echo "Environment files created. Please update with your values."
+
+  # ============================================================================
+  # UTILITIES
+  # ============================================================================
+  outdated:
+    desc: Check for outdated dependencies
+    cmds:
+      - npm outdated || true
+      - npm --prefix {{.API_DIR}} outdated || true
+
+  update:
+    desc: Update all dependencies
+    cmds:
+      - npm update
+      - npm --prefix {{.API_DIR}} update
+
+  logs:api:
+    desc: Show API logs (if using pm2 or similar)
+    cmds:
+      - tail -f {{.API_DIR}}/logs/*.log 2>/dev/null || echo "No log files found"
