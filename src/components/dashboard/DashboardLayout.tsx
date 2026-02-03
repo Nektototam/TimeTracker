@@ -34,25 +34,19 @@ export function DashboardLayout() {
 
   return (
     <>
-      <div
-        className="grid gap-5"
-        style={{
-          gridAutoRows: 'minmax(180px, auto)',
-          gridTemplateColumns: 'repeat(3, minmax(0, 1fr))'
-        }}
-      >
+      <div className="grid gap-6 lg:auto-rows-[180px] lg:grid-cols-3">
         {/* Timer Widget - Hero (2x2) */}
-        <div style={{ gridColumn: 'span 2 / span 2', gridRow: 'span 2 / span 2' }}>
+        <div className="lg:col-span-2 lg:row-span-2">
           <TimerWidget />
         </div>
 
         {/* Today Stats (1x2) */}
-        <div style={{ gridRow: 'span 2 / span 2' }}>
+        <div className="lg:row-span-2">
           <TodayStatsWidget />
         </div>
 
         {/* Week Activity Chart (3x1) */}
-        <div style={{ gridColumn: 'span 3 / span 3' }}>
+        <div className="lg:col-span-3">
           <WeekChartWidget />
         </div>
 
