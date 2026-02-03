@@ -5,7 +5,8 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '../../contexts/AuthContext';
 import { DashboardLayout } from '../../components/dashboard/DashboardLayout';
 import NavBar from '../../components/NavBar';
-import { Card, CardContent } from '../../components/ui/Card';
+import { Button } from '../../components/ui/Button';
+import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/Card';
 
 export default function DashboardPage() {
   const { user, isLoading } = useAuth();
@@ -30,34 +31,67 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-app pb-24 lg:pb-12">
-      <div className="mx-auto flex max-w-7xl flex-col gap-6 px-4 py-6 sm:px-6 lg:px-8">
-        <header className="flex flex-col gap-4 rounded-2xl border bg-white p-4 shadow-app-sm md:flex-row md:items-center md:justify-between">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">Dashboard</p>
-            <h1 className="text-3xl font-semibold tracking-tight text-foreground">TimeTracker</h1>
-            <p className="text-sm text-muted-foreground">Welcome back, {user.email}</p>
+    <div className="min-h-screen bg-gradient-to-b from-background via-background to-muted/30 pb-24">
+      <header className="sticky top-0 z-40 border-b bg-background/90 backdrop-blur">
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:px-8">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-lg">⏱️</div>
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">TimeTracker</p>
+              <h1 className="text-lg font-semibold text-foreground">Dashboard</h1>
+            </div>
           </div>
-          <Card className="w-full md:w-auto">
-            <CardContent className="flex items-center gap-3 px-4 py-3">
-              <span className="text-lg">⚡</span>
-              <div>
-                <div className="text-sm font-semibold text-foreground">Today focus</div>
-                <div className="text-xs text-muted-foreground">Plan, track, and finish the session</div>
-              </div>
+
+          <div className="hidden flex-1 items-center justify-center md:flex">
+            <div className="relative w-full max-w-md">
+              <input
+                type="search"
+                placeholder="Search projects"
+                className="h-10 w-full rounded-xl border border-border bg-card px-4 text-sm text-foreground shadow-app-sm outline-none transition focus-visible:ring-2 focus-visible:ring-ring"
+              />
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" className="hidden md:inline-flex">
+              New entry
+            </Button>
+            <Button variant="primary" size="sm">
+              Start timer
+            </Button>
+          </div>
+        </div>
+      </header>
+
+      <div className="mx-auto flex max-w-7xl gap-6 px-4 py-6 sm:px-6 lg:px-8">
+        <aside className="hidden w-64 flex-col gap-4 lg:flex">
+          <NavBar variant="sidebar" />
+          <Card>
+            <CardHeader>
+              <CardTitle>Today focus</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2 text-sm text-muted-foreground">
+              <p>Welcome back, {user.email}</p>
+              <p>Plan your sessions and keep momentum.</p>
             </CardContent>
           </Card>
-        </header>
+        </aside>
 
-        <div className="grid gap-6 lg:grid-cols-[240px_1fr]">
-          <aside className="hidden lg:block">
-            <NavBar variant="sidebar" />
-          </aside>
+        <main className="flex-1 space-y-6">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <h2 className="text-2xl font-semibold text-foreground">Overview</h2>
+              <p className="text-sm text-muted-foreground">Track your time with a modern workflow.</p>
+            </div>
+            <div className="flex items-center gap-2 md:hidden">
+              <Button variant="outline" size="sm">
+                New entry
+              </Button>
+            </div>
+          </div>
 
-          <main className="space-y-6">
-            <DashboardLayout />
-          </main>
-        </div>
+          <DashboardLayout />
+        </main>
       </div>
 
       <NavBar className="lg:hidden" />

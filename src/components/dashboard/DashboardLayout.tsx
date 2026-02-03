@@ -35,39 +35,37 @@ export function DashboardLayout() {
   return (
     <>
       <div
-        className="grid gap-6"
+        className="grid gap-5 md:grid-cols-2 xl:grid-cols-3"
         style={{ gridAutoRows: 'minmax(180px, auto)' }}
       >
-        <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
-          {/* Timer Widget - Hero (2x2) */}
-          <div className="md:col-span-2 xl:col-span-2 xl:row-span-2">
-            <TimerWidget />
-          </div>
+        {/* Timer Widget - Hero (2x2) */}
+        <div className="md:col-span-2 xl:row-span-2">
+          <TimerWidget />
+        </div>
 
-          {/* Today Stats (1x2) */}
-          <div className="xl:row-span-2">
-            <TodayStatsWidget />
-          </div>
+        {/* Today Stats (1x2) */}
+        <div className="xl:row-span-2">
+          <TodayStatsWidget />
+        </div>
 
-          {/* Week Activity Chart (3x1) */}
-          <div className="md:col-span-2 xl:col-span-3">
-            <WeekChartWidget />
-          </div>
+        {/* Week Activity Chart (3x1) */}
+        <div className="md:col-span-2 xl:col-span-3">
+          <WeekChartWidget />
+        </div>
 
-          {/* Project Distribution (1x1) */}
-          <div>
-            <ProjectDistributionWidget />
-          </div>
+        {/* Project Distribution (1x1) */}
+        <div>
+          <ProjectDistributionWidget />
+        </div>
 
-          {/* Pomodoro (1x1) */}
-          <div>
-            <PomodoroWidget />
-          </div>
+        {/* Pomodoro (1x1) */}
+        <div>
+          <PomodoroWidget />
+        </div>
 
-          {/* Quick Actions (1x1) */}
-          <div>
-            <QuickActionsWidget onOpenCommandPalette={openCommandPalette} />
-          </div>
+        {/* Quick Actions (1x1) */}
+        <div>
+          <QuickActionsWidget onOpenCommandPalette={openCommandPalette} />
         </div>
       </div>
 
