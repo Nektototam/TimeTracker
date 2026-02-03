@@ -74,6 +74,12 @@ tasks:
     cmds:
       - npm run build
 
+  build:web:clean:
+    desc: Clean .next cache and rebuild
+    cmds:
+      - rm -rf .next
+      - npm run build
+
   build:api:
     desc: Build API (TypeScript compile)
     dir: '{{.API_DIR}}'
