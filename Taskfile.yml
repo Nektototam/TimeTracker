@@ -70,12 +70,7 @@ tasks:
       - task: build:web
 
   build:web:
-    desc: Build Next.js for production
-    cmds:
-      - npm run build
-
-  build:web:clean:
-    desc: Clean .next cache and rebuild
+    desc: Build Next.js for production (cleans cache first)
     cmds:
       - rm -rf .next
       - npm run build
