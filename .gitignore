@@ -63,3 +63,4 @@ next-env.d.ts
 # mac/linux
 .DS_Store
 Thumbs.db
+.task/

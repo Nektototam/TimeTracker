@@ -70,9 +70,9 @@ tasks:
       - task: build:web
 
   build:web:
-    desc: Build Next.js for production (cleans cache first)
+    desc: Build Next.js for production (cleans all caches first)
     cmds:
-      - rm -rf .next
+      - rm -rf .next .turbo node_modules/.cache
       - npm run build
 
   build:api:
