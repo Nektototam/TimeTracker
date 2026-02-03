@@ -4,10 +4,6 @@ version: '3'
 
 vars:
   API_DIR: apps/api
-  NODE_ENV: development
-
-env:
-  NODE_ENV: '{{.NODE_ENV}}'
 
 tasks:
   # ============================================================================
