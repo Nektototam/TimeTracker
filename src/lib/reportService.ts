@@ -84,11 +84,15 @@ class ReportService {
     startDate?: string,
     endDate?: string
   ): Promise<ReportData> {
-    const { startDate: start, endDate: end, totalDuration, entries, projectSummaries } = await api.reports.get({
+    const response = await api.reports.get({
       period,
       startDate,
       endDate
     });
+
+    const entries = response?.entries ?? [];
+    const projectSummaries = response?.projectSummaries ?? [];
+    const totalDuration = response?.totalDuration ?? 0;
 
     const mappedEntries = entries.map(this.mapEntry);
     const nameMap = await this.getProjectNameMap(projectSummaries.map(summary => summary.projectType));
@@ -97,8 +101,11 @@ class ReportService {
       project_name: nameMap[summary.projectType] || summary.projectType,
       total_duration: summary.totalDuration,
       percentage: summary.percentage,
-      entries: summary.entries.map(this.mapEntry)
+      entries: (summary.entries ?? []).map(this.mapEntry)
     }));
+
+    const start = response?.startDate ?? new Date().toISOString();
+    const end = response?.endDate ?? new Date().toISOString();
 
     return {
       startDate: new Date(start),

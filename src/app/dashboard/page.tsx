@@ -42,7 +42,7 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          <div className="hidden flex-1 items-center justify-center md:flex">
+          <div className="flex-1">
             <div className="relative w-full max-w-md">
               <input
                 type="search"
@@ -53,7 +53,7 @@ export default function DashboardPage() {
           </div>
 
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" className="hidden md:inline-flex">
+            <Button variant="outline" size="sm">
               New entry
             </Button>
             <Button variant="primary" size="sm">
@@ -63,8 +63,11 @@ export default function DashboardPage() {
         </div>
       </header>
 
-      <div className="mx-auto flex max-w-7xl gap-6 px-4 py-6 sm:px-6 lg:px-8">
-        <aside className="hidden w-64 flex-col gap-4 lg:flex">
+      <div
+        className="mx-auto grid max-w-7xl gap-6 px-4 py-6 sm:px-6 lg:px-8"
+        style={{ gridTemplateColumns: '240px 1fr', alignItems: 'start' }}
+      >
+        <aside className="flex w-64 flex-col gap-4">
           <NavBar variant="sidebar" />
           <Card>
             <CardHeader>
@@ -77,24 +80,17 @@ export default function DashboardPage() {
           </Card>
         </aside>
 
-        <main className="flex-1 space-y-6">
+        <main className="space-y-6">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div>
               <h2 className="text-2xl font-semibold text-foreground">Overview</h2>
               <p className="text-sm text-muted-foreground">Track your time with a modern workflow.</p>
-            </div>
-            <div className="flex items-center gap-2 md:hidden">
-              <Button variant="outline" size="sm">
-                New entry
-              </Button>
             </div>
           </div>
 
           <DashboardLayout />
         </main>
       </div>
-
-      <NavBar className="lg:hidden" />
     </div>
   );
 }
