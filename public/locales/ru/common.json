@@ -15,12 +15,26 @@
   "back": "Назад",
   
   "nav": {
+    "dashboard": "Главная",
     "timer": "Таймер",
     "statistics": "Статистика",
     "reports": "Отчеты",
     "pomodoro": "Помидор",
     "settings": "Настройки",
     "logout": "Выход"
+  },
+
+  "dashboard": {
+    "quickActions": "Быстрые действия",
+    "commandPalette": "Команды",
+    "searchCommands": "Поиск команд...",
+    "navigate": "навигация",
+    "select": "выбрать",
+    "close": "закрыть"
+  },
+
+  "common": {
+    "loading": "Загрузка"
   },
   
   "timer": {

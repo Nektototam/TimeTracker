@@ -15,12 +15,26 @@
   "back": "Back",
   
   "nav": {
+    "dashboard": "Dashboard",
     "timer": "Timer",
     "statistics": "Statistics",
     "reports": "Reports",
     "pomodoro": "Pomodoro",
     "settings": "Settings",
     "logout": "Logout"
+  },
+
+  "dashboard": {
+    "quickActions": "Quick Actions",
+    "commandPalette": "Commands",
+    "searchCommands": "Search commands...",
+    "navigate": "navigate",
+    "select": "select",
+    "close": "close"
+  },
+
+  "common": {
+    "loading": "Loading"
   },
   
   "timer": {

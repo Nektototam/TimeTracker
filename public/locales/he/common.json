@@ -15,12 +15,26 @@
   "back": "חזרה",
   
   "nav": {
+    "dashboard": "ראשי",
     "timer": "טיימר",
     "statistics": "סטטיסטיקה",
     "reports": "דוחות",
     "pomodoro": "פומודורו",
     "settings": "הגדרות",
     "logout": "התנתק"
+  },
+
+  "dashboard": {
+    "quickActions": "פעולות מהירות",
+    "commandPalette": "פקודות",
+    "searchCommands": "חפש פקודות...",
+    "navigate": "ניווט",
+    "select": "בחר",
+    "close": "סגור"
+  },
+
+  "common": {
+    "loading": "טוען"
   },
   
   "timer": {

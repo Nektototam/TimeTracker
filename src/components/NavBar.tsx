@@ -12,6 +12,7 @@ export default function NavBar() {
   // Используем объект с переводами вместо хука useTranslation
   const translations: Record<string, Record<string, string>> = {
     ru: {
+      dashboard: 'Главная',
       timer: 'Таймер',
       statistics: 'Статистика',
       reports: 'Отчеты',
@@ -20,6 +21,7 @@ export default function NavBar() {
       logout: 'Выход'
     },
     en: {
+      dashboard: 'Dashboard',
       timer: 'Timer',
       statistics: 'Statistics',
       reports: 'Reports',
@@ -28,6 +30,7 @@ export default function NavBar() {
       logout: 'Logout'
     },
     he: {
+      dashboard: 'ראשי',
       timer: 'טיימר',
       statistics: 'סטטיסטיקה',
       reports: 'דוחות',
@@ -49,6 +52,7 @@ export default function NavBar() {
 
   // Улучшенные иконки навигации
   const navIcons = {
+    dashboard: '🏠',
     timer: '⏱️',
     statistics: '📊',
     reports: '📋',
@@ -59,6 +63,14 @@ export default function NavBar() {
   
   return (
     <nav className="nav-bar">
+      <Link
+        href="/dashboard"
+        className={`nav-item ${pathname === "/dashboard" ? "active" : ""}`}
+      >
+        <span className="nav-icon">{navIcons.dashboard}</span>
+        <span className="nav-text">{t('nav.dashboard')}</span>
+      </Link>
+
       <Link
         href="/timer"
         className={`nav-item ${pathname === "/timer" ? "active" : ""}`}
