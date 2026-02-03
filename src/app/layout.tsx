@@ -1,9 +1,6 @@
 import './globals.css';
 import type { Metadata } from 'next';
-import { AuthProvider } from '../contexts/AuthContext';
-import { TimerProvider } from '../contexts/TimerContext';
-import { PomodoroProvider } from '../contexts/PomodoroContext';
-import { LanguageProvider } from '../contexts/LanguageContext';
+import { Providers } from '../components/Providers';
 
 export const metadata: Metadata = {
   title: 'TimeTracker',
@@ -18,15 +15,9 @@ export default function RootLayout({
   return (
     <html suppressHydrationWarning lang="ru">
       <body>
-        <AuthProvider>
-          <LanguageProvider>
-            <TimerProvider>
-              <PomodoroProvider>
-                {children}
-              </PomodoroProvider>
-            </TimerProvider>
-          </LanguageProvider>
-        </AuthProvider>
+        <Providers>
+          {children}
+        </Providers>
       </body>
     </html>
   );
