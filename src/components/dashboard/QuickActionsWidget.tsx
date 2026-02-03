@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useTranslation } from 'react-i18next';
-import { Widget } from '../ui/Widget';
+import { Card, CardContent, CardHeader, CardTitle } from '../ui/Card';
 import { Button } from '../ui/Button';
 
 interface QuickActionsWidgetProps {
@@ -32,19 +32,24 @@ export function QuickActionsWidget({ className, onOpenCommandPalette }: QuickAct
   ];
 
   return (
-    <Widget title={t('dashboard.quickActions')} className={className}>
-      <div className="flex flex-col gap-2 h-full">
+    <Card className={className}>
+      <CardHeader>
+        <CardTitle>{t('dashboard.quickActions')}</CardTitle>
+      </CardHeader>
+      <CardContent className="flex h-full flex-col gap-2">
         {actions.map((action) => (
-          <Link key={action.href} href={action.href} className="block">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="w-full justify-start text-left"
-            >
+          <Button
+            key={action.href}
+            asChild
+            variant="ghost"
+            size="sm"
+            className="w-full justify-start text-left"
+          >
+            <Link href={action.href}>
               <span className="mr-2">{action.icon}</span>
               {action.label}
-            </Button>
-          </Link>
+            </Link>
+          </Button>
         ))}
 
         {onOpenCommandPalette && (
@@ -56,10 +61,10 @@ export function QuickActionsWidget({ className, onOpenCommandPalette }: QuickAct
           >
             <span className="mr-2">\u2318</span>
             {t('dashboard.commandPalette')}
-            <span className="ml-auto text-xs text-gray-400">Cmd+K</span>
+            <span className="ml-auto text-xs text-muted-foreground">Cmd+K</span>
           </Button>
         )}
-      </div>
-    </Widget>
+      </CardContent>
+    </Card>
   );
 }

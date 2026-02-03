@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
-import { Widget } from '../ui/Widget';
+import { Card, CardContent, CardHeader, CardTitle } from '../ui/Card';
 import ActivityChart from '../ActivityChart';
 import reportService, { DailySummary } from '../../lib/reportService';
 
@@ -63,18 +63,16 @@ export function WeekChartWidget({ className }: WeekChartWidgetProps) {
   };
 
   return (
-    <Widget
-      title={t('statistics.weekActivity')}
-      className={className}
-      headerAction={
+    <Card className={className}>
+      <CardHeader className="flex-row items-center justify-between space-y-0">
+        <CardTitle>{t('statistics.weekActivity')}</CardTitle>
         <span className="text-sm font-semibold text-primary">
           {formatDuration(totalWeek)}
         </span>
-      }
-    >
-      <div className="h-full flex items-center justify-center">
+      </CardHeader>
+      <CardContent className="flex h-full items-center justify-center">
         {isLoading ? (
-          <div className="text-gray-400 text-sm">{t('common.loading')}...</div>
+          <div className="text-sm text-muted-foreground">{t('common.loading')}...</div>
         ) : weekData.length > 0 ? (
           <ActivityChart
             data={weekData}
@@ -82,11 +80,11 @@ export function WeekChartWidget({ className }: WeekChartWidgetProps) {
             barColor="#5e72e4"
           />
         ) : (
-          <div className="text-gray-400 text-sm text-center">
+          <div className="text-sm text-muted-foreground text-center">
             {t('statistics.noData')}
           </div>
         )}
-      </div>
-    </Widget>
+      </CardContent>
+    </Card>
   );
 }

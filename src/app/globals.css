@@ -3,6 +3,27 @@
 @tailwind utilities;
 
 :root {
+  /* Shadcn UI tokens */
+  --background: 210 40% 98%;
+  --foreground: 222 47% 11%;
+  --card: 0 0% 100%;
+  --card-foreground: 222 47% 11%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 222 47% 11%;
+  --primary: 230 74% 62%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 210 40% 96%;
+  --secondary-foreground: 222 47% 11%;
+  --muted: 210 40% 96%;
+  --muted-foreground: 215 16% 47%;
+  --accent: 16 94% 54%;
+  --accent-foreground: 0 0% 100%;
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 214 32% 91%;
+  --input: 214 32% 91%;
+  --ring: 230 74% 62%;
+
   /* Основные цвета */
   --primary-color: #4f6ef7; /* Немного смягчённый синий цвет */
   --primary-color-light: #7388ff;
@@ -42,8 +63,8 @@
 }
 
 body {
-  background-color: #f1f5f9; /* Немного темнее фон для лучшего контраста */
-  color: var(--text-color);
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
   font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
   margin: 0;
   padding: 0;
@@ -51,13 +72,21 @@ body {
 }
 
 .app-container {
-  max-width: 95%;
-  width: 800px;
+  max-width: 1200px;
+  width: 100%;
   margin: 0 auto;
   position: relative;
-  height: 100vh;
-  overflow: hidden;
+  min-height: 100vh;
   display: flex;
+  flex-direction: column;
+  padding: 0 16px;
+}
+
+@media (min-width: 1024px) {
+  .app-container {
+    max-width: 1280px;
+    padding: 0 24px;
+  }
 }
 
 .screen {
@@ -66,14 +95,20 @@ body {
   border-radius: var(--border-radius);
   box-shadow: var(--shadow);
   padding: 24px; /* Увеличили отступы для лучшего восприятия */
-  padding-bottom: 90px; /* Добавляем отступ снизу для навигационной панели */
+  padding-bottom: 96px; /* Отступ для навигации снизу */
   display: flex;
   flex-direction: column;
   transition: var(--transition);
-  position: absolute;
+  position: relative;
   width: 100%;
-  height: 100%;
-  overflow-y: auto;
+  height: auto;
+  overflow: visible;
+}
+
+@media (min-width: 1024px) {
+  .screen {
+    padding-bottom: 24px;
+  }
 }
 
 .screen-hidden {

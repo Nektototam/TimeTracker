@@ -27,7 +27,8 @@
 *.pem
 
 # beads
-.beads/
+.beads/*
+!.beads/issues.jsonl
 
 # debug
 npm-debug.log*

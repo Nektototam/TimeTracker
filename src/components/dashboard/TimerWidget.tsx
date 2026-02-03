@@ -2,7 +2,7 @@
 
 import { useTimer } from '../../contexts/TimerContext';
 import { useTranslation } from 'react-i18next';
-import { Widget } from '../ui/Widget';
+import { Card, CardContent, CardFooter } from '../ui/Card';
 import TimerCircle from '../TimerCircle';
 import { Button } from '../ui/Button';
 import { cn } from '../../lib/utils';
@@ -38,8 +38,9 @@ export function TimerWidget({ className, compact = false }: TimerWidgetProps) {
   };
 
   return (
-    <Widget className={cn("flex flex-col", className)} noPadding>
-      <div className="flex-1 flex flex-col items-center justify-center p-4">
+    <Card className={cn("flex h-full flex-col", className)}>
+      <CardContent className="flex-1 p-4">
+        <div className="flex h-full flex-col items-center justify-center">
         {/* Compact timer for smaller widget */}
         {compact ? (
           <div className="text-center">
@@ -62,11 +63,12 @@ export function TimerWidget({ className, compact = false }: TimerWidgetProps) {
             project={projectText}
           />
         )}
-      </div>
+        </div>
+      </CardContent>
 
       {/* Control buttons */}
-      <div className="border-t border-gray-100 p-4">
-        <div className="flex gap-3 justify-center">
+      <CardFooter className="border-t border-border">
+        <div className="flex w-full justify-center gap-3">
           <Button
             onClick={toggleTimer}
             variant={isPaused ? 'success' : 'timer'}
@@ -88,7 +90,7 @@ export function TimerWidget({ className, compact = false }: TimerWidgetProps) {
             </Button>
           )}
         </div>
-      </div>
-    </Widget>
+      </CardFooter>
+    </Card>
   );
 }

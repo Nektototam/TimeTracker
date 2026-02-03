@@ -1,10 +1,16 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useAuth } from '../contexts/AuthContext';
-import { useLanguage } from '../contexts/LanguageContext';
+import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { Button } from './ui/Button';
+import { cn } from '@/lib/utils';
 
-export default function NavBar() {
+interface NavBarProps {
+  variant?: 'bottom' | 'sidebar';
+  className?: string;
+}
+
+export default function NavBar({ variant = 'bottom', className }: NavBarProps) {
   const pathname = usePathname();
   const { signOut } = useAuth();
   const { currentLanguage } = useLanguage();
@@ -61,64 +67,67 @@ export default function NavBar() {
     logout: '🚪'
   };
   
-  return (
-    <nav className="nav-bar">
-      <Link
-        href="/dashboard"
-        className={`nav-item ${pathname === "/dashboard" ? "active" : ""}`}
-      >
-        <span className="nav-icon">{navIcons.dashboard}</span>
-        <span className="nav-text">{t('nav.dashboard')}</span>
-      </Link>
+  const navItems = [
+    { key: 'dashboard', href: '/dashboard', icon: navIcons.dashboard, label: t('nav.dashboard') },
+    { key: 'timer', href: '/timer', icon: navIcons.timer, label: t('nav.timer') },
+    { key: 'statistics', href: '/statistics', icon: navIcons.statistics, label: t('nav.statistics') },
+    { key: 'reports', href: '/reports', icon: navIcons.reports, label: t('nav.reports') },
+    { key: 'pomodoro', href: '/pomodoro', icon: navIcons.pomodoro, label: t('nav.pomodoro') },
+    { key: 'settings', href: '/settings', icon: navIcons.settings, label: t('nav.settings') },
+  ];
 
-      <Link
-        href="/timer"
-        className={`nav-item ${pathname === "/timer" ? "active" : ""}`}
-      >
-        <span className="nav-icon">{navIcons.timer}</span>
-        <span className="nav-text">{t('nav.timer')}</span>
-      </Link>
-      
-      <Link
-        href="/statistics"
-        className={`nav-item ${pathname === "/statistics" ? "active" : ""}`}
-      >
-        <span className="nav-icon">{navIcons.statistics}</span>
-        <span className="nav-text">{t('nav.statistics')}</span>
-      </Link>
-      
-      <Link
-        href="/reports"
-        className={`nav-item ${pathname === "/reports" ? "active" : ""}`}
-      >
-        <span className="nav-icon">{navIcons.reports}</span>
-        <span className="nav-text">{t('nav.reports')}</span>
-      </Link>
-      
-      <Link
-        href="/pomodoro"
-        className={`nav-item ${pathname === "/pomodoro" ? "active" : ""}`}
-      >
-        <span className="nav-icon">{navIcons.pomodoro}</span>
-        <span className="nav-text">{t('nav.pomodoro')}</span>
-      </Link>
-      
-      <Link
-        href="/settings"
-        className={`nav-item ${pathname === "/settings" ? "active" : ""}`}
-      >
-        <span className="nav-icon">{navIcons.settings}</span>
-        <span className="nav-text">{t('nav.settings')}</span>
-      </Link>
-      
+  const isSidebar = variant === 'sidebar';
+
+  return (
+    <nav
+      aria-label="Main navigation"
+      data-variant={variant}
+      className={cn(
+        "border bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/80",
+        isSidebar
+          ? "sticky top-6 flex h-fit flex-col gap-2 rounded-2xl p-3 shadow-app-sm"
+          : "fixed bottom-4 left-1/2 z-50 flex w-[calc(100%-2rem)] max-w-md -translate-x-1/2 items-center justify-between rounded-2xl p-2 shadow-app-lg",
+        className
+      )}
+    >
+      {navItems.map((item) => {
+        const isActive = pathname === item.href;
+
+        return (
+          <Button
+            key={item.key}
+            asChild
+            variant="ghost"
+            size={isSidebar ? 'md' : 'sm'}
+            className={cn(
+              "group gap-2 text-muted-foreground transition-colors",
+              isSidebar
+                ? "h-10 w-full justify-start rounded-xl px-3 text-sm"
+                : "h-12 flex-1 flex-col justify-center rounded-xl px-2 text-[11px]",
+              isActive && "bg-muted text-foreground font-semibold"
+            )}
+          >
+            <Link href={item.href} aria-current={isActive ? 'page' : undefined}>
+              <span className={cn("text-base", !isSidebar && "text-lg")}>{item.icon}</span>
+              <span className={cn(isSidebar ? "text-sm" : "text-[11px]", "leading-tight")}>{item.label}</span>
+            </Link>
+          </Button>
+        );
+      })}
+
       <Button
         onClick={() => signOut()}
         variant="ghost"
-        size="sm"
-        className="nav-item logout"
+        size={isSidebar ? 'md' : 'sm'}
+        className={cn(
+          "gap-2 text-destructive hover:text-destructive",
+          isSidebar
+            ? "h-10 w-full justify-start rounded-xl px-3"
+            : "h-12 flex-1 flex-col justify-center rounded-xl px-2 text-[11px]"
+        )}
       >
-        <span className="nav-icon">{navIcons.logout}</span>
-        <span className="nav-text">{t('nav.logout')}</span>
+        <span className={cn("text-base", !isSidebar && "text-lg")}>{navIcons.logout}</span>
+        <span className={cn(isSidebar ? "text-sm" : "text-[11px]", "leading-tight")}>{t('nav.logout')}</span>
       </Button>
     </nav>
   );

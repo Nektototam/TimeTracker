@@ -2,7 +2,6 @@
 
 import { useState, useCallback } from 'react';
 import { useTimer } from '../../contexts/TimerContext';
-import { BentoGrid, BentoItem } from '../ui/BentoGrid';
 import { TimerWidget } from './TimerWidget';
 import { TodayStatsWidget } from './TodayStatsWidget';
 import { WeekChartWidget } from './WeekChartWidget';
@@ -35,37 +34,42 @@ export function DashboardLayout() {
 
   return (
     <>
-      <BentoGrid className="max-w-6xl mx-auto">
-        {/* Timer Widget - Hero (2x2) */}
-        <BentoItem colSpan={2} rowSpan={2}>
-          <TimerWidget />
-        </BentoItem>
+      <div
+        className="grid gap-6"
+        style={{ gridAutoRows: 'minmax(180px, auto)' }}
+      >
+        <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
+          {/* Timer Widget - Hero (2x2) */}
+          <div className="md:col-span-2 xl:col-span-2 xl:row-span-2">
+            <TimerWidget />
+          </div>
 
-        {/* Today Stats (1x2) */}
-        <BentoItem rowSpan={2}>
-          <TodayStatsWidget />
-        </BentoItem>
+          {/* Today Stats (1x2) */}
+          <div className="xl:row-span-2">
+            <TodayStatsWidget />
+          </div>
 
-        {/* Week Activity Chart (3x1) */}
-        <BentoItem colSpan={3}>
-          <WeekChartWidget />
-        </BentoItem>
+          {/* Week Activity Chart (3x1) */}
+          <div className="md:col-span-2 xl:col-span-3">
+            <WeekChartWidget />
+          </div>
 
-        {/* Project Distribution (1x1) */}
-        <BentoItem>
-          <ProjectDistributionWidget />
-        </BentoItem>
+          {/* Project Distribution (1x1) */}
+          <div>
+            <ProjectDistributionWidget />
+          </div>
 
-        {/* Pomodoro (1x1) */}
-        <BentoItem>
-          <PomodoroWidget />
-        </BentoItem>
+          {/* Pomodoro (1x1) */}
+          <div>
+            <PomodoroWidget />
+          </div>
 
-        {/* Quick Actions (1x1) */}
-        <BentoItem>
-          <QuickActionsWidget onOpenCommandPalette={openCommandPalette} />
-        </BentoItem>
-      </BentoGrid>
+          {/* Quick Actions (1x1) */}
+          <div>
+            <QuickActionsWidget onOpenCommandPalette={openCommandPalette} />
+          </div>
+        </div>
+      </div>
 
       {/* Command Palette */}
       <CommandPalette

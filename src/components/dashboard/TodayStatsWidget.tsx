@@ -2,7 +2,7 @@
 
 import { useTimer } from '../../contexts/TimerContext';
 import { useTranslation } from 'react-i18next';
-import { Widget, WidgetStat } from '../ui/Widget';
+import { Card, CardContent, CardHeader, CardTitle } from '../ui/Card';
 import { cn } from '../../lib/utils';
 
 interface TodayStatsWidgetProps {
@@ -34,19 +34,22 @@ export function TodayStatsWidget({ className }: TodayStatsWidgetProps) {
   const progressPercent = timeLimit ? Math.min((totalToday / timeLimit) * 100, 100) : null;
 
   return (
-    <Widget title={t('statistics.today')} className={className}>
-      <div className="flex flex-col h-full justify-between gap-4">
+    <Card className={className}>
+      <CardHeader>
+        <CardTitle>{t('statistics.today')}</CardTitle>
+      </CardHeader>
+      <CardContent className="flex h-full flex-col justify-between gap-4">
         {/* Main stat - Today total */}
         <div className="text-center">
-          <div className="text-4xl font-bold text-gray-900">
+          <div className="text-4xl font-bold text-foreground">
             {formatDuration(totalToday)}
           </div>
-          <div className="text-sm text-gray-500">{t('statistics.totalTime')}</div>
+          <div className="text-sm text-muted-foreground">{t('statistics.totalTime')}</div>
         </div>
 
         {/* Current session */}
         {isRunning && (
-          <div className="bg-primary-light/10 rounded-lg p-3 text-center">
+          <div className="rounded-lg bg-primary/10 p-3 text-center">
             <div className="text-lg font-semibold text-primary">
               +{formatDuration(currentSession)}
             </div>
@@ -57,11 +60,11 @@ export function TodayStatsWidget({ className }: TodayStatsWidgetProps) {
         {/* Progress bar if time limit exists */}
         {progressPercent !== null && (
           <div className="mt-auto">
-            <div className="flex justify-between text-xs text-gray-500 mb-1">
+            <div className="mb-1 flex justify-between text-xs text-muted-foreground">
               <span>{t('timer.progress')}</span>
               <span>{Math.round(progressPercent)}%</span>
             </div>
-            <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+            <div className="h-2 overflow-hidden rounded-full bg-muted">
               <div
                 className={cn(
                   "h-full rounded-full transition-all duration-300",
@@ -76,16 +79,16 @@ export function TodayStatsWidget({ className }: TodayStatsWidgetProps) {
 
         {/* Daily breakdown */}
         <div className="grid grid-cols-2 gap-2 text-center text-sm">
-          <div className="bg-gray-50 rounded-lg p-2">
-            <div className="font-semibold text-gray-700">{formatDuration(dailyTotal)}</div>
-            <div className="text-xs text-gray-500">{t('statistics.saved')}</div>
+          <div className="rounded-lg bg-muted/50 p-2">
+            <div className="font-semibold text-foreground">{formatDuration(dailyTotal)}</div>
+            <div className="text-xs text-muted-foreground">{t('statistics.saved')}</div>
           </div>
-          <div className="bg-gray-50 rounded-lg p-2">
-            <div className="font-semibold text-gray-700">{formatDuration(currentSession)}</div>
-            <div className="text-xs text-gray-500">{t('timer.current')}</div>
+          <div className="rounded-lg bg-muted/50 p-2">
+            <div className="font-semibold text-foreground">{formatDuration(currentSession)}</div>
+            <div className="text-xs text-muted-foreground">{t('timer.current')}</div>
           </div>
         </div>
-      </div>
-    </Widget>
+      </CardContent>
+    </Card>
   );
 }

@@ -3,9 +3,8 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
-import { Widget } from '../ui/Widget';
+import { Card, CardContent, CardHeader, CardTitle } from '../ui/Card';
 import reportService, { ProjectSummary } from '../../lib/reportService';
-import { cn } from '../../lib/utils';
 
 interface ProjectDistributionWidgetProps {
   className?: string;
@@ -63,34 +62,39 @@ export function ProjectDistributionWidget({ className }: ProjectDistributionWidg
   };
 
   return (
-    <Widget title={t('statistics.byProject')} className={className}>
-      <div className="space-y-3">
-        {isLoading ? (
-          <div className="text-gray-400 text-sm">{t('common.loading')}...</div>
-        ) : projects.length > 0 ? (
-          projects.map((project) => (
-            <div key={project.project_type} className="space-y-1">
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-700 truncate">{project.project_name}</span>
-                <span className="text-gray-500 ml-2">{formatDuration(project.total_duration)}</span>
+    <Card className={className}>
+      <CardHeader>
+        <CardTitle>{t('statistics.byProject')}</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-3">
+          {isLoading ? (
+            <div className="text-sm text-muted-foreground">{t('common.loading')}...</div>
+          ) : projects.length > 0 ? (
+            projects.map((project) => (
+              <div key={project.project_type} className="space-y-1">
+                <div className="flex justify-between text-sm">
+                  <span className="truncate text-foreground">{project.project_name}</span>
+                  <span className="ml-2 text-muted-foreground">{formatDuration(project.total_duration)}</span>
+                </div>
+                <div className="h-2 overflow-hidden rounded-full bg-muted">
+                  <div
+                    className="h-full rounded-full transition-all duration-300"
+                    style={{
+                      width: `${project.percentage}%`,
+                      backgroundColor: getColor(project.project_type)
+                    }}
+                  />
+                </div>
               </div>
-              <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-                <div
-                  className="h-full rounded-full transition-all duration-300"
-                  style={{
-                    width: `${project.percentage}%`,
-                    backgroundColor: getColor(project.project_type)
-                  }}
-                />
-              </div>
+            ))
+          ) : (
+            <div className="py-4 text-center text-sm text-muted-foreground">
+              {t('statistics.noData')}
             </div>
-          ))
-        ) : (
-          <div className="text-gray-400 text-sm text-center py-4">
-            {t('statistics.noData')}
-          </div>
-        )}
-      </div>
-    </Widget>
+          )}
+        </div>
+      </CardContent>
+    </Card>
   );
 }

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '../../contexts/AuthContext';
 import { DashboardLayout } from '../../components/dashboard/DashboardLayout';
 import NavBar from '../../components/NavBar';
+import { Card, CardContent } from '../../components/ui/Card';
 
 export default function DashboardPage() {
   const { user, isLoading } = useAuth();
@@ -29,21 +30,37 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-20">
-      <header className="bg-white border-b border-gray-100 px-4 py-3">
-        <div className="max-w-6xl mx-auto flex items-center justify-between">
-          <h1 className="text-xl font-bold text-gray-800">TimeTracker</h1>
-          <div className="text-sm text-gray-500">
-            {user.email}
+    <div className="min-h-screen bg-app pb-24 lg:pb-12">
+      <div className="mx-auto flex max-w-7xl flex-col gap-6 px-4 py-6 sm:px-6 lg:px-8">
+        <header className="flex flex-col gap-4 rounded-2xl border bg-white p-4 shadow-app-sm md:flex-row md:items-center md:justify-between">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">Dashboard</p>
+            <h1 className="text-3xl font-semibold tracking-tight text-foreground">TimeTracker</h1>
+            <p className="text-sm text-muted-foreground">Welcome back, {user.email}</p>
           </div>
+          <Card className="w-full md:w-auto">
+            <CardContent className="flex items-center gap-3 px-4 py-3">
+              <span className="text-lg">⚡</span>
+              <div>
+                <div className="text-sm font-semibold text-foreground">Today focus</div>
+                <div className="text-xs text-muted-foreground">Plan, track, and finish the session</div>
+              </div>
+            </CardContent>
+          </Card>
+        </header>
+
+        <div className="grid gap-6 lg:grid-cols-[240px_1fr]">
+          <aside className="hidden lg:block">
+            <NavBar variant="sidebar" />
+          </aside>
+
+          <main className="space-y-6">
+            <DashboardLayout />
+          </main>
         </div>
-      </header>
+      </div>
 
-      <main className="py-4">
-        <DashboardLayout />
-      </main>
-
-      <NavBar />
+      <NavBar className="lg:hidden" />
     </div>
   );
 }
