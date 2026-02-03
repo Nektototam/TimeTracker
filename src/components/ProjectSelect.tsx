@@ -182,22 +182,20 @@ export default function ProjectSelect({ value, onChange }: ProjectSelectProps) {
   };
 
   return (
-    <div className="select-container max-w-xl mx-auto">
+    <div className="w-full max-w-xl mx-auto rounded-xl border border-border bg-card p-5 shadow-app-sm">
       {/* Текущая активная задача - всегда показываем */}
-      <div className="current-task mb-6 text-center">
-        <div className="text-sm text-gray-500 mb-1">{t('timer.currentTask')}:</div>
-        <div className="text-lg font-semibold text-primary-dark">{projectText || t('timer.notSelected')}</div>
+      <div className="mb-6 rounded-lg border border-border bg-muted/40 p-4 text-center">
+        <div className="mb-1 text-sm text-muted-foreground">{t('timer.currentTask')}:</div>
+        <div className="text-lg font-semibold text-foreground">{projectText || t('timer.notSelected')}</div>
       </div>
       
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 mb-5">
-        <label className="select-label text-base font-medium text-gray-700">
+      <div className="mb-5 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+        <label className="text-base font-medium text-foreground">
           {t('timer.workType')}:
         </label>
         {timeLimit !== null ? (
-          <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
-            <span className="time-limit-badge inline-block text-base font-medium text-[#6c5ce7] px-4 py-2.5 rounded-[14px]
-              bg-[#e9edf5] border-t border-l border-[#ffffff50] border-b-[#00000015] border-r-[#00000015]
-              shadow-[2px_2px_5px_rgba(0,0,0,0.05),-2px_-2px_5px_rgba(255,255,255,0.8)]">
+          <div className="flex w-full flex-wrap items-center gap-3 md:w-auto">
+            <span className="inline-flex items-center rounded-full border border-border bg-muted px-4 py-2 text-sm font-medium text-foreground">
               {t('timer.limitValue')} {Math.floor(timeLimit / 3600000)}ч {Math.floor((timeLimit % 3600000) / 60000)}м
             </span>
             <div className="flex items-center gap-2">
@@ -205,10 +203,7 @@ export default function ProjectSelect({ value, onChange }: ProjectSelectProps) {
                 onClick={showTimeLimitEditor}
                 variant="ghost"
                 size="icon"
-                className="flex items-center justify-center h-10 w-10 rounded-full
-                  bg-[#e8efff] text-[#6c5ce7] text-lg shadow-[3px_3px_6px_rgba(0,0,0,0.1),-3px_-3px_6px_rgba(255,255,255,0.8)]
-                  hover:shadow-[2px_2px_4px_rgba(0,0,0,0.1),-2px_-2px_4px_rgba(255,255,255,0.8)]
-                  active:shadow-[inset_2px_2px_4px_rgba(0,0,0,0.1),inset_-2px_-2px_4px_rgba(255,255,255,0.8)]"
+                className="h-10 w-10 rounded-full border border-border"
               >
                 📝
               </Button>
@@ -216,10 +211,7 @@ export default function ProjectSelect({ value, onChange }: ProjectSelectProps) {
                 onClick={clearTimeLimit}
                 variant="ghost"
                 size="icon"
-                className="flex items-center justify-center h-10 w-10 rounded-full
-                  bg-[#fff0f5] text-[#e82d61] text-lg shadow-[3px_3px_6px_rgba(0,0,0,0.1),-3px_-3px_6px_rgba(255,255,255,0.8)]
-                  hover:shadow-[2px_2px_4px_rgba(0,0,0,0.1),-2px_-2px_4px_rgba(255,255,255,0.8)]
-                  active:shadow-[inset_2px_2px_4px_rgba(0,0,0,0.1),inset_-2px_-2px_4px_rgba(255,255,255,0.8)]"
+                className="h-10 w-10 rounded-full border border-border"
               >
                 ❌
               </Button>
@@ -230,11 +222,7 @@ export default function ProjectSelect({ value, onChange }: ProjectSelectProps) {
             onClick={showTimeLimitEditor}
             variant="outline"
             size="sm"
-            className="py-2.5 px-4 min-h-[44px] text-sm bg-[#e8efff] text-[#6c5ce7] rounded-[14px] 
-              border-t border-l border-[#ffffff50] border-b-[#00000015] border-r-[#00000015]
-              shadow-[3px_3px_6px_rgba(0,0,0,0.1),-3px_-3px_6px_rgba(255,255,255,0.8)]
-              hover:shadow-[2px_2px_4px_rgba(0,0,0,0.1),-2px_-2px_4px_rgba(255,255,255,0.8)]
-              active:shadow-[inset_2px_2px_4px_rgba(0,0,0,0.1),inset_-2px_-2px_4px_rgba(255,255,255,0.8)]"
+            className="h-11"
           >
             {t('timer.addLimitation')}
           </Button>
@@ -242,13 +230,13 @@ export default function ProjectSelect({ value, onChange }: ProjectSelectProps) {
       </div>
       
       {isAddingNewType ? (
-        <form onSubmit={handleNewTypeSubmit} className="new-type-form">
+        <form onSubmit={handleNewTypeSubmit} className="space-y-4">
           <div className="flex gap-3">
             <Input
               type="text"
               value={newTypeValue}
               onChange={handleNewTypeChange}
-              className="flex-1 min-h-[44px] text-base"
+              className="flex-1"
               placeholder={t('timer.timeLimit.enterValue')}
               autoFocus
             />
@@ -257,7 +245,7 @@ export default function ProjectSelect({ value, onChange }: ProjectSelectProps) {
                 type="submit"
                 variant="primary"
                 size="sm"
-                className="px-3 py-2 min-w-[44px] min-h-[44px] text-lg"
+                className="h-11 w-11"
               >
                 ✓
               </Button>
@@ -286,7 +274,7 @@ export default function ProjectSelect({ value, onChange }: ProjectSelectProps) {
         />
       ) : (
         <Select
-          className="select-input w-full py-2.5 px-4 text-base min-h-[44px]"
+          className="w-full"
           value={value}
           onChange={handleChange}
           disabled={isLoading}

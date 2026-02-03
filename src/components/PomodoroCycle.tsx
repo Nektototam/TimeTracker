@@ -139,33 +139,30 @@ const PomodoroCycle: React.FC<PomodoroCycleProps> = ({
     return ((totalDuration - timeLeft) / totalDuration) * 100;
   };
 
+  const progressColor = state === TimerState.WORK ? 'hsl(230 74% 62%)' : 'hsl(199 89% 48%)';
+
   return (
-    <div className="pomodoro-container">
-      <div className="pomodoro-timer">
-        <div 
-          className="progress-ring" 
-          style={{
-            background: `conic-gradient(
-              ${state === TimerState.WORK ? 'var(--primary-color)' : 'var(--info-color)'} ${getProgressPercentage()}%, 
-              #e0e0e0 ${getProgressPercentage()}%
-            )`
-          }}
-        >
-          <div className="timer-display">
-            <div className="timer-state">
-              {state === TimerState.WORK ? translate('work') : 
-               state === TimerState.REST ? translate('rest') : 
-               state === TimerState.COMPLETED ? translate('completed') : ''}
-            </div>
-            <div className="timer-time">{formatTime(timeLeft)}</div>
-            <div className="timer-cycle">
-              {translate('cycle')}: {currentCycle}/{cycles}
-            </div>
+    <div className="flex w-full flex-col items-center gap-6">
+      <div
+        className="flex h-64 w-64 items-center justify-center rounded-full border border-border shadow-sm"
+        style={{
+          background: `conic-gradient(${progressColor} ${getProgressPercentage()}%, hsl(214 32% 91%) ${getProgressPercentage()}%)`
+        }}
+      >
+        <div className="flex h-[85%] w-[85%] flex-col items-center justify-center rounded-full bg-background">
+          <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            {state === TimerState.WORK ? translate('work') :
+             state === TimerState.REST ? translate('rest') :
+             state === TimerState.COMPLETED ? translate('completed') : ''}
+          </div>
+          <div className="text-4xl font-semibold text-foreground">{formatTime(timeLeft)}</div>
+          <div className="text-sm text-muted-foreground">
+            {translate('cycle')}: {currentCycle}/{cycles}
           </div>
         </div>
       </div>
       
-      <div className="pomodoro-controls flex flex-row gap-4 mt-6">
+      <div className="flex flex-row gap-4">
         {!isActive ? (
           <Button 
             variant="buttonStart"

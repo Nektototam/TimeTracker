@@ -192,96 +192,87 @@ function ReportsPage() {
   };
   
   return (
-    <div className="app-container">
-      <div className="screen">
-        {/* Заголовок и контроль периода */}
-        <h1 className="text-3xl font-bold mb-4">Отчеты</h1>
-        
-        <div className="card mb-6">
-          <div className="card-content">
-            <div className="period-selector">
-              <div className="flex flex-col items-center gap-4 w-full">
-                <div className="w-full max-w-[180px]">
-                  <Select
-                    value={periodType}
-                    onChange={(e) => setPeriodType(e.target.value as PeriodType)}
-                    className="w-full px-4 py-2 text-center rounded-full"
-                  >
-                    <option value="week">Неделя</option>
-                    <option value="month">Месяц</option>
-                    <option value="quarter">Квартал</option>
-                    <option value="custom">Произвольный</option>
-                  </Select>
-                </div>
-                
-                <div className="period-range text-center font-medium text-secondary-text-color">
-                  {dateRange}
-                </div>
+    <div className="min-h-screen bg-background">
+      <div className="mx-auto grid max-w-7xl gap-6 px-4 py-6 lg:grid-cols-[240px_1fr]">
+        <aside className="hidden lg:block">
+          <NavBar variant="sidebar" />
+        </aside>
+        <div className="space-y-6">
+          <div className="flex flex-col gap-1">
+            <h1 className="text-2xl font-semibold text-foreground">Отчеты</h1>
+            <p className="text-sm text-muted-foreground">{dateRange}</p>
+          </div>
+          
+          <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
+            <div className="flex flex-col items-center gap-4 md:flex-row md:justify-between">
+              <div className="w-full max-w-[200px]">
+                <Select
+                  value={periodType}
+                  onChange={(e) => setPeriodType(e.target.value as PeriodType)}
+                  className="w-full"
+                >
+                  <option value="week">Неделя</option>
+                  <option value="month">Месяц</option>
+                  <option value="quarter">Квартал</option>
+                  <option value="custom">Произвольный</option>
+                </Select>
               </div>
               
-              <div className="view-type-selector mt-4">
-                <div className="flex justify-center gap-4">
-                  <Button 
-                    variant={viewType === 'summary' ? 'primary' : 'outline'}
-                    size="md"
-                    rounded="full"
-                    onClick={() => setViewType('summary')}
-                  >
-                    Сводка
-                  </Button>
-                  <Button 
-                    variant={viewType === 'daily' ? 'primary' : 'outline'}
-                    size="md"
-                    rounded="full"
-                    onClick={() => setViewType('daily')}
-                  >
-                    По дням
-                  </Button>
-                </div>
+              <div className="flex justify-center gap-3">
+                <Button 
+                  variant={viewType === 'summary' ? 'primary' : 'outline'}
+                  size="md"
+                  rounded="full"
+                  onClick={() => setViewType('summary')}
+                >
+                  Сводка
+                </Button>
+                <Button 
+                  variant={viewType === 'daily' ? 'primary' : 'outline'}
+                  size="md"
+                  rounded="full"
+                  onClick={() => setViewType('daily')}
+                >
+                  По дням
+                </Button>
               </div>
             </div>
           </div>
-        </div>
-        
-        {/* Остальная часть страницы */}
-        {isLoading ? (
-          <div className="flex justify-center items-center h-40">
-            <div className="loading-state">Загрузка отчета...</div>
-          </div>
-        ) : (
-          viewType === 'summary' ? (
-            // Суммарный отчет
-            <>
-              <div className="card mb-6 slide-up">
-                <div className="card-content">
-                  <h2 className="text-lg font-semibold mb-3">Активность по дням</h2>
+          
+          {isLoading ? (
+            <div className="flex h-40 items-center justify-center rounded-2xl border border-border bg-card text-sm text-muted-foreground">
+              Загрузка отчета...
+            </div>
+          ) : (
+            viewType === 'summary' ? (
+              <>
+                <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
+                  <h2 className="mb-3 text-lg font-semibold text-foreground">Активность по дням</h2>
                   <ActivityChart 
                     data={getDailyChartData()} 
                     height={180}
-                    barColor="var(--primary-color)"
+                    barColor="hsl(230 74% 62%)"
                   />
                 </div>
-              </div>
-              
-              <div className="card mb-6 slide-up">
-                <div className="card-content">
-                  <h2 className="text-lg font-semibold mb-4">Проекты</h2>
-                  <div className="project-list space-y-4">
+                
+                <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
+                  <h2 className="mb-4 text-lg font-semibold text-foreground">Проекты</h2>
+                  <div className="space-y-4">
                     {reportData && reportData.projectSummaries.map((project, index) => (
-                      <div key={project.project_type} className="project-item">
-                        <div className="flex justify-between items-center mb-1">
-                          <span className="project-item-name font-medium">{project.project_name}</span>
-                          <span className="project-item-time text-secondary-text-color">{formatTime(project.total_duration)}</span>
+                      <div key={project.project_type}>
+                        <div className="mb-1 flex items-center justify-between">
+                          <span className="text-sm font-medium text-foreground">{project.project_name}</span>
+                          <span className="text-sm text-muted-foreground">{formatTime(project.total_duration)}</span>
                         </div>
-                        <div className="project-item-bar h-2 bg-gray-100 rounded-full overflow-hidden">
+                        <div className="h-2 overflow-hidden rounded-full bg-muted">
                           <div 
-                            className="project-item-progress h-full rounded-full" 
+                            className="h-full rounded-full" 
                             style={{
                               width: `${project.percentage}%`, 
-                              backgroundColor: index === 0 ? 'var(--primary-color)' : 
-                                              index === 1 ? 'var(--success-color)' : 
-                                              index === 2 ? 'var(--warning-color)' : 
-                                              'var(--info-color)'
+                              backgroundColor: index === 0 ? 'hsl(230 74% 62%)' : 
+                                              index === 1 ? 'hsl(142 71% 45%)' : 
+                                              index === 2 ? 'hsl(38 92% 50%)' : 
+                                              'hsl(199 89% 48%)'
                             }}
                           ></div>
                         </div>
@@ -289,61 +280,59 @@ function ReportsPage() {
                     ))}
                     
                     {reportData && reportData.projectSummaries.length === 0 && (
-                      <div className="text-center py-6 text-secondary-text-color">Нет данных о проектах за выбранный период</div>
+                      <div className="py-6 text-center text-sm text-muted-foreground">
+                        Нет данных о проектах за выбранный период
+                      </div>
                     )}
                   </div>
                 </div>
-              </div>
-            </>
-          ) : (
-            // Подробный отчет по дням
-            <div className="card mb-6 slide-up">
-              <div className="card-content">
+              </>
+            ) : (
+              <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
                 <DailyTimelineView 
                   entries={reportData?.entries || []} 
                   formatTime={formatTime}
                 />
               </div>
-            </div>
-          )
-        )}
-        
-        <div className="card mb-6 slide-up">
-          <div className="card-content flex justify-between items-center">
-            <div className="font-semibold">Всего за период</div>
-            <div className="text-lg font-bold text-primary-color">
+            )
+          )}
+          
+          <div className="flex items-center justify-between rounded-2xl border border-border bg-card px-6 py-4 shadow-sm">
+            <div className="text-sm font-semibold text-foreground">Всего за период</div>
+            <div className="text-lg font-semibold text-primary">
               {reportData ? formatFullTime(reportData.totalDuration) : '00:00:00'}
             </div>
           </div>
+          
+          <div className="flex flex-wrap justify-center gap-3">
+            <Button 
+              variant="primary"
+              size="md"
+              leftIcon="🖨️"
+              onClick={handlePrint}
+            >
+              Печать
+            </Button>
+            <Button 
+              variant="primary"
+              size="md"
+              leftIcon="📋"
+              onClick={handleCopy}
+            >
+              Копировать
+            </Button>
+            <Button 
+              variant="primary"
+              size="md"
+              leftIcon="📤"
+              onClick={handleExport}
+            >
+              Экспорт
+            </Button>
+          </div>
         </div>
-        
-        <div className="flex justify-center gap-4 mb-20 slide-up">
-          <Button 
-            variant="primary"
-            size="md"
-            leftIcon="🖨️"
-            onClick={handlePrint}
-          >
-            Печать
-          </Button>
-          <Button 
-            variant="primary"
-            size="md"
-            leftIcon="📋"
-            onClick={handleCopy}
-          >
-            Копировать
-          </Button>
-          <Button 
-            variant="primary"
-            size="md"
-            leftIcon="📤"
-            onClick={handleExport}
-          >
-            Экспорт
-          </Button>
-        </div>
-        
+      </div>
+      <div className="lg:hidden">
         <NavBar />
       </div>
     </div>

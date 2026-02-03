@@ -35,17 +35,20 @@ export default function PomodoroTimer({}: PomodoroTimerProps) {
     setRestDuration(value);
   };
   
+  const modeAccent = mode === 'work' ? 'text-primary' : 'text-emerald-600';
+  const modeRing = mode === 'work' ? 'ring-primary/20' : 'ring-emerald-500/20';
+
   return (
-    <div className="pomodoro-container">
-      <div className={`pomodoro-timer ${mode}`}>
-        <div className="pomodoro-timer-inner">
-          <div className="pomodoro-status">
+    <div className="flex w-full flex-col items-center gap-6">
+      <div className={`relative flex h-64 w-64 items-center justify-center rounded-full border border-border bg-card shadow-sm ring-8 ${modeRing}`}>
+        <div className="flex h-[85%] w-[85%] flex-col items-center justify-center rounded-full bg-background">
+          <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
             {mode === 'work' ? 'Работа' : 'Отдых'}
           </div>
-          <div className="pomodoro-time">
+          <div className={`text-4xl font-semibold ${modeAccent}`}>
             {formatTime(timeLeft)}
           </div>
-          <div className="pomodoro-cycles">
+          <div className="text-sm text-muted-foreground">
             Цикл: {cycles + 1}
           </div>
         </div>
@@ -82,11 +85,11 @@ export default function PomodoroTimer({}: PomodoroTimerProps) {
         </Button>
       </div>
       
-      <div className="pomodoro-settings">
-        <h3 className="pomodoro-settings-title text-lg font-medium mb-5 text-gray-700">Настройки</h3>
+      <div className="w-full max-w-md rounded-2xl border border-border bg-card p-5 shadow-sm">
+        <h3 className="mb-5 text-lg font-semibold text-foreground">Настройки</h3>
         
-        <div className="pomodoro-settings-row flex items-center justify-between mb-4">
-          <label className="pomodoro-settings-label text-sm text-gray-600">
+        <div className="mb-4 flex items-center justify-between gap-4">
+          <label className="text-sm font-medium text-muted-foreground">
             Длительность работы (мин)
           </label>
           <Input
@@ -101,8 +104,8 @@ export default function PomodoroTimer({}: PomodoroTimerProps) {
           />
         </div>
         
-        <div className="pomodoro-settings-row flex items-center justify-between mb-4">
-          <label className="pomodoro-settings-label text-sm text-gray-600">
+        <div className="flex items-center justify-between gap-4">
+          <label className="text-sm font-medium text-muted-foreground">
             Длительность отдыха (мин)
           </label>
           <Input

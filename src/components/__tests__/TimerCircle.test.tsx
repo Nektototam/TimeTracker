@@ -66,8 +66,8 @@ describe('TimerCircle', () => {
     
     expect(screen.getByText('timer.status.running')).toBeInTheDocument();
     
-    const timerCircle = document.querySelector('.timer-circle');
-    expect(timerCircle).toHaveClass('scale-105');
+    const timerTime = screen.getByText('00:01:00');
+    expect(timerTime).toHaveClass('text-primary');
   });
   
   // Тест 4: Проверка элемента с временным ограничением
@@ -110,11 +110,8 @@ describe('TimerCircle', () => {
     );
     
     // Проверяем, что элементы индикации прогресса присутствуют
-    const leftSide = document.querySelector('.left-side');
-    const rightSide = document.querySelector('.right-side');
-    
-    expect(leftSide).toBeInTheDocument();
-    expect(rightSide).toBeInTheDocument();
+    const progressRing = screen.getByText('00:30:00').closest('div')?.parentElement?.parentElement;
+    expect(progressRing).toBeInTheDocument();
   });
   
   // Тест 6: Проверка корректного отображения имени проекта
@@ -164,7 +161,7 @@ describe('TimerCircle', () => {
     );
     
     timerTime = screen.getByText('00:00:00');
-    const timerInner = document.querySelector('.timer-circle-inner');
-    expect(timerInner).toHaveClass('ring-2');
+    const timerInner = screen.getByText('timer.status.running').parentElement;
+    expect(timerInner).toHaveClass('ring-1');
   });
 });

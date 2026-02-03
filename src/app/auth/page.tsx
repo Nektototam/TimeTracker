@@ -42,73 +42,70 @@ export default function Auth() {
   }
 
   return (
-    <div className="app-container">
-      <div className="screen">
-        <h1 className="text-center text-[#32325d] font-bold text-2xl mb-4">
-          {mode === 'signin' ? 'Вход в TimeTracker' : 'Регистрация в TimeTracker'}
-        </h1>
-        
+    <div className="min-h-screen bg-background flex items-center justify-center px-4 py-10">
+      <div className="w-full max-w-md rounded-2xl border border-border bg-card shadow-app-sm p-6">
+        <div className="mb-6 text-center">
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">TimeTracker</p>
+          <h1 className="text-2xl font-semibold text-foreground">
+            {mode === 'signin' ? 'Вход в TimeTracker' : 'Регистрация в TimeTracker'}
+          </h1>
+        </div>
+
         {message && (
-          <div className="text-center mb-4 p-3 bg-blue-50 text-blue-700 rounded-lg">
+          <div className="mb-4 rounded-lg border border-primary/20 bg-primary/10 px-3 py-2 text-sm text-primary">
             {message}
           </div>
         )}
-        
-        <form onSubmit={handleAuth} className="auth-form">
-          <div className="mb-4">
-            <label className="auth-label">Email</label>
+
+        <form onSubmit={handleAuth} className="space-y-4">
+          <div>
+            <label className="mb-2 block text-sm font-medium text-foreground">Email</label>
             <Input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="auth-input"
               required
               disabled={loading}
               fullWidth
             />
           </div>
-          
-          <div className="mb-4">
-            <label className="auth-label">Пароль</label>
+
+          <div>
+            <label className="mb-2 block text-sm font-medium text-foreground">Пароль</label>
             <Input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="auth-input"
               required
               disabled={loading}
               minLength={6}
               fullWidth
             />
           </div>
-          
+
           {mode === 'signin' && (
-            <div className="mb-6">
-              <div className="flex items-center">
-                <label className="remember-me-container">
-                  <Checkbox
-                    checked={rememberMe}
-                    onChange={(e) => setRememberMe(e.target.checked)}
-                    disabled={loading}
-                  />
-                  <span className="remember-me-text">Запомнить меня на этом устройстве</span>
-                </label>
-              </div>
-            </div>
+            <label className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Checkbox
+                checked={rememberMe}
+                onChange={(e) => setRememberMe(e.target.checked)}
+                disabled={loading}
+              />
+              Запомнить меня на этом устройстве
+            </label>
           )}
-          
+
           <Button
             type="submit"
             disabled={loading}
             variant="primary"
             fullWidth
-            className="py-2"
+            className="h-11"
           >
             {loading ? 'Загрузка...' : (mode === 'signin' ? 'Войти' : 'Зарегистрироваться')}
           </Button>
         </form>
-        
-        <div className="text-center mt-4">
+
+        <div className="mt-6 text-center text-sm text-muted-foreground">
           {mode === 'signin' ? (
             <p>
               Нет аккаунта?{' '}
@@ -116,7 +113,7 @@ export default function Auth() {
                 type="button"
                 variant="link"
                 onClick={() => setMode('signup')}
-                className="p-0 h-auto"
+                className="h-auto p-0"
               >
                 Зарегистрироваться
               </Button>
@@ -128,7 +125,7 @@ export default function Auth() {
                 type="button"
                 variant="link"
                 onClick={() => setMode('signin')}
-                className="p-0 h-auto"
+                className="h-auto p-0"
               >
                 Войти
               </Button>

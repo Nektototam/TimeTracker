@@ -16,12 +16,10 @@ export default function ProtectedRoute({ children }: { children: ReactNode }) {
   
   if (isLoading) {
     return (
-      <div className="app-container">
-        <div className="screen flex justify-center items-center">
-          <div className="text-center">
-            <div className="spinner"></div>
-            <p className="mt-4 text-secondary">Загрузка...</p>
-          </div>
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-center">
+          <div className="h-10 w-10 animate-spin rounded-full border-4 border-muted border-t-primary mx-auto" />
+          <p className="mt-4 text-sm text-muted-foreground">Загрузка...</p>
         </div>
       </div>
     );

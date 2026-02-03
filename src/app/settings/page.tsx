@@ -99,659 +99,273 @@ function SettingsPage() {
       [key]: value
     }));
   };
-  
-  // Сохранение настроек
-  const saveSettings = async () => {
-    if (isLoading) return;
-    
-    setSaveStatus('saving');
-    try {
-      await settingsService.saveAllSettings({
-        pomodoro_work_time: settings.pomodoro_work_time,
-        pomodoro_rest_time: settings.pomodoro_rest_time,
-        pomodoro_long_rest_time: settings.pomodoro_long_rest_time,
-        auto_start: settings.auto_start,
-        round_times: settings.round_times,
-        language: settings.language,
-        data_retention_period: settings.data_retention_period,
-        theme: settings.theme,
-        timeFormat: settings.timeFormat,
-        soundNotifications: settings.soundNotifications,
-        browserNotifications: settings.browserNotifications
-      });
-      setSaveStatus('success');
-      // Сбрасываем статус успеха через 3 секунды
-      setTimeout(() => {
-        setSaveStatus('idle');
-      }, 3000);
-    } catch (error) {
-      console.error('Ошибка сохранения настроек:', error);
-      setSaveStatus('error');
-    }
-  };
-  
-  // Запрос разрешения на уведомления браузера
-  const requestNotificationPermission = async () => {
-    if (typeof window === 'undefined' || !('Notification' in window)) {
-      alert("Этот браузер не поддерживает уведомления");
-      return;
-    }
-    
-    if (Notification.permission === "granted") {
-      alert("Разрешения на уведомления уже предоставлены");
-      return;
-    }
-    
-    try {
-      const permission = await Notification.requestPermission();
-      if (permission === "granted") {
-        updateSettings('browserNotifications', true);
-        // Показать тестовое уведомление
-        new Notification("TimeTracker", {
-          body: "Уведомления успешно включены!"
-        });
-      } else {
-        updateSettings('browserNotifications', false);
-        alert("Уведомления отклонены пользователем");
-      }
-    } catch (error) {
-      console.error("Ошибка запроса разрешений:", error);
-      alert("Не удалось запросить разрешения на уведомления");
-    }
-  };
-  
-  // Экспорт данных
-  const exportData = () => {
-    alert('Функция экспорта данных будет доступна в следующем обновлении');
-  };
-  
-  // Очистка старых записей
-  const cleanOldRecords = async () => {
-    if (isLoading) return;
-    
-    if (confirm('Вы уверены, что хотите очистить все записи старше установленного срока хранения? Это действие необратимо.')) {
-      setCleaningStatus('cleaning');
-      try {
-        await settingsService.cleanOldTimeEntries();
-        setCleaningStatus('success');
-        // Сбрасываем статус успеха через 3 секунды
-        setTimeout(() => {
-          setCleaningStatus('idle');
-        }, 3000);
-      } catch (error) {
-        console.error('Ошибка очистки старых записей:', error);
-        setCleaningStatus('error');
-      }
-    }
-  };
-  
   return (
-    <div className="app-container">
-      <div id="settings-screen" className="screen">
-        <div className="settings-header">
-          <h1>{translate('title')}</h1>
-          {isLoading && <div className="settings-loading">{translate('loading')}</div>}
-        </div>
-        
-        <div className="settings-section slide-up">
-          <h2 className="settings-section-title">{translate('profile')}</h2>
-          
-          <div className="user-profile">
-            <div className="avatar-placeholder">
-              {user?.email?.charAt(0).toUpperCase() || 'U'}
-            </div>
-            <div className="user-info">
-              <div className="user-email">{user?.email || t('user')}</div>
-              <div className="user-id">ID: {user?.id?.substring(0, 8) || t('notLoggedIn')}</div>
-            </div>
-          </div>
-        </div>
-        
-        <div className="settings-section slide-up">
-          <h2 className="settings-section-title">{translate('notifications')}</h2>
-          <p className="settings-section-desc">{translate('deviceOnly')}</p>
-          
-          <div className="settings-item">
-            <div className="settings-item-label">{translate('sound')}</div>
-            <label className="toggle-switch">
-              <Checkbox
-                checked={settings.soundNotifications}
-                onChange={(e) => updateSettings('soundNotifications', e.target.checked)}
-                disabled={isLoading}
-              />
-              <span className="switch-slider"></span>
-            </label>
+    <div className="min-h-screen bg-background">
+      <div className="mx-auto grid max-w-7xl gap-6 px-4 py-6 lg:grid-cols-[240px_1fr]">
+        <aside className="hidden lg:block">
+          <NavBar variant="sidebar" />
+        </aside>
+        <div className="space-y-6 pb-24">
+          <div className="flex items-center justify-between">
+            <h1 className="text-2xl font-semibold text-foreground">{translate('title')}</h1>
+            {isLoading && <div className="text-sm text-muted-foreground">{translate('loading')}</div>}
           </div>
           
-          <div className="settings-item">
-            <div className="settings-item-label">{translate('browser')}</div>
-            <label className="toggle-switch">
-              <Checkbox
-                checked={settings.browserNotifications}
-                onChange={(e) => {
-                  if (e.target.checked && Notification.permission !== "granted") {
-                    requestNotificationPermission();
-                  } else {
-                    updateSettings('browserNotifications', e.target.checked);
-                  }
-                }}
-                disabled={isLoading}
-              />
-              <span className="switch-slider"></span>
-            </label>
-          </div>
-        </div>
-        
-        <div className="settings-section slide-up">
-          <h2 className="settings-section-title">Pomodoro ({t('nav.pomodoro')})</h2>
-          <p className="settings-section-desc">{translate('syncedSettings')}</p>
-          
-          <div className="settings-item">
-            <div className="settings-item-label">{t('pomodoro.workDuration')}</div>
-            <Input
-              type="number"
-              className="settings-input"
-              min="1"
-              max="60"
-              value={settings.pomodoro_work_time}
-              onChange={(e) => updateSettings('pomodoro_work_time', Number(e.target.value))}
-              disabled={isLoading}
-              fullWidth={false}
-            />
-          </div>
-          
-          <div className="settings-item">
-            <div className="settings-item-label">{t('pomodoro.restDuration')}</div>
-            <Input
-              type="number"
-              className="settings-input"
-              min="1"
-              max="30"
-              value={settings.pomodoro_rest_time}
-              onChange={(e) => updateSettings('pomodoro_rest_time', Number(e.target.value))}
-              disabled={isLoading}
-              fullWidth={false}
-            />
-          </div>
-          
-          <div className="settings-item">
-            <div className="settings-item-label">{t('pomodoro.longRestDuration')}</div>
-            <Input
-              type="number"
-              className="settings-input"
-              min="5"
-              max="60"
-              value={settings.pomodoro_long_rest_time}
-              onChange={(e) => updateSettings('pomodoro_long_rest_time', Number(e.target.value))}
-              disabled={isLoading}
-              fullWidth={false}
-            />
-          </div>
-          
-          <div className="settings-item">
-            <div className="settings-item-label">{t('pomodoro.autoStart')}</div>
-            <label className="toggle-switch">
-              <Checkbox
-                checked={settings.auto_start}
-                onChange={(e) => updateSettings('auto_start', e.target.checked)}
-                disabled={isLoading}
-              />
-              <span className="switch-slider"></span>
-            </label>
-          </div>
-        </div>
-        
-        <div className="settings-section slide-up">
-          <h2 className="settings-section-title">{translate('interface')}</h2>
-          
-          <div className="settings-item">
-            <div className="settings-item-label">{translate('theme')}</div>
-            <div className="settings-item-desc">{translate('deviceOnly')}</div>
-            <Select 
-              className="settings-select"
-              value={settings.theme}
-              onChange={(e) => updateSettings('theme', e.target.value)}
-              disabled={isLoading}
-            >
-              <option value="light">{t('themes.light')}</option>
-              <option value="dark">{t('themes.dark')}</option>
-              <option value="system">{t('themes.system')}</option>
-            </Select>
-          </div>
-          
-          <div className="settings-item">
-            <div className="settings-item-label">{translate('language')}</div>
-            <div className="settings-item-desc">{translate('syncedSettings')}</div>
-            <LanguageSwitcher variant="select" className="settings-select" />
-          </div>
-          
-          <div className="settings-item">
-            <div className="settings-item-label">{translate('timeFormat')}</div>
-            <div className="settings-item-desc">{translate('deviceOnly')}</div>
-            <Select 
-              className="settings-select"
-              value={settings.timeFormat}
-              onChange={(e) => updateSettings('timeFormat', e.target.value)}
-              disabled={isLoading}
-            >
-              <option value="24h">24 часа (14:30)</option>
-              <option value="12h">12 часов (2:30 PM)</option>
-            </Select>
-          </div>
-        </div>
-        
-        <div className="settings-section slide-up">
-          <h2 className="settings-section-title">{translate('timeTracking')}</h2>
-          <p className="settings-section-desc">{translate('syncedSettings')}</p>
-          
-          <div className="settings-item">
-            <div className="settings-item-label">{translate('roundTime')}</div>
-            <Select 
-              className="settings-select"
-              value={settings.round_times}
-              onChange={(e) => updateSettings('round_times', e.target.value)}
-              disabled={isLoading}
-            >
-              <option value="off">{translate('noRounding')}</option>
-              <option value="5min">До 5 минут</option>
-              <option value="10min">До 10 минут</option>
-              <option value="15min">До 15 минут</option>
-            </Select>
-          </div>
-        </div>
-        
-        <div className="settings-section slide-up">
-          <h2 className="settings-section-title">{translate('dataAndStorage')}</h2>
-          <p className="settings-section-desc">{translate('storageSettings')}</p>
-          
-          <div className="settings-item">
-            <div className="settings-item-label">{translate('retentionPeriod')}</div>
-            <Select
-              className="settings-select"
-              value={settings.data_retention_period}
-              onChange={(e) => updateSettings('data_retention_period', Number(e.target.value))}
-              disabled={isLoading}
-            >
-              <option value={1}>{t('settings.retention.30days')}</option>
-              <option value={3}>{t('settings.retention.90days')}</option>
-              <option value={6}>{t('settings.retention.180days')}</option>
-              <option value={12}>{t('settings.retention.365days')}</option>
-            </Select>
-          </div>
-          
-          <div className="settings-item">
-            <div className="settings-item-label">{translate('cleanOldRecords')}</div>
-            <Button
-              variant={cleaningStatus === 'cleaning' ? 'outline' : cleaningStatus === 'error' ? 'danger' : cleaningStatus === 'success' ? 'success' : 'secondary'}
-              size="md"
-              rounded="lg"
-              onClick={cleanOldRecords}
-              disabled={isLoading || cleaningStatus === 'cleaning'}
-              isLoading={cleaningStatus === 'cleaning'}
-            >
-              {cleaningStatus === 'idle' && translate('clean')}
-              {cleaningStatus === 'cleaning' && translate('cleaning')}
-              {cleaningStatus === 'success' && translate('cleanSuccess')}
-              {cleaningStatus === 'error' && translate('cleanError')}
-            </Button>
-            <div className="settings-item-description">
-              {translate('deleteOlderThan')}
+          <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
+            <h2 className="mb-4 text-lg font-semibold text-foreground">{translate('profile')}</h2>
+            <div className="flex items-center gap-4">
+              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary text-lg font-semibold text-primary-foreground">
+                {user?.email?.charAt(0).toUpperCase() || 'U'}
+              </div>
+              <div>
+                <div className="font-medium text-foreground">{user?.email || t('user')}</div>
+                <div className="text-xs text-muted-foreground">ID: {user?.id?.substring(0, 8) || t('notLoggedIn')}</div>
+              </div>
             </div>
           </div>
-        </div>
-        
-        <div className="settings-section slide-up">
-          <h2 className="settings-section-title">{translate('workTypes')}</h2>
-          <p className="settings-section-desc">{translate('workTypesDesc')}</p>
           
-          {user && <WorkTypeManager userId={user.id} />}
-        </div>
-        
-        <div className="settings-section slide-up">
-          <h2 className="settings-section-title">{translate('data')}</h2>
+          <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
+            <div className="mb-4">
+              <h2 className="text-lg font-semibold text-foreground">{translate('notifications')}</h2>
+              <p className="text-sm text-muted-foreground">{translate('deviceOnly')}</p>
+            </div>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between border-b border-border pb-4">
+                <div className="text-sm font-medium text-foreground">{translate('sound')}</div>
+                <Checkbox
+                  checked={settings.soundNotifications}
+                  onChange={(e) => updateSettings('soundNotifications', e.target.checked)}
+                  disabled={isLoading}
+                />
+              </div>
+              <div className="flex items-center justify-between">
+                <div className="text-sm font-medium text-foreground">{translate('browser')}</div>
+                <Checkbox
+                  checked={settings.browserNotifications}
+                  onChange={(e) => {
+                    if (e.target.checked && Notification.permission !== "granted") {
+                      requestNotificationPermission();
+                    } else {
+                      updateSettings('browserNotifications', e.target.checked);
+                    }
+                  }}
+                  disabled={isLoading}
+                />
+              </div>
+            </div>
+          </div>
           
-          <div className="flex gap-4">
+          <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
+            <div className="mb-4">
+              <h2 className="text-lg font-semibold text-foreground">Pomodoro ({t('nav.pomodoro')})</h2>
+              <p className="text-sm text-muted-foreground">{translate('syncedSettings')}</p>
+            </div>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between border-b border-border pb-4">
+                <div className="text-sm font-medium text-foreground">{t('pomodoro.workDuration')}</div>
+                <Input
+                  type="number"
+                  className="w-20"
+                  min="1"
+                  max="60"
+                  value={settings.pomodoro_work_time}
+                  onChange={(e) => updateSettings('pomodoro_work_time', Number(e.target.value))}
+                  disabled={isLoading}
+                  fullWidth={false}
+                />
+              </div>
+              <div className="flex items-center justify-between border-b border-border pb-4">
+                <div className="text-sm font-medium text-foreground">{t('pomodoro.restDuration')}</div>
+                <Input
+                  type="number"
+                  className="w-20"
+                  min="1"
+                  max="30"
+                  value={settings.pomodoro_rest_time}
+                  onChange={(e) => updateSettings('pomodoro_rest_time', Number(e.target.value))}
+                  disabled={isLoading}
+                  fullWidth={false}
+                />
+              </div>
+              <div className="flex items-center justify-between border-b border-border pb-4">
+                <div className="text-sm font-medium text-foreground">{t('pomodoro.longRestDuration')}</div>
+                <Input
+                  type="number"
+                  className="w-20"
+                  min="1"
+                  max="60"
+                  value={settings.pomodoro_long_rest_time}
+                  onChange={(e) => updateSettings('pomodoro_long_rest_time', Number(e.target.value))}
+                  disabled={isLoading}
+                  fullWidth={false}
+                />
+              </div>
+              <div className="flex items-center justify-between">
+                <div className="text-sm font-medium text-foreground">{t('pomodoro.autoStart')}</div>
+                <Checkbox
+                  checked={settings.auto_start}
+                  onChange={(e) => updateSettings('auto_start', e.target.checked)}
+                  disabled={isLoading}
+                />
+              </div>
+            </div>
+          </div>
+          
+          <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
+            <h2 className="mb-4 text-lg font-semibold text-foreground">{translate('interface')}</h2>
+            <div className="space-y-4">
+              <div className="border-b border-border pb-4">
+                <div className="text-sm font-medium text-foreground">{translate('theme')}</div>
+                <div className="text-xs text-muted-foreground">{translate('deviceOnly')}</div>
+                <Select
+                  className="mt-2 w-full"
+                  value={settings.theme}
+                  onChange={(e) => updateSettings('theme', e.target.value)}
+                  disabled={isLoading}
+                >
+                  <option value="light">{translate('lightTheme')}</option>
+                  <option value="dark">{translate('darkTheme')}</option>
+                  <option value="system">{translate('systemTheme')}</option>
+                </Select>
+              </div>
+              <div className="border-b border-border pb-4">
+                <div className="text-sm font-medium text-foreground">{translate('language')}</div>
+                <div className="text-xs text-muted-foreground">{translate('syncedSettings')}</div>
+                <LanguageSwitcher variant="select" className="mt-2 w-full" />
+              </div>
+              <div>
+                <div className="text-sm font-medium text-foreground">{translate('timeFormat')}</div>
+                <div className="text-xs text-muted-foreground">{translate('deviceOnly')}</div>
+                <Select
+                  className="mt-2 w-full"
+                  value={settings.timeFormat}
+                  onChange={(e) => updateSettings('timeFormat', e.target.value)}
+                  disabled={isLoading}
+                >
+                  <option value="24h">24 {translate('hours')}</option>
+                  <option value="12h">12 {translate('hours')}</option>
+                </Select>
+              </div>
+            </div>
+          </div>
+          
+          <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
+            <div className="mb-4">
+              <h2 className="text-lg font-semibold text-foreground">{translate('timeTracking')}</h2>
+              <p className="text-sm text-muted-foreground">{translate('syncedSettings')}</p>
+            </div>
+            <div>
+              <div className="text-sm font-medium text-foreground">{translate('roundTime')}</div>
+              <Select
+                className="mt-2 w-full"
+                value={settings.round_times}
+                onChange={(e) => updateSettings('round_times', e.target.value)}
+                disabled={isLoading}
+              >
+                <option value="off">{translate('roundOff')}</option>
+                <option value="5">5 {translate('minutes')}</option>
+                <option value="10">10 {translate('minutes')}</option>
+                <option value="15">15 {translate('minutes')}</option>
+              </Select>
+            </div>
+          </div>
+          
+          <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
+            <div className="mb-4">
+              <h2 className="text-lg font-semibold text-foreground">{translate('dataAndStorage')}</h2>
+              <p className="text-sm text-muted-foreground">{translate('storageSettings')}</p>
+            </div>
+            <div className="space-y-4">
+              <div className="border-b border-border pb-4">
+                <div className="text-sm font-medium text-foreground">{translate('retentionPeriod')}</div>
+                <Select
+                  className="mt-2 w-full"
+                  value={settings.data_retention_period.toString()}
+                  onChange={(e) => updateSettings('data_retention_period', Number(e.target.value))}
+                  disabled={isLoading}
+                >
+                  <option value="1">1 {translate('month')}</option>
+                  <option value="3">3 {translate('months')}</option>
+                  <option value="6">6 {translate('months')}</option>
+                  <option value="12">1 {translate('year')}</option>
+                  <option value="24">2 {translate('years')}</option>
+                  <option value="0">{translate('unlimited')}</option>
+                </Select>
+              </div>
+              <div>
+                <div className="text-sm font-medium text-foreground">{translate('cleanOldRecords')}</div>
+                <Button 
+                  variant={cleaningStatus === 'error' ? 'danger' : 'secondary'}
+                  size="md"
+                  onClick={cleanOldRecords}
+                  disabled={isLoading || cleaningStatus === 'cleaning'}
+                  isLoading={cleaningStatus === 'cleaning'}
+                >
+                  {cleaningStatus === 'idle' && translate('clean')}
+                  {cleaningStatus === 'cleaning' && translate('cleaning')}
+                  {cleaningStatus === 'success' && translate('cleanSuccess')}
+                  {cleaningStatus === 'error' && translate('cleanError')}
+                </Button>
+                <div className="mt-2 text-xs text-muted-foreground">
+                  {translate('cleanDesc')}
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
+            <div className="mb-4">
+              <h2 className="text-lg font-semibold text-foreground">{translate('workTypes')}</h2>
+              <p className="text-sm text-muted-foreground">{translate('workTypesDesc')}</p>
+            </div>
+            {user && <WorkTypeManager userId={user.id} />}
+          </div>
+          
+          <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
+            <div className="mb-4">
+              <h2 className="text-lg font-semibold text-foreground">{translate('data')}</h2>
+              <p className="text-sm text-muted-foreground">{translate('dataDesc')}</p>
+            </div>
+            <div>
+              <div className="text-sm font-medium text-foreground">{translate('exportData')}</div>
+              <Button 
+                variant="secondary"
+                size="md"
+                onClick={exportData}
+                className="mt-2"
+              >
+                {translate('exportData')}
+              </Button>
+            </div>
+          </div>
+          
+          <div className="sticky bottom-4 rounded-2xl border border-border bg-background/90 p-4 shadow-sm backdrop-blur">
             <Button 
-              variant="secondary"
-              onClick={exportData}
-              disabled={isLoading}
-              leftIcon="📥"
+              variant={saveStatus === 'error' ? 'danger' : 'primary'}
+              size="xl"
+              fullWidth={true}
+              rounded="xl"
+              onClick={saveSettings}
+              disabled={isLoading || saveStatus === 'saving'}
+              isLoading={saveStatus === 'saving'}
             >
-              {translate('exportData')}
+              {saveStatus === 'idle' && t('save')}
+              {saveStatus === 'saving' && translate('saving')}
+              {saveStatus === 'success' && translate('saveSuccess')}
+              {saveStatus === 'error' && translate('saveError')}
             </Button>
+            
+            {saveStatus === 'error' && (
+              <div className="mt-2 text-center text-sm text-destructive">
+                {translate('saveError')}
+              </div>
+            )}
           </div>
         </div>
-          
-        <div className="settings-save-section">
-          <Button 
-            variant={saveStatus === 'error' ? 'danger' : 'primary'}
-            size="xl"
-            fullWidth={true}
-            rounded="xl"
-            onClick={saveSettings}
-            disabled={isLoading || saveStatus === 'saving'}
-            isLoading={saveStatus === 'saving'}
-          >
-            {saveStatus === 'idle' && t('save')}
-            {saveStatus === 'saving' && translate('saving')}
-            {saveStatus === 'success' && translate('saveSuccess')}
-            {saveStatus === 'error' && translate('saveError')}
-          </Button>
-          
-          {saveStatus === 'error' && (
-            <div className="settings-error-message">
-              {translate('saveError')}
-            </div>
-          )}
-        </div>
-        
+      </div>
+      <div className="lg:hidden">
         <NavBar />
       </div>
-      
-      <style jsx>{`
-        .app-container {
-          width: 100%;
-          max-width: 800px;
-          margin: 0 auto;
-          padding: 20px;
-        }
-        
-        .screen {
-          padding-bottom: 100px;
-        }
-        
-        .settings-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 30px;
-        }
-        
-        .settings-header h1 {
-          font-size: 24px;
-          color: var(--text-color);
-          margin: 0;
-        }
-        
-        .settings-loading {
-          font-size: 14px;
-          color: var(--secondary-text-color);
-        }
-        
-        .settings-section {
-          margin-bottom: 30px;
-          background-color: var(--bg-card);
-          border-radius: 12px;
-          padding: 20px;
-          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-        }
-        
-        .settings-section-title {
-          font-size: 18px;
-          margin-top: 0;
-          margin-bottom: 15px;
-          color: var(--text-color);
-        }
-        
-        .settings-section-desc {
-          font-size: 14px;
-          color: var(--secondary-text-color);
-          margin-bottom: 20px;
-        }
-        
-        .settings-item {
-          margin-bottom: 15px;
-          padding-bottom: 15px;
-          border-bottom: 1px solid var(--border-color);
-        }
-        
-        .settings-item:last-child {
-          border-bottom: none;
-          margin-bottom: 0;
-          padding-bottom: 0;
-        }
-        
-        .settings-item-label {
-          font-weight: 500;
-          color: var(--text-color);
-          margin-bottom: 5px;
-        }
-        
-        .settings-item-desc {
-          font-size: 12px;
-          color: var(--secondary-text-color);
-          margin-bottom: 10px;
-        }
-        
-        .settings-input {
-          width: 60px;
-          padding: 8px;
-          border: 1px solid var(--border-color);
-          border-radius: 6px;
-          background-color: var(--bg-input);
-          color: var(--text-color);
-          font-size: 14px;
-        }
-        
-        .settings-select {
-          width: 100%;
-          padding: 10px;
-          border: 1px solid var(--border-color);
-          border-radius: 6px;
-          background-color: var(--bg-input);
-          color: var(--text-color);
-          font-size: 14px;
-          margin-top: 5px;
-        }
-        
-        .toggle-switch {
-          position: relative;
-          display: inline-block;
-          width: 50px;
-          height: 24px;
-          margin-top: 5px;
-        }
-        
-        .toggle-switch input {
-          opacity: 0;
-          width: 0;
-          height: 0;
-        }
-        
-        .switch-slider {
-          position: absolute;
-          cursor: pointer;
-          top: 0;
-          left: 0;
-          right: 0;
-          bottom: 0;
-          background-color: #ccc;
-          transition: .4s;
-          border-radius: 24px;
-        }
-        
-        .switch-slider:before {
-          position: absolute;
-          content: "";
-          height: 18px;
-          width: 18px;
-          left: 3px;
-          bottom: 3px;
-          background-color: white;
-          transition: .4s;
-          border-radius: 50%;
-        }
-        
-        input:checked + .switch-slider {
-          background-color: var(--primary-color);
-        }
-        
-        input:disabled + .switch-slider {
-          opacity: 0.5;
-          cursor: not-allowed;
-        }
-        
-        input:checked + .switch-slider:before {
-          transform: translateX(26px);
-        }
-        
-        .settings-button {
-          display: inline-flex;
-          align-items: center;
-          padding: 10px 15px;
-          background-color: var(--primary-color);
-          color: white;
-          border: none;
-          border-radius: 6px;
-          font-size: 14px;
-          cursor: pointer;
-          transition: background-color 0.2s;
-        }
-        
-        .settings-button:hover {
-          background-color: var(--primary-color-hover);
-        }
-        
-        .settings-button:disabled {
-          opacity: 0.5;
-          cursor: not-allowed;
-        }
-        
-        .settings-button-icon {
-          margin-right: 8px;
-          font-size: 16px;
-        }
-        
-        .settings-button-loading {
-          background-color: var(--primary-color-light);
-        }
-        
-        .settings-button-success {
-          background-color: var(--success-color);
-        }
-        
-        .settings-button-error {
-          background-color: var(--error-color);
-        }
-        
-        .settings-buttons {
-          display: flex;
-          gap: 10px;
-          flex-wrap: wrap;
-        }
-        
-        .settings-item-description {
-          font-size: 12px;
-          color: var(--secondary-text-color);
-          margin-top: 8px;
-        }
-        
-        .settings-save-section {
-          position: fixed;
-          bottom: 70px;
-          left: 0;
-          right: 0;
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          padding: 15px;
-          background-color: var(--bg-color);
-          box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
-          z-index: 10;
-        }
-        
-        .settings-save-button {
-          padding: 12px 30px;
-          background-color: var(--primary-color);
-          color: white;
-          border: none;
-          border-radius: 30px;
-          font-size: 16px;
-          font-weight: 500;
-          cursor: pointer;
-          transition: background-color 0.2s;
-          min-width: 150px;
-          text-align: center;
-        }
-        
-        .settings-save-button:hover {
-          background-color: var(--primary-color-hover);
-        }
-        
-        .settings-save-button:disabled {
-          opacity: 0.5;
-          cursor: not-allowed;
-        }
-        
-        .settings-saving {
-          background-color: var(--primary-color-light);
-        }
-        
-        .settings-save-success {
-          background-color: var(--success-color);
-        }
-        
-        .settings-save-error {
-          background-color: var(--error-color);
-        }
-        
-        .settings-error-message {
-          color: var(--error-color);
-          text-align: center;
-          margin-top: 10px;
-          font-size: 14px;
-        }
-        
-        .user-profile {
-          display: flex;
-          align-items: center;
-          gap: 15px;
-          margin-bottom: 15px;
-        }
-        
-        .avatar-placeholder {
-          width: 60px;
-          height: 60px;
-          border-radius: 50%;
-          background-color: var(--primary-color);
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          color: white;
-          font-size: 24px;
-          font-weight: bold;
-        }
-        
-        .user-info {
-          flex: 1;
-        }
-        
-        .user-email {
-          font-weight: 500;
-          color: var(--text-color);
-          margin-bottom: 5px;
-        }
-        
-        .user-id {
-          font-size: 12px;
-          color: var(--secondary-text-color);
-        }
-        
-        .slide-up {
-          animation: slideUp 0.3s ease;
-        }
-        
-        @keyframes slideUp {
-          from {
-            opacity: 0;
-            transform: translateY(20px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-      `}</style>
     </div>
   );
 }

@@ -47,7 +47,7 @@ const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
   // Селект для переключения языка
   return (
     <Select
-      className={`language-switcher-select ${className}`}
+      className={`w-full max-w-[220px] ${className}`}
       value={currentLanguage}
       onChange={(e) => handleLanguageChange(e.target.value)}
       aria-label={t('settings.language')}

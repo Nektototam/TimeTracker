@@ -6,7 +6,7 @@ interface LayoutProps {
 
 export default function Layout({ children }: LayoutProps) {
   return (
-    <div className="app-container">
+    <div className="min-h-screen bg-background">
       {children}
     </div>
   );

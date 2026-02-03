@@ -190,46 +190,46 @@ const DailyTimelineView: React.FC<DailyTimelineViewProps> = ({
     
     // Предопределенные цвета для стандартных типов
     switch (projectType) {
-      case 'development': return 'var(--primary-color)';
-      case 'design': return 'var(--success-color)';
-      case 'marketing': return 'var(--warning-color)';
-      case 'meeting': return 'var(--danger-color)';
-      case 'other': return 'var(--info-color)';
+      case 'development': return 'hsl(230 74% 62%)';
+      case 'design': return 'hsl(142 71% 45%)';
+      case 'marketing': return 'hsl(38 92% 50%)';
+      case 'meeting': return 'hsl(0 84% 60%)';
+      case 'other': return 'hsl(199 89% 48%)';
       default: {
         // Для пользовательских типов генерируем цвет на основе хеша
         const hash = hashCode(projectType);
         const hue = Math.abs(hash % 360);
-        return `hsl(${hue}, 70%, 60%)`;
+        return `hsl(${hue} 70% 60%)`;
       }
     }
   };
+
+  const getProjectBackground = (projectType: string): string => {
+    const color = getProjectColor(projectType);
+    return color.replace(')', ' / 0.12)');
+  };
   
   return (
-    <div className="daily-timeline-view">
+    <div className="space-y-10">
       {days && days.length > 0 ? (
         days
           .filter(day => day.totalDuration >= 60)
           .map((day, dayIndex) => (
-            <div key={day.date.toISOString()} className="day-container mb-12 last:mb-0">
+            <div key={day.date.toISOString()} className="space-y-6">
               {/* Простой стильный разделитель между днями */}
               {dayIndex > 0 && (
-                <div className="day-separator mb-8 mt-4">
-                  <div className="h-[3px] bg-gradient-to-r from-transparent via-gray-300 to-transparent w-full"></div>
+                <div className="mb-8 mt-4">
+                  <div className="h-[3px] w-full bg-gradient-to-r from-transparent via-border to-transparent"></div>
                 </div>
               )}
               
-              <div className="day-header flex justify-between items-center mb-6 rounded-xl shadow-sm border-t border-l border-[#ffffff50]" 
-                   style={{ 
-                     transition: 'var(--transition)',
-                     background: 'white',
-                     padding: '16px'
-                   }}>
-                <div className="day-date font-semibold text-lg">{formatDate(day.date)}</div>
-                <div className="day-total text-primary-color font-medium">Всего: {formatTime(day.totalDuration)}</div>
+              <div className="flex items-center justify-between rounded-xl border border-border bg-card px-4 py-3 shadow-sm">
+                <div className="text-base font-semibold text-foreground">{formatDate(day.date)}</div>
+                <div className="text-sm font-medium text-primary">Всего: {formatTime(day.totalDuration)}</div>
               </div>
               
               {/* Список активностей по дню в неоморфном стиле без часовых меток */}
-              <div className="day-entries mt-4 space-y-4">
+              <div className="space-y-4">
                 {(() => {
                   // Дополнительная фильтрация непосредственно перед отображением
                   const filteredBlocks = day.blocks.filter(block => {
@@ -259,39 +259,26 @@ const DailyTimelineView: React.FC<DailyTimelineViewProps> = ({
                   return filteredBlocks
                     .sort((a, b) => a.startTime.getTime() - b.startTime.getTime())
                     .map((block, index) => (
-                      <div 
-                        key={block.id} 
-                        className="day-entry p-4 rounded-[12px] shadow-sm border border-[#0000001a] flex justify-between"
-                        style={{ 
+                      <div
+                        key={block.id}
+                        className="flex items-start justify-between rounded-xl border border-border p-4 shadow-sm"
+                        style={{
                           marginBottom: index !== filteredBlocks.length - 1 ? '16px' : '0',
-                          backgroundColor: 
-                            block.projectType === 'development' ? 'rgba(79, 110, 247, 0.12)' : 
-                            block.projectType === 'design' ? 'rgba(16, 185, 129, 0.12)' : 
-                            block.projectType === 'marketing' ? 'rgba(245, 158, 11, 0.12)' : 
-                            block.projectType === 'meeting' ? 'rgba(239, 68, 68, 0.12)' : 
-                            block.projectType === 'other' ? 'rgba(14, 165, 233, 0.12)' :
-                            `rgba(${getProjectColor(block.projectType)}, 0.12)`,
-                          transition: 'var(--transition)'
+                          backgroundColor: getProjectBackground(block.projectType)
                         }}
                       >
                         <div className="flex flex-col">
-                          <div className="entry-time text-secondary-text-color text-sm mb-1 font-medium">
+                          <div className="text-sm font-medium text-muted-foreground">
                             {formatTimeOfDay(block.startTime)} - {formatTimeOfDay(block.endTime)}
                           </div>
-                          <div className="entry-type font-semibold text-dark-color">
+                          <div className="font-semibold text-foreground">
                             {block.projectName}
                           </div>
                         </div>
-                        <div className="entry-duration font-bold self-center" 
-                          style={{ 
-                            color: 
-                              block.projectType === 'development' ? 'var(--primary-color)' : 
-                              block.projectType === 'design' ? 'var(--success-color)' : 
-                              block.projectType === 'marketing' ? 'var(--warning-color)' : 
-                              block.projectType === 'meeting' ? 'var(--error-color)' : 
-                              block.projectType === 'other' ? 'var(--info-color)' :
-                              getProjectColor(block.projectType)
-                          }}>
+                        <div
+                          className="self-center font-semibold"
+                          style={{ color: getProjectColor(block.projectType) }}
+                        >
                           {formatTime(block.duration)}
                         </div>
                       </div>
@@ -301,7 +288,7 @@ const DailyTimelineView: React.FC<DailyTimelineViewProps> = ({
             </div>
           ))
       ) : (
-        <div className="daily-timeline-empty text-center py-6 text-secondary-text-color">
+        <div className="py-6 text-center text-sm text-muted-foreground">
           Нет данных за выбранный период
         </div>
       )}

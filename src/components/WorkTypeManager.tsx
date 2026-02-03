@@ -92,46 +92,52 @@ export default function WorkTypeManager({ userId }: WorkTypeManagerProps) {
   };
 
   if (isLoading) {
-    return <div className="loading">Загрузка типов работ...</div>;
+    return <div className="text-sm text-muted-foreground">Загрузка типов работ...</div>;
   }
 
   if (error) {
-    return <div className="error">Ошибка загрузки типов работ: {error.message}</div>;
+    return <div className="text-sm text-destructive">Ошибка загрузки типов работ: {error.message}</div>;
   }
 
   return (
-    <div className="work-type-manager">
-      <div className="standard-types">
-        <h3>{translate('standardTypes')}</h3>
-        <ul className="type-list">
+    <div className="space-y-6">
+      <div className="space-y-3">
+        <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+          {translate('standardTypes')}
+        </h3>
+        <ul className="space-y-2">
           {standardTypes.map(type => (
-            <li key={type.id} className="type-item">
-              <span className="type-name">{type.name}</span>
-              <span className="type-badge standard">{translate('standard')}</span>
+            <li key={type.id} className="flex items-center justify-between rounded-lg border border-border bg-muted/40 px-4 py-2">
+              <span className="text-sm font-medium text-foreground">{type.name}</span>
+              <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
+                {translate('standard')}
+              </span>
             </li>
           ))}
         </ul>
       </div>
       
-      <div className="custom-types">
-        <h3>{translate('customTypes')}</h3>
+      <div className="space-y-3">
+        <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+          {translate('customTypes')}
+        </h3>
         {projectTypes.length === 0 ? (
-          <p className="no-types">У вас пока нет пользовательских типов работ</p>
+          <p className="text-sm text-muted-foreground">У вас пока нет пользовательских типов работ</p>
         ) : (
-          <ul className="type-list">
+          <ul className="space-y-2">
             {projectTypes.map(type => (
-              <li key={type.id} className="type-item">
+              <li key={type.id} className="rounded-lg border border-border bg-card px-4 py-2">
                 {editMode && editMode.id === type.id ? (
-                  <form onSubmit={handleUpdateType} className="edit-form">
+                  <form onSubmit={handleUpdateType} className="flex w-full items-center gap-2">
                     <Input
                       type="text"
                       value={editMode.name}
                       onChange={(e) => setEditMode({ ...editMode, name: e.target.value })}
-                      className="type-input"
+                      className="flex-1"
                       autoFocus
                       fullWidth
                     />
-                    <div className="type-actions">
+                    <div className="flex items-center gap-2">
                       <Button 
                         variant="success" 
                         size="sm" 
@@ -152,8 +158,9 @@ export default function WorkTypeManager({ userId }: WorkTypeManagerProps) {
                   </form>
                 ) : (
                   <>
-                    <span className="type-name">{type.name}</span>
-                    <div className="type-actions">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium text-foreground">{type.name}</span>
+                      <div className="flex items-center gap-2">
                       <Button 
                         variant="secondary"
                         size="sm"
@@ -170,6 +177,7 @@ export default function WorkTypeManager({ userId }: WorkTypeManagerProps) {
                       >
                         {t('delete')}
                       </Button>
+                      </div>
                     </div>
                   </>
                 )}
@@ -179,16 +187,18 @@ export default function WorkTypeManager({ userId }: WorkTypeManagerProps) {
         )}
         
         {deleteError && (
-          <div className="error-message">{deleteError}</div>
+          <div className="rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+            {deleteError}
+          </div>
         )}
         
-        <form onSubmit={handleAddType} className="add-type-form">
+        <form onSubmit={handleAddType} className="flex flex-col gap-2 sm:flex-row">
           <Input
             type="text"
             value={newTypeName}
             onChange={(e) => setNewTypeName(e.target.value)}
             placeholder={translate('addWorkType')}
-            className="type-input"
+            className="flex-1"
             fullWidth
           />
           <Button 
@@ -202,136 +212,6 @@ export default function WorkTypeManager({ userId }: WorkTypeManagerProps) {
           </Button>
         </form>
       </div>
-      
-      <style jsx>{`
-        .work-type-manager {
-          margin-top: 15px;
-        }
-        
-        .standard-types, .custom-types {
-          margin-bottom: 24px;
-        }
-        
-        h3 {
-          font-size: 16px;
-          margin-bottom: 10px;
-          color: #444;
-        }
-        
-        .type-list {
-          list-style: none;
-          padding: 0;
-        }
-        
-        .type-item {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          padding: 10px 15px;
-          background-color: #f8f9fe;
-          border-radius: 8px;
-          margin-bottom: 8px;
-        }
-        
-        .type-name {
-          font-weight: 500;
-        }
-        
-        .type-badge {
-          font-size: 12px;
-          padding: 2px 8px;
-          border-radius: 4px;
-          background-color: #e1e5f7;
-          color: #5266c4;
-        }
-        
-        .type-actions {
-          display: flex;
-          gap: 8px;
-        }
-        
-        .btn-edit, .btn-delete, .btn-save, .btn-cancel, .btn-add {
-          padding: 5px 10px;
-          border-radius: 6px;
-          border: none;
-          font-size: 13px;
-          cursor: pointer;
-          transition: background-color 0.2s;
-        }
-        
-        .btn-edit {
-          background-color: #e1e5f7;
-          color: #5266c4;
-        }
-        
-        .btn-delete {
-          background-color: #ffe5e5;
-          color: #e54d4d;
-        }
-        
-        .btn-save {
-          background-color: #5266c4;
-          color: white;
-        }
-        
-        .btn-cancel {
-          background-color: #f0f0f0;
-          color: #666;
-        }
-        
-        .btn-add {
-          background-color: #5266c4;
-          color: white;
-          padding: 8px 16px;
-          font-size: 14px;
-        }
-        
-        .btn-add:disabled {
-          opacity: 0.5;
-          cursor: not-allowed;
-        }
-        
-        .type-input {
-          padding: 8px 12px;
-          border-radius: 6px;
-          border: 1px solid #ddd;
-          flex-grow: 1;
-          font-size: 14px;
-        }
-        
-        .add-type-form {
-          display: flex;
-          gap: 10px;
-          margin-top: 15px;
-        }
-        
-        .edit-form {
-          display: flex;
-          width: 100%;
-          justify-content: space-between;
-          gap: 10px;
-        }
-        
-        .no-types {
-          color: #888;
-          font-style: italic;
-        }
-        
-        .error-message {
-          color: #e54d4d;
-          margin: 10px 0;
-          padding: 8px 12px;
-          background-color: #ffe5e5;
-          border-radius: 6px;
-          font-size: 14px;
-        }
-        
-        .loading, .error {
-          padding: 20px 0;
-          color: #666;
-          font-style: italic;
-        }
-      `}</style>
     </div>
   );
 } 

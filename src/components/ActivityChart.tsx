@@ -158,14 +158,9 @@ const ActivityChart: React.FC<ActivityChartProps> = ({
   // Если мы на сервере, показываем заполнитель
   if (!isClient) {
     return (
-      <div 
-        className="chart-container"
-        style={{
-          height: `${height}px`,
-          width: '100%',
-          backgroundColor: 'rgba(94, 114, 228, 0.05)',
-          borderRadius: '12px'
-        }}
+      <div
+        className="w-full rounded-xl bg-primary/5"
+        style={{ height: `${height}px` }}
       ></div>
     );
   }
@@ -173,17 +168,9 @@ const ActivityChart: React.FC<ActivityChartProps> = ({
   // Если нет данных, показываем сообщение
   if (data.length === 0) {
     return (
-      <div 
-        className="chart-empty-state"
-        style={{
-          height: `${height}px`,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          backgroundColor: 'rgba(94, 114, 228, 0.05)',
-          borderRadius: '12px',
-          color: '#666'
-        }}
+      <div
+        className="flex w-full items-center justify-center rounded-xl bg-primary/5 text-sm text-muted-foreground"
+        style={{ height: `${height}px` }}
       >
         Нет данных для отображения
       </div>
@@ -191,26 +178,13 @@ const ActivityChart: React.FC<ActivityChartProps> = ({
   }
   
   return (
-    <div 
-      className="chart-container" 
-      style={{ 
-        position: 'relative',
-        height: `${height}px`,
-        width: '100%',
-        backgroundColor: 'rgba(94, 114, 228, 0.05)',
-        borderRadius: '12px',
-        overflow: 'hidden'
-      }}
+    <div
+      className="relative w-full overflow-hidden rounded-xl bg-primary/5"
+      style={{ height: `${height}px` }}
     >
-      <canvas 
+      <canvas
         ref={canvasRef}
-        style={{ 
-          position: 'absolute', 
-          top: 0, 
-          left: 0, 
-          width: '100%', 
-          height: '100%' 
-        }}
+        style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}
       />
     </div>
   );
