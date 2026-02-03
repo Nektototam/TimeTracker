@@ -30,7 +30,18 @@
     "searchCommands": "Search commands...",
     "navigate": "navigate",
     "select": "select",
-    "close": "close"
+    "close": "close",
+    "projects": "Projects",
+    "searchProjects": "Search projects...",
+    "newEntry": "New entry",
+    "startTimer": "Start timer",
+    "overview": "Overview",
+    "trackTime": "Track your time with a modern workflow.",
+    "today": "Today",
+    "newProjectName": "Project name",
+    "noProjects": "No projects yet. Create your first project!",
+    "noProjectsFound": "No projects found",
+    "manageProjects": "Manage projects"
   },
 
   "common": {

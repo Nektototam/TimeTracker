@@ -9,7 +9,8 @@ const settingsSchema = z.object({
   autoStart: z.boolean(),
   roundTimes: z.string(),
   language: z.string(),
-  dataRetentionPeriod: z.number().int().min(1).max(36)
+  dataRetentionPeriod: z.number().int().min(1).max(36),
+  activeProjectId: z.string().uuid().nullable().optional()
 });
 
 function getUserId(request: any) {
@@ -23,11 +24,12 @@ const defaultSettings = {
   autoStart: false,
   roundTimes: "off",
   language: "ru",
-  dataRetentionPeriod: 3
+  dataRetentionPeriod: 3,
+  activeProjectId: null as string | null
 };
 
 export async function settingsRoutes(app: FastifyInstance) {
-  app.get("/", { preHandler: app.authenticate }, async (request: FastifyRequest) => {
+  app.get("/", { preHandler: [app.authenticate] }, async (request: FastifyRequest) => {
     const userId = getUserId(request);
     if (!userId) return { settings: defaultSettings };
 
@@ -45,7 +47,7 @@ export async function settingsRoutes(app: FastifyInstance) {
     return { settings: existing };
   });
 
-  app.put("/", { preHandler: app.authenticate }, async (request: FastifyRequest, reply: FastifyReply) => {
+  app.put("/", { preHandler: [app.authenticate] }, async (request: FastifyRequest, reply: FastifyReply) => {
     const userId = getUserId(request);
     if (!userId) return reply.code(401).send({ error: "Unauthorized" });
 
@@ -55,6 +57,15 @@ export async function settingsRoutes(app: FastifyInstance) {
     }
 
     const data = parsed.data;
+
+    // Verify activeProjectId belongs to user if provided
+    if (data.activeProjectId) {
+      const project = await prisma.project.findUnique({ where: { id: data.activeProjectId } });
+      if (!project || project.userId !== userId) {
+        return reply.code(400).send({ error: "Invalid project" });
+      }
+    }
+
     const settings = await prisma.userSettings.upsert({
       where: { userId },
       create: { userId, ...data },
@@ -64,7 +75,7 @@ export async function settingsRoutes(app: FastifyInstance) {
     return reply.send({ settings });
   });
 
-  app.post("/cleanup", { preHandler: app.authenticate }, async (request: FastifyRequest, reply: FastifyReply) => {
+  app.post("/cleanup", { preHandler: [app.authenticate] }, async (request: FastifyRequest, reply: FastifyReply) => {
     const userId = getUserId(request);
     if (!userId) return reply.code(401).send({ error: "Unauthorized" });
 
@@ -74,9 +85,17 @@ export async function settingsRoutes(app: FastifyInstance) {
     const cutoff = new Date();
     cutoff.setMonth(cutoff.getMonth() - retentionMonths);
 
+    // Get all user's projects
+    const userProjects = await prisma.project.findMany({
+      where: { userId },
+      select: { id: true }
+    });
+    const projectIds = userProjects.map(p => p.id);
+
+    // Delete old entries from all user's projects
     await prisma.timeEntry.deleteMany({
       where: {
-        userId,
+        projectId: { in: projectIds },
         startTime: { lt: cutoff }
       }
     });

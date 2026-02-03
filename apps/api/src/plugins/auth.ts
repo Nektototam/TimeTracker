@@ -1,4 +1,5 @@
 import { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
+import fp from "fastify-plugin";
 import "@fastify/jwt";
 
 declare module "fastify" {
@@ -16,13 +17,20 @@ declare module "@fastify/jwt" {
   }
 }
 
-export async function authPlugin(app: FastifyInstance) {
-  app.decorate("authenticate", async (request, reply) => {
+async function authPluginImpl(app: FastifyInstance) {
+  app.log.info("Auth plugin registered");
+
+  app.decorate("authenticate", async (request: FastifyRequest, reply: FastifyReply) => {
     try {
       await request.jwtVerify();
     } catch (error) {
-      app.log.error(error, "JWT verification failed");
-      reply.code(401).send({ error: "Unauthorized" });
+      app.log.error({ error, message: (error as Error).message }, "JWT verification failed");
+      return reply.code(401).send({ error: "Unauthorized" });
     }
   });
 }
+
+export const authPlugin = fp(authPluginImpl, {
+  name: "auth-plugin",
+  dependencies: ["@fastify/jwt"]
+});

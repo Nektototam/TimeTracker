@@ -7,7 +7,8 @@ import { healthRoutes } from "./routes/health";
 import { authRoutes } from "./routes/auth";
 import { timeEntriesRoutes } from "./routes/timeEntries";
 import { settingsRoutes } from "./routes/settings";
-import { projectTypesRoutes } from "./routes/projectTypes";
+import { projectsRoutes } from "./routes/projects";
+import { workTypesRoutes } from "./routes/workTypes";
 import { reportsRoutes } from "./routes/reports";
 import { authPlugin } from "./plugins/auth";
 
@@ -39,9 +40,10 @@ export async function buildServer() {
 
   await app.register(healthRoutes, { prefix: "/health" });
   await app.register(authRoutes, { prefix: "/auth" });
+  await app.register(projectsRoutes, { prefix: "/projects" });
+  await app.register(workTypesRoutes, { prefix: "/work-types" });
   await app.register(timeEntriesRoutes, { prefix: "/time-entries" });
   await app.register(settingsRoutes, { prefix: "/settings" });
-  await app.register(projectTypesRoutes, { prefix: "/project-types" });
   await app.register(reportsRoutes, { prefix: "/reports" });
 
   return app;

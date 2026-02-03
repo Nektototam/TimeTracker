@@ -50,40 +50,84 @@ function getDateRange(period: PeriodType, startCustom?: string, endCustom?: stri
 }
 
 export async function reportsRoutes(app: FastifyInstance) {
-  app.get("/", { preHandler: app.authenticate }, async (request: FastifyRequest) => {
+  app.get("/", { preHandler: [app.authenticate] }, async (request: FastifyRequest) => {
     const userId = getUserId(request);
     if (!userId) return { items: [], totalDuration: 0, projectSummaries: [] };
 
     const query = request.query as { period?: PeriodType; startDate?: string; endDate?: string };
     const { start, end } = getDateRange(query.period || "week", query.startDate, query.endDate);
 
+    // Get all user's projects
+    const userProjects = await prisma.project.findMany({
+      where: { userId },
+      select: { id: true, name: true, color: true }
+    });
+    const projectIds = userProjects.map(p => p.id);
+    const projectMap = new Map(userProjects.map(p => [p.id, p]));
+
+    // Get entries from all user's projects
     const entries = await prisma.timeEntry.findMany({
       where: {
-        userId,
+        projectId: { in: projectIds },
         startTime: { gte: start, lte: end }
+      },
+      include: {
+        project: true,
+        workType: true
       },
       orderBy: { startTime: "desc" }
     });
 
     let totalDuration = 0;
-    const groups: Record<string, typeof entries> = {};
+    const projectGroups: Record<string, {
+      project: { id: string; name: string; color: string };
+      entries: typeof entries;
+      totalDuration: number;
+      workTypeSummaries: Record<string, { workType: any; duration: number; entries: any[] }>;
+    }> = {};
 
-    entries.forEach((entry: { projectType: string; durationMs: number }) => {
+    entries.forEach((entry) => {
       totalDuration += entry.durationMs;
-      groups[entry.projectType] = groups[entry.projectType] || [];
-      groups[entry.projectType].push(entry as any);
+
+      if (!projectGroups[entry.projectId]) {
+        const project = projectMap.get(entry.projectId)!;
+        projectGroups[entry.projectId] = {
+          project: { id: project.id, name: project.name, color: project.color },
+          entries: [],
+          totalDuration: 0,
+          workTypeSummaries: {}
+        };
+      }
+
+      const group = projectGroups[entry.projectId];
+      group.entries.push(entry);
+      group.totalDuration += entry.durationMs;
+
+      // Group by work type within project
+      const workTypeKey = entry.workTypeId || "uncategorized";
+      if (!group.workTypeSummaries[workTypeKey]) {
+        group.workTypeSummaries[workTypeKey] = {
+          workType: entry.workType || { id: "uncategorized", name: "Uncategorized", color: "#9ca3af" },
+          duration: 0,
+          entries: []
+        };
+      }
+      group.workTypeSummaries[workTypeKey].duration += entry.durationMs;
+      group.workTypeSummaries[workTypeKey].entries.push(entry);
     });
 
-    const projectSummaries = Object.keys(groups).map((projectType) => {
-      const items = groups[projectType] as Array<{ durationMs: number }>;
-      const duration = items.reduce((sum: number, item) => sum + item.durationMs, 0);
-      return {
-        projectType,
-        totalDuration: duration,
-        percentage: totalDuration ? Math.round((duration / totalDuration) * 100) : 0,
-        entries: items
-      };
-    });
+    const projectSummaries = Object.values(projectGroups).map((group) => ({
+      project: group.project,
+      totalDuration: group.totalDuration,
+      percentage: totalDuration ? Math.round((group.totalDuration / totalDuration) * 100) : 0,
+      workTypes: Object.values(group.workTypeSummaries).map((wt) => ({
+        workType: wt.workType,
+        duration: wt.duration,
+        percentage: group.totalDuration ? Math.round((wt.duration / group.totalDuration) * 100) : 0,
+        entriesCount: wt.entries.length
+      })),
+      entriesCount: group.entries.length
+    }));
 
     return {
       startDate: start,

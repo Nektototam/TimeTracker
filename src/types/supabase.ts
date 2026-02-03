@@ -1,58 +1,58 @@
-// Типы данных для работы с Supabase
+// Типы данных для работы с API
+
+// Проект
+export interface Project {
+  id: string;
+  user_id: string;
+  name: string;
+  color: string;
+  description?: string;
+  status: "active" | "archived";
+  created_at?: string;
+  updated_at?: string;
+}
+
+// Тип работы (внутри проекта)
+export interface WorkType {
+  id: string;
+  project_id: string;
+  name: string;
+  color: string;
+  description?: string;
+  status: "active" | "archived";
+  time_goal_ms?: number;
+  created_at?: string;
+  updated_at?: string;
+}
 
 // Запись о времени
 export interface TimeEntry {
-  id?: string; // Автоматически создается в Supabase
-  user_id: string; // ID пользователя
-  project_type: string; // Тип работы (development, design и т.д.)
-  start_time: string | Date; // Время начала
-  end_time: string | Date; // Время окончания
+  id?: string;
+  project_id: string;
+  work_type_id?: string;
+  start_time: string | Date;
+  end_time: string | Date;
   duration: number; // Длительность в миллисекундах
-  description?: string; // Описание
-  created_at?: string; // Автоматически создается в Supabase
+  description?: string;
+  created_at?: string;
   time_limit?: number; // Ограничение времени работы над задачей в миллисекундах
+  // Связанные объекты
+  project?: Project;
+  work_type?: WorkType;
 }
 
 // Настройки пользователя
 export interface UserSettings {
   id?: string;
   user_id: string;
-  work_duration: number; // Длительность рабочего периода (помидора) в минутах
-  rest_duration: number; // Длительность перерыва в минутах
-  notifications_enabled: boolean; // Включены ли уведомления
-  notification_sound: string; // Звук уведомления
-  theme: string; // Тема оформления
+  active_project_id?: string;
+  pomodoro_work_time: number;
+  pomodoro_rest_time: number;
+  pomodoro_long_rest_time: number;
+  auto_start: boolean;
+  round_times: string;
+  language: string;
+  data_retention_period: number;
   created_at?: string;
   updated_at?: string;
 }
-
-// Пользовательский тип работы
-export interface CustomProjectType {
-  id?: string;
-  user_id: string;
-  name: string; // Название типа
-  created_at?: string;
-}
-
-// Тип для определения структуры базы данных Supabase
-export interface Database {
-  public: {
-    Tables: {
-      time_entries: {
-        Row: TimeEntry;
-        Insert: Omit<TimeEntry, 'id' | 'created_at'>;
-        Update: Partial<Omit<TimeEntry, 'id' | 'created_at'>>;
-      };
-      user_settings: {
-        Row: UserSettings;
-        Insert: Omit<UserSettings, 'id' | 'created_at' | 'updated_at'>;
-        Update: Partial<Omit<UserSettings, 'id' | 'created_at' | 'updated_at'>>;
-      };
-      custom_project_types: {
-        Row: CustomProjectType;
-        Insert: Omit<CustomProjectType, 'id' | 'created_at'>;
-        Update: Partial<Omit<CustomProjectType, 'id' | 'created_at'>>;
-      };
-    };
-  };
-} 

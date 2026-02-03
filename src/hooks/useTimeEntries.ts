@@ -2,11 +2,21 @@ import { useState, useEffect } from 'react';
 import { api, ApiTimeEntry } from '../lib/api';
 import { TimeEntry } from '../types/supabase';
 
+interface AddEntryParams {
+  project_id: string;
+  work_type_id?: string;
+  start_time: Date;
+  end_time: Date;
+  duration: number;
+  description?: string;
+  time_limit?: number;
+}
+
 interface UseTimeEntriesReturn {
   entries: TimeEntry[];
   isLoading: boolean;
   error: Error | null;
-  addTimeEntry: (entry: Omit<TimeEntry, 'id' | 'created_at'>) => Promise<TimeEntry | null>;
+  addTimeEntry: (entry: AddEntryParams) => Promise<TimeEntry | null>;
   updateTimeEntry: (id: string, entry: Partial<TimeEntry>) => Promise<TimeEntry | null>;
   deleteTimeEntry: (id: string) => Promise<boolean>;
   getTodayEntries: () => Promise<TimeEntry[]>;
@@ -39,22 +49,44 @@ export function useTimeEntries(): UseTimeEntriesReturn {
   function mapToTimeEntry(entry: ApiTimeEntry): TimeEntry {
     return {
       id: entry.id,
-      user_id: entry.userId,
-      project_type: entry.projectType,
+      project_id: entry.projectId,
+      work_type_id: entry.workTypeId || undefined,
       start_time: entry.startTime,
       end_time: entry.endTime,
       duration: entry.durationMs,
       description: entry.description || undefined,
       created_at: entry.createdAt,
-      time_limit: entry.timeLimitMs || undefined
+      time_limit: entry.timeLimitMs || undefined,
+      project: entry.project ? {
+        id: entry.project.id,
+        user_id: entry.project.userId,
+        name: entry.project.name,
+        color: entry.project.color,
+        description: entry.project.description || undefined,
+        status: entry.project.status,
+        created_at: entry.project.createdAt,
+        updated_at: entry.project.updatedAt
+      } : undefined,
+      work_type: entry.workType ? {
+        id: entry.workType.id,
+        project_id: entry.workType.projectId,
+        name: entry.workType.name,
+        color: entry.workType.color,
+        description: entry.workType.description || undefined,
+        status: entry.workType.status,
+        time_goal_ms: entry.workType.timeGoalMs || undefined,
+        created_at: entry.workType.createdAt,
+        updated_at: entry.workType.updatedAt
+      } : undefined
     };
   }
 
   // Добавление новой записи о времени
-  async function addTimeEntry(entry: Omit<TimeEntry, 'id' | 'created_at'>): Promise<TimeEntry | null> {
+  async function addTimeEntry(entry: AddEntryParams): Promise<TimeEntry | null> {
     try {
       const payload = {
-        projectType: entry.project_type,
+        projectId: entry.project_id,
+        workTypeId: entry.work_type_id,
         startTime: new Date(entry.start_time).toISOString(),
         endTime: new Date(entry.end_time).toISOString(),
         durationMs: entry.duration,
@@ -77,7 +109,7 @@ export function useTimeEntries(): UseTimeEntriesReturn {
   async function updateTimeEntry(id: string, entry: Partial<TimeEntry>): Promise<TimeEntry | null> {
     try {
       const payload = {
-        projectType: entry.project_type,
+        workTypeId: entry.work_type_id,
         startTime: entry.start_time ? new Date(entry.start_time).toISOString() : undefined,
         endTime: entry.end_time ? new Date(entry.end_time).toISOString() : undefined,
         durationMs: entry.duration,
@@ -148,4 +180,4 @@ export function useTimeEntries(): UseTimeEntriesReturn {
     getTodayEntries,
     getEntriesByDateRange
   };
-} 
+}

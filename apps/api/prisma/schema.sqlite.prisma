@@ -14,10 +14,9 @@ model User {
   createdAt    DateTime  @default(now()) @map("created_at")
   updatedAt    DateTime  @updatedAt @map("updated_at")
 
-  timeEntries       TimeEntry[]
-  settings          UserSettings?
-  customProjectType CustomProjectType[]
-  sessions          Session[]
+  projects Project[]
+  settings UserSettings?
+  sessions Session[]
 
   @@map("users")
 }
@@ -37,10 +36,46 @@ model Session {
   @@map("sessions")
 }
 
-model TimeEntry {
+model Project {
   id          String   @id @default(uuid())
   userId      String   @map("user_id")
-  projectType String   @map("project_type")
+  name        String
+  color       String   @default("#6366f1")
+  description String?
+  status      String   @default("active")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workTypes   WorkType[]
+  timeEntries TimeEntry[]
+
+  @@index([userId])
+  @@map("projects")
+}
+
+model WorkType {
+  id          String   @id @default(uuid())
+  projectId   String   @map("project_id")
+  name        String
+  color       String   @default("#6366f1")
+  description String?
+  status      String   @default("active")
+  timeGoalMs  Int?     @map("time_goal_ms")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  project     Project     @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  timeEntries TimeEntry[]
+
+  @@index([projectId, name])
+  @@map("work_types")
+}
+
+model TimeEntry {
+  id          String   @id @default(uuid())
+  projectId   String   @map("project_id")
+  workTypeId  String?  @map("work_type_id")
   startTime   DateTime @map("start_time")
   endTime     DateTime @map("end_time")
   durationMs  Int      @map("duration_ms")
@@ -48,38 +83,28 @@ model TimeEntry {
   timeLimitMs Int?     @map("time_limit_ms")
   createdAt   DateTime @default(now()) @map("created_at")
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project  Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  workType WorkType? @relation(fields: [workTypeId], references: [id], onDelete: SetNull)
 
-  @@index([userId, startTime])
+  @@index([projectId, startTime])
   @@map("time_entries")
 }
 
 model UserSettings {
-  id                  String   @id @default(uuid())
-  userId              String   @unique @map("user_id")
-  pomodoroWorkTime    Int      @default(25) @map("pomodoro_work_time")
-  pomodoroRestTime    Int      @default(5) @map("pomodoro_rest_time")
-  pomodoroLongRestTime Int     @default(15) @map("pomodoro_long_rest_time")
-  autoStart           Boolean  @default(false) @map("auto_start")
-  roundTimes          String   @default("off") @map("round_times")
-  language            String   @default("ru")
-  dataRetentionPeriod Int      @default(3) @map("data_retention_period")
-  createdAt           DateTime @default(now()) @map("created_at")
-  updatedAt           DateTime @updatedAt @map("updated_at")
+  id                   String   @id @default(uuid())
+  userId               String   @unique @map("user_id")
+  activeProjectId      String?  @map("active_project_id")
+  pomodoroWorkTime     Int      @default(25) @map("pomodoro_work_time")
+  pomodoroRestTime     Int      @default(5) @map("pomodoro_rest_time")
+  pomodoroLongRestTime Int      @default(15) @map("pomodoro_long_rest_time")
+  autoStart            Boolean  @default(false) @map("auto_start")
+  roundTimes           String   @default("off") @map("round_times")
+  language             String   @default("ru")
+  dataRetentionPeriod  Int      @default(3) @map("data_retention_period")
+  createdAt            DateTime @default(now()) @map("created_at")
+  updatedAt            DateTime @updatedAt @map("updated_at")
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("user_settings")
-}
-
-model CustomProjectType {
-  id        String   @id @default(uuid())
-  userId    String   @map("user_id")
-  name      String
-  createdAt DateTime @default(now()) @map("created_at")
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId, name])
-  @@map("custom_project_types")
 }

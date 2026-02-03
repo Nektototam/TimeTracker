@@ -2,16 +2,45 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 
 const accessTokenKey = "timetracker_access_token";
 
-export interface ApiTimeEntry {
+export interface ApiProject {
   id: string;
   userId: string;
-  projectType: string;
+  name: string;
+  color: string;
+  description?: string | null;
+  status: "active" | "archived";
+  createdAt?: string;
+  updatedAt?: string;
+  _count?: {
+    timeEntries: number;
+    workTypes: number;
+  };
+}
+
+export interface ApiWorkType {
+  id: string;
+  projectId: string;
+  name: string;
+  color: string;
+  description?: string | null;
+  status: "active" | "archived";
+  timeGoalMs?: number | null;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface ApiTimeEntry {
+  id: string;
+  projectId: string;
+  workTypeId?: string | null;
   startTime: string;
   endTime: string;
   durationMs: number;
   description?: string | null;
   timeLimitMs?: number | null;
   createdAt?: string;
+  project?: ApiProject;
+  workType?: ApiWorkType | null;
 }
 
 export interface ApiUserSettings {
@@ -22,12 +51,7 @@ export interface ApiUserSettings {
   roundTimes: string;
   language: string;
   dataRetentionPeriod: number;
-}
-
-export interface ApiProjectType {
-  id: string;
-  name: string;
-  createdAt?: string;
+  activeProjectId?: string | null;
 }
 
 const getAccessToken = () => {
@@ -67,7 +91,10 @@ async function refreshAccessToken(): Promise<string | null> {
 
 async function apiRequest<T>(path: string, options: RequestInit = {}, retry = true): Promise<T> {
   const headers = new Headers(options.headers || {});
-  headers.set("Content-Type", "application/json");
+
+  if (options.body) {
+    headers.set("Content-Type", "application/json");
+  }
 
   const token = getAccessToken();
   if (token) {
@@ -131,13 +158,64 @@ export const api = {
       return apiRequest<{ user: { id: string; email: string } | null }>("/auth/me");
     }
   },
+
+  projects: {
+    async list() {
+      return apiRequest<{ items: ApiProject[] }>("/projects");
+    },
+    async get(id: string) {
+      return apiRequest<{ item: ApiProject & { workTypes: ApiWorkType[] } }>(`/projects/${id}`);
+    },
+    async create(data: { name: string; color?: string; description?: string }) {
+      return apiRequest<{ item: ApiProject }>("/projects", {
+        method: "POST",
+        body: JSON.stringify(data)
+      });
+    },
+    async update(id: string, data: { name?: string; color?: string; description?: string | null; status?: "active" | "archived" }) {
+      return apiRequest<{ item: ApiProject }>(`/projects/${id}`, {
+        method: "PATCH",
+        body: JSON.stringify(data)
+      });
+    },
+    async delete(id: string) {
+      return apiRequest<{ ok: boolean }>(`/projects/${id}`, { method: "DELETE" });
+    },
+    async activate(id: string) {
+      return apiRequest<{ ok: boolean; activeProjectId: string }>(`/projects/${id}/activate`, { method: "POST" });
+    }
+  },
+
+  workTypes: {
+    async list(projectId: string) {
+      return apiRequest<{ items: ApiWorkType[] }>(`/work-types?projectId=${projectId}`);
+    },
+    async create(data: { projectId: string; name: string; color?: string; description?: string; timeGoalMs?: number }) {
+      return apiRequest<{ item: ApiWorkType }>("/work-types", {
+        method: "POST",
+        body: JSON.stringify(data)
+      });
+    },
+    async update(id: string, data: { name?: string; color?: string; description?: string | null; status?: "active" | "archived"; timeGoalMs?: number | null }) {
+      return apiRequest<{ item: ApiWorkType }>(`/work-types/${id}`, {
+        method: "PATCH",
+        body: JSON.stringify(data)
+      });
+    },
+    async delete(id: string) {
+      return apiRequest<{ ok: boolean }>(`/work-types/${id}`, { method: "DELETE" });
+    }
+  },
+
   timeEntries: {
-    async list(params?: { from?: string; to?: string; projectType?: string; limit?: number }) {
+    async list(params?: { projectId?: string; workTypeId?: string; from?: string; to?: string; limit?: number; all?: boolean }) {
       const query = new URLSearchParams();
+      if (params?.projectId) query.set("projectId", params.projectId);
+      if (params?.workTypeId) query.set("workTypeId", params.workTypeId);
       if (params?.from) query.set("from", params.from);
       if (params?.to) query.set("to", params.to);
-      if (params?.projectType) query.set("projectType", params.projectType);
       if (params?.limit) query.set("limit", String(params.limit));
+      if (params?.all) query.set("all", "true");
       const suffix = query.toString() ? `?${query.toString()}` : "";
       return apiRequest<{ items: ApiTimeEntry[] }>(`/time-entries${suffix}`);
     },
@@ -145,7 +223,8 @@ export const api = {
       return apiRequest<{ items: ApiTimeEntry[] }>("/time-entries/today");
     },
     async create(payload: {
-      projectType: string;
+      projectId: string;
+      workTypeId?: string;
       startTime: string;
       endTime: string;
       durationMs: number;
@@ -157,7 +236,14 @@ export const api = {
         body: JSON.stringify(payload)
       });
     },
-    async update(id: string, payload: Partial<Omit<ApiTimeEntry, "id" | "userId" | "createdAt">>) {
+    async update(id: string, payload: {
+      workTypeId?: string | null;
+      startTime?: string;
+      endTime?: string;
+      durationMs?: number;
+      description?: string | null;
+      timeLimitMs?: number | null;
+    }) {
       return apiRequest<{ item: ApiTimeEntry }>(`/time-entries/${id}`, {
         method: "PATCH",
         body: JSON.stringify(payload)
@@ -167,6 +253,7 @@ export const api = {
       return apiRequest<{ ok: boolean }>(`/time-entries/${id}`, { method: "DELETE" });
     }
   },
+
   settings: {
     async get() {
       return apiRequest<{ settings: ApiUserSettings }>("/settings");
@@ -181,26 +268,7 @@ export const api = {
       return apiRequest<{ ok: boolean }>("/settings/cleanup", { method: "POST" });
     }
   },
-  projectTypes: {
-    async list() {
-      return apiRequest<{ items: ApiProjectType[] }>("/project-types");
-    },
-    async create(name: string) {
-      return apiRequest<{ item: ApiProjectType }>("/project-types", {
-        method: "POST",
-        body: JSON.stringify({ name })
-      });
-    },
-    async update(id: string, name: string) {
-      return apiRequest<{ item: ApiProjectType }>(`/project-types/${id}`, {
-        method: "PATCH",
-        body: JSON.stringify({ name })
-      });
-    },
-    async delete(id: string) {
-      return apiRequest<{ ok: boolean }>(`/project-types/${id}`, { method: "DELETE" });
-    }
-  },
+
   reports: {
     async get(params: { period?: "week" | "month" | "quarter" | "custom"; startDate?: string; endDate?: string }) {
       const query = new URLSearchParams();
@@ -214,10 +282,16 @@ export const api = {
         totalDuration: number;
         entries: ApiTimeEntry[];
         projectSummaries: Array<{
-          projectType: string;
+          project: { id: string; name: string; color: string };
           totalDuration: number;
           percentage: number;
-          entries: ApiTimeEntry[];
+          workTypes: Array<{
+            workType: { id: string; name: string; color: string };
+            duration: number;
+            percentage: number;
+            entriesCount: number;
+          }>;
+          entriesCount: number;
         }>;
       }>(`/reports${suffix}`);
     }

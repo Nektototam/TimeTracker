@@ -30,7 +30,18 @@
     "searchCommands": "Поиск команд...",
     "navigate": "навигация",
     "select": "выбрать",
-    "close": "закрыть"
+    "close": "закрыть",
+    "projects": "Проекты",
+    "searchProjects": "Поиск проектов...",
+    "newEntry": "Новая запись",
+    "startTimer": "Запустить таймер",
+    "overview": "Обзор",
+    "trackTime": "Отслеживайте своё время с помощью современного интерфейса.",
+    "today": "Сегодня",
+    "newProjectName": "Название проекта",
+    "noProjects": "Пока нет проектов. Создайте первый!",
+    "noProjectsFound": "Проекты не найдены",
+    "manageProjects": "Управление проектами"
   },
 
   "common": {

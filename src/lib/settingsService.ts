@@ -169,6 +169,40 @@ class SettingsService {
       return false;
     }
   }
+
+  // Очистить старые записи по периоду хранения
+  async cleanOldRecords(retentionPeriod: number): Promise<boolean> {
+    try {
+      // Если период 0 - безлимитное хранение, ничего не удаляем
+      if (retentionPeriod === 0) {
+        return true;
+      }
+      await api.settings.cleanup();
+      return true;
+    } catch (error) {
+      console.error('Ошибка при очистке старых записей:', error);
+      return false;
+    }
+  }
+
+  // Экспорт данных пользователя
+  async exportUserData(): Promise<Record<string, unknown>> {
+    try {
+      const settings = await this.loadAllSettings();
+      const timeEntries = await api.timeEntries.list();
+      const projectTypes = await api.projectTypes.list();
+
+      return {
+        exportDate: new Date().toISOString(),
+        settings,
+        timeEntries: timeEntries.items || [],
+        projectTypes: projectTypes.items || []
+      };
+    } catch (error) {
+      console.error('Ошибка при экспорте данных:', error);
+      throw error;
+    }
+  }
 }
 
 // Создаем экземпляр сервиса

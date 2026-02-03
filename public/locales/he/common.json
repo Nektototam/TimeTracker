@@ -30,7 +30,18 @@
     "searchCommands": "חפש פקודות...",
     "navigate": "ניווט",
     "select": "בחר",
-    "close": "סגור"
+    "close": "סגור",
+    "projects": "פרויקטים",
+    "searchProjects": "חפש פרויקטים...",
+    "newEntry": "רשומה חדשה",
+    "startTimer": "הפעל טיימר",
+    "overview": "סקירה כללית",
+    "trackTime": "עקוב אחר הזמן שלך בצורה מודרנית.",
+    "today": "היום",
+    "newProjectName": "שם הפרויקט",
+    "noProjects": "עדיין אין פרויקטים. צור את הראשון!",
+    "noProjectsFound": "לא נמצאו פרויקטים",
+    "manageProjects": "נהל פרויקטים"
   },
 
   "common": {

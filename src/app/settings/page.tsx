@@ -99,6 +99,65 @@ function SettingsPage() {
       [key]: value
     }));
   };
+
+  // Запрос разрешения на браузерные уведомления
+  const requestNotificationPermission = async () => {
+    try {
+      const permission = await Notification.requestPermission();
+      if (permission === 'granted') {
+        updateSettings('browserNotifications', true);
+      }
+    } catch (error) {
+      console.error('Ошибка запроса разрешения на уведомления:', error);
+    }
+  };
+
+  // Сохранение настроек
+  const saveSettings = async () => {
+    setSaveStatus('saving');
+    try {
+      await settingsService.saveAllSettings(settings);
+      setSaveStatus('success');
+      setTimeout(() => setSaveStatus('idle'), 2000);
+    } catch (error) {
+      console.error('Ошибка сохранения настроек:', error);
+      setSaveStatus('error');
+      setTimeout(() => setSaveStatus('idle'), 3000);
+    }
+  };
+
+  // Очистка старых записей
+  const cleanOldRecords = async () => {
+    setCleaningStatus('cleaning');
+    try {
+      await settingsService.cleanOldRecords(settings.data_retention_period);
+      setCleaningStatus('success');
+      setTimeout(() => setCleaningStatus('idle'), 2000);
+    } catch (error) {
+      console.error('Ошибка очистки записей:', error);
+      setCleaningStatus('error');
+      setTimeout(() => setCleaningStatus('idle'), 3000);
+    }
+  };
+
+  // Экспорт данных
+  const exportData = async () => {
+    try {
+      const data = await settingsService.exportUserData();
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `timetracker-export-${new Date().toISOString().split('T')[0]}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Ошибка экспорта данных:', error);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <div className="mx-auto grid max-w-7xl gap-6 px-4 py-6 lg:grid-cols-[240px_1fr]">
