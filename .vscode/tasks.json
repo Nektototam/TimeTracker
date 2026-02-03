@@ -1,0 +1,223 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Dev Server",
+      "type": "npm",
+      "script": "dev",
+      "problemMatcher": ["$tsc"],
+      "isBackground": true,
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "group": "dev"
+      },
+      "group": "build",
+      "detail": "Start Next.js development server with Turbopack"
+    },
+    {
+      "label": "Build",
+      "type": "npm",
+      "script": "build",
+      "problemMatcher": ["$tsc"],
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      },
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "detail": "Build production bundle"
+    },
+    {
+      "label": "Start Production",
+      "type": "npm",
+      "script": "start",
+      "problemMatcher": [],
+      "isBackground": true,
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      },
+      "dependsOn": "Build",
+      "detail": "Start production server (requires build first)"
+    },
+    {
+      "label": "Lint",
+      "type": "npm",
+      "script": "lint",
+      "problemMatcher": ["$eslint-stylish"],
+      "presentation": {
+        "reveal": "silent",
+        "panel": "shared"
+      },
+      "group": "test",
+      "detail": "Run ESLint on all files"
+    },
+    {
+      "label": "Lint: Fix",
+      "type": "shell",
+      "command": "npm run lint -- --fix",
+      "problemMatcher": ["$eslint-stylish"],
+      "presentation": {
+        "reveal": "silent",
+        "panel": "shared"
+      },
+      "detail": "Run ESLint with auto-fix"
+    },
+    {
+      "label": "Test",
+      "type": "npm",
+      "script": "test",
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      },
+      "group": {
+        "kind": "test",
+        "isDefault": true
+      },
+      "detail": "Run all Jest tests"
+    },
+    {
+      "label": "Test: Watch",
+      "type": "shell",
+      "command": "npm test -- --watch",
+      "problemMatcher": [],
+      "isBackground": true,
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "group": "test"
+      },
+      "detail": "Run Jest in watch mode"
+    },
+    {
+      "label": "Test: Coverage",
+      "type": "shell",
+      "command": "npm test -- --coverage",
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      },
+      "detail": "Run tests with coverage report"
+    },
+    {
+      "label": "Test: Current File",
+      "type": "shell",
+      "command": "npm test -- ${relativeFile}",
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      },
+      "detail": "Run tests for currently open file"
+    },
+    {
+      "label": "TypeScript: Check",
+      "type": "shell",
+      "command": "npx tsc --noEmit",
+      "problemMatcher": ["$tsc"],
+      "presentation": {
+        "reveal": "silent",
+        "panel": "shared"
+      },
+      "group": "test",
+      "detail": "Check TypeScript types without emitting"
+    },
+    {
+      "label": "TypeScript: Watch",
+      "type": "shell",
+      "command": "npx tsc --noEmit --watch",
+      "problemMatcher": ["$tsc-watch"],
+      "isBackground": true,
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "group": "dev"
+      },
+      "detail": "Watch TypeScript for errors"
+    },
+    {
+      "label": "Install Dependencies",
+      "type": "shell",
+      "command": "npm install",
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      },
+      "detail": "Install npm dependencies"
+    },
+    {
+      "label": "Clean Install",
+      "type": "shell",
+      "command": "rm -rf node_modules && npm install",
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      },
+      "detail": "Remove node_modules and reinstall"
+    },
+    {
+      "label": "Clean Build",
+      "type": "shell",
+      "command": "rm -rf .next && npm run build",
+      "problemMatcher": ["$tsc"],
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      },
+      "detail": "Remove .next cache and rebuild"
+    },
+    {
+      "label": "Full Check",
+      "dependsOn": ["TypeScript: Check", "Lint", "Test"],
+      "dependsOrder": "sequence",
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      },
+      "group": "test",
+      "detail": "Run TypeScript check, lint, and tests"
+    },
+    {
+      "label": "Pre-commit Check",
+      "dependsOn": ["Lint: Fix", "TypeScript: Check", "Test"],
+      "dependsOrder": "sequence",
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      },
+      "detail": "Run all checks before committing"
+    },
+    {
+      "label": "Update Dependencies",
+      "type": "shell",
+      "command": "npm update",
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      },
+      "detail": "Update npm dependencies to latest minor versions"
+    },
+    {
+      "label": "Outdated Check",
+      "type": "shell",
+      "command": "npm outdated",
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      },
+      "detail": "Check for outdated dependencies"
+    }
+  ]
+}
