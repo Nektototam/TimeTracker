@@ -13,10 +13,12 @@ export function BentoGrid({ children, className }: BentoGridProps) {
     <div
       className={cn(
         "grid gap-4 p-4",
-        "grid-cols-1 md:grid-cols-2 lg:grid-cols-3",
-        "auto-rows-[minmax(120px,auto)]",
+        "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3",
         className
       )}
+      style={{
+        gridAutoRows: 'minmax(180px, auto)'
+      }}
     >
       {children}
     </div>
@@ -36,23 +38,14 @@ export function BentoItem({
   colSpan = 1,
   rowSpan = 1
 }: BentoItemProps) {
-  const colSpanClass = {
-    1: "col-span-1",
-    2: "md:col-span-2",
-    3: "lg:col-span-3",
-  }[colSpan];
-
-  const rowSpanClass = {
-    1: "row-span-1",
-    2: "row-span-2",
-  }[rowSpan];
-
   return (
     <div
       className={cn(
-        colSpanClass,
-        rowSpanClass,
-        "min-h-[120px]",
+        colSpan === 1 && "col-span-1",
+        colSpan === 2 && "col-span-1 sm:col-span-2",
+        colSpan === 3 && "col-span-1 sm:col-span-2 lg:col-span-3",
+        rowSpan === 1 && "row-span-1",
+        rowSpan === 2 && "row-span-2",
         className
       )}
     >

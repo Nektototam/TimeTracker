@@ -42,13 +42,45 @@
     "stop": "עצור טיימר",
     "pause": "השהה",
     "resume": "המשך",
+    "ready": "מוכן",
+    "running": "פועל",
+    "paused": "מושהה",
     "workType": "סוג עבודה",
     "selectWorkType": "בחר סוג עבודה",
     "project": "פרויקט",
     "selectProject": "בחר פרויקט",
     "description": "תיאור",
     "noProjects": "אין פרויקטים",
-    "dailyTotal": "עבודה קודמת היום"
+    "dailyTotal": "עבודה קודמת היום",
+    "currentTask": "משימה נוכחית",
+    "currentSession": "סשן נוכחי",
+    "current": "נוכחי",
+    "progress": "התקדמות",
+    "notSelected": "לא נבחר",
+    "standard": {
+      "development": "פיתוח",
+      "design": "עיצוב",
+      "marketing": "שיווק",
+      "meeting": "פגישה",
+      "other": "אחר",
+      "new": "+ הוסף סוג חדש"
+    }
+  },
+
+  "statistics": {
+    "title": "סטטיסטיקה",
+    "today": "היום",
+    "week": "השבוע",
+    "month": "החודש",
+    "allTime": "כל הזמן",
+    "loading": "טוען סטטיסטיקה...",
+    "noData": "אין נתונים לתקופה שנבחרה",
+    "totalTime": "סה״כ זמן",
+    "saved": "נשמר",
+    "projects": "פרויקטים",
+    "byProject": "לפי פרויקט",
+    "weekActivity": "פעילות שבועית",
+    "recentActivity": "פעילות אחרונה"
   },
   
   "pomodoro": {
