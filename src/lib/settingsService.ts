@@ -189,14 +189,14 @@ class SettingsService {
   async exportUserData(): Promise<Record<string, unknown>> {
     try {
       const settings = await this.loadAllSettings();
-      const timeEntries = await api.timeEntries.list();
-      const projectTypes = await api.projectTypes.list();
+      const timeEntries = await api.timeEntries.list({ all: true });
+      const projects = await api.projects.list();
 
       return {
         exportDate: new Date().toISOString(),
         settings,
         timeEntries: timeEntries.items || [],
-        projectTypes: projectTypes.items || []
+        projects: projects.items || []
       };
     } catch (error) {
       console.error('Ошибка при экспорте данных:', error);

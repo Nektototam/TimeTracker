@@ -10,13 +10,6 @@ interface ProjectDistributionWidgetProps {
   className?: string;
 }
 
-const PROJECT_COLORS: Record<string, string> = {
-  development: '#5e72e4',
-  design: '#2dce89',
-  marketing: '#fb6340',
-  meeting: '#f5365c',
-  other: '#11cdef',
-};
 
 export function ProjectDistributionWidget({ className }: ProjectDistributionWidgetProps) {
   const { t } = useTranslation();
@@ -57,9 +50,6 @@ export function ProjectDistributionWidget({ className }: ProjectDistributionWidg
     return `${minutes}m`;
   };
 
-  const getColor = (projectType: string) => {
-    return PROJECT_COLORS[projectType] || '#94a3b8';
-  };
 
   return (
     <Card className={className}>
@@ -72,9 +62,9 @@ export function ProjectDistributionWidget({ className }: ProjectDistributionWidg
             <div className="text-sm text-muted-foreground">{t('common.loading')}...</div>
           ) : projects.length > 0 ? (
             projects.map((project) => (
-              <div key={project.project_type} className="space-y-1">
+              <div key={project.project.id} className="space-y-1">
                 <div className="flex justify-between text-sm">
-                  <span className="truncate text-foreground">{project.project_name}</span>
+                  <span className="truncate text-foreground">{project.project.name}</span>
                   <span className="ml-2 text-muted-foreground">{formatDuration(project.total_duration)}</span>
                 </div>
                 <div className="h-2 overflow-hidden rounded-full bg-muted">
@@ -82,7 +72,7 @@ export function ProjectDistributionWidget({ className }: ProjectDistributionWidg
                     className="h-full rounded-full transition-all duration-300"
                     style={{
                       width: `${project.percentage}%`,
-                      backgroundColor: getColor(project.project_type)
+                      backgroundColor: project.project.color
                     }}
                   />
                 </div>

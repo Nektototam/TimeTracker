@@ -44,7 +44,8 @@ function StatisticsPage() {
         setRecentEntries(weekReport.entries.slice(0, 5).map(entry => ({
           id: entry.id,
           date: new Date(entry.start_time),
-          projectType: entry.project_type,
+          projectName: entry.project?.name || 'Без проекта',
+          projectColor: entry.project?.color || '#6366f1',
           duration: entry.duration
         })));
       } catch (error) {
@@ -120,23 +121,6 @@ function StatisticsPage() {
     return `${hours.toString().padStart(2, '0')}:${minutes
       .toString()
       .padStart(2, '0')}`;
-  };
-
-  const getProjectName = (projectType: string): string => {
-    switch (projectType) {
-      case 'development':
-        return 'Веб-разработка';
-      case 'design':
-        return 'Дизайн';
-      case 'marketing':
-        return 'Маркетинг';
-      case 'meeting':
-        return 'Совещание';
-      case 'other':
-        return 'Другое';
-      default:
-        return 'Пользовательский тип';
-    }
   };
 
   if (!isClient) {
@@ -225,10 +209,10 @@ function StatisticsPage() {
               <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
                 <h2 className="mb-5 text-lg font-semibold text-foreground">Распределение времени</h2>
                 <div className="space-y-4">
-                  {weekData && weekData.projectSummaries.map((project: ProjectSummary, index) => (
-                    <div key={project.project_type}>
+                  {weekData && weekData.projectSummaries.map((project: ProjectSummary) => (
+                    <div key={project.project.id}>
                       <div className="mb-2 flex justify-between">
-                        <span className="text-sm font-medium text-foreground">{project.project_name}</span>
+                        <span className="text-sm font-medium text-foreground">{project.project.name}</span>
                         <span className="text-sm font-medium text-primary">{formatTime(project.total_duration)}</span>
                       </div>
                       <div className="h-2.5 overflow-hidden rounded-full bg-muted">
@@ -236,10 +220,7 @@ function StatisticsPage() {
                           className="h-full rounded-full transition-all duration-300 ease-in-out"
                           style={{
                             width: `${project.percentage}%`,
-                            backgroundColor: index === 0 ? 'hsl(230 74% 62%)' :
-                              index === 1 ? 'hsl(142 71% 45%)' :
-                              index === 2 ? 'hsl(38 92% 50%)' :
-                              'hsl(199 89% 48%)'
+                            backgroundColor: project.project.color
                           }}
                         ></div>
                       </div>
@@ -269,7 +250,7 @@ function StatisticsPage() {
                               {formatDate(entry.date)}
                             </div>
                             <div className="font-medium text-foreground">
-                              {getProjectName(entry.projectType)}
+                              {entry.projectName}
                             </div>
                           </div>
                           <div className="self-center font-medium text-primary">

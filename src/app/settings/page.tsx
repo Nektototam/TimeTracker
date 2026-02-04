@@ -4,7 +4,6 @@ import React, { useState, useEffect } from 'react';
 import NavBar from '../../components/NavBar';
 import ProtectedRoute from '../../components/ProtectedRoute';
 import { useAuth } from '../../contexts/AuthContext';
-import WorkTypeManager from '../../components/WorkTypeManager';
 import LanguageSwitcher from '../../components/LanguageSwitcher';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { Button } from '../../components/ui/Button';
@@ -377,7 +376,9 @@ function SettingsPage() {
               <h2 className="text-lg font-semibold text-foreground">{translate('workTypes')}</h2>
               <p className="text-sm text-muted-foreground">{translate('workTypesDesc')}</p>
             </div>
-            {user && <WorkTypeManager userId={user.id} />}
+            <p className="text-sm text-muted-foreground">
+              Управление типами работ доступно в настройках проекта на странице дашборда.
+            </p>
           </div>
           
           <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">

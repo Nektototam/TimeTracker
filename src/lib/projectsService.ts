@@ -1,4 +1,4 @@
-import { api, ApiProjectType } from './api';
+import { api, ApiProject } from './api';
 
 // Предустановленные цвета для проектов
 export const PROJECT_COLORS = [
@@ -14,21 +14,28 @@ export const PROJECT_COLORS = [
   '#3b82f6', // Blue
 ];
 
-export interface Project extends ApiProjectType {
+export interface Project extends ApiProject {
   totalTimeMs?: number;
   todayTimeMs?: number;
 }
 
 class ProjectsService {
   // Получить все проекты
-  async getProjects(status?: 'active' | 'archived'): Promise<Project[]> {
-    const { items } = await api.projectTypes.list({ status });
+  async getProjects(): Promise<Project[]> {
+    const { items } = await api.projects.list();
     return items;
   }
 
   // Получить активные проекты
   async getActiveProjects(): Promise<Project[]> {
-    return this.getProjects('active');
+    const projects = await this.getProjects();
+    return projects.filter(p => p.status === 'active');
+  }
+
+  // Получить проект по ID
+  async getProject(id: string): Promise<Project> {
+    const { item } = await api.projects.get(id);
+    return item;
   }
 
   // Создать проект
@@ -36,12 +43,10 @@ class ProjectsService {
     name: string;
     color?: string;
     description?: string;
-    timeGoalMs?: number;
   }): Promise<Project> {
-    const { item } = await api.projectTypes.create({
+    const { item } = await api.projects.create({
       ...data,
-      color: data.color || this.getRandomColor(),
-      status: 'active'
+      color: data.color || this.getRandomColor()
     });
     return item;
   }
@@ -52,9 +57,8 @@ class ProjectsService {
     color?: string;
     description?: string | null;
     status?: 'active' | 'archived';
-    timeGoalMs?: number | null;
   }): Promise<Project> {
-    const { item } = await api.projectTypes.update(id, data);
+    const { item } = await api.projects.update(id, data);
     return item;
   }
 
@@ -70,7 +74,12 @@ class ProjectsService {
 
   // Удалить проект
   async deleteProject(id: string): Promise<void> {
-    await api.projectTypes.delete(id);
+    await api.projects.delete(id);
+  }
+
+  // Активировать проект
+  async activateProject(id: string): Promise<void> {
+    await api.projects.activate(id);
   }
 
   // Получить проекты с временем за сегодня
@@ -83,14 +92,14 @@ class ProjectsService {
     // Группируем время по проектам
     const timeByProject = new Map<string, number>();
     for (const entry of todayEntries.items) {
-      const current = timeByProject.get(entry.projectType) || 0;
-      timeByProject.set(entry.projectType, current + entry.durationMs);
+      const current = timeByProject.get(entry.projectId) || 0;
+      timeByProject.set(entry.projectId, current + entry.durationMs);
     }
 
     // Добавляем статистику к проектам
     return projects.map(project => ({
       ...project,
-      todayTimeMs: timeByProject.get(project.name) || 0
+      todayTimeMs: timeByProject.get(project.id) || 0
     }));
   }
 

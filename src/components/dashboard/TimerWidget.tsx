@@ -20,7 +20,8 @@ export function TimerWidget({ className, compact = false }: TimerWidgetProps) {
     startTime,
     elapsedTime,
     timerValue,
-    projectText,
+    projectName,
+    projectId,
     toggleTimer,
     finishTask
   } = useTimer();
@@ -51,7 +52,7 @@ export function TimerWidget({ className, compact = false }: TimerWidgetProps) {
             )}>
               {timerValue}
             </div>
-            <div className="text-sm text-gray-600 mt-1">{projectText || t('timer.notSelected')}</div>
+            <div className="text-sm text-gray-600 mt-1">{projectName || t('timer.notSelected')}</div>
           </div>
         ) : (
           <TimerCircle
@@ -60,7 +61,7 @@ export function TimerWidget({ className, compact = false }: TimerWidgetProps) {
             elapsedTime={elapsedTime}
             status={getStatus()}
             timeValue={timerValue}
-            project={projectText}
+            project={projectName}
           />
         )}
         </div>

@@ -150,7 +150,7 @@ function ReportsPage() {
     
     text += "Проекты:\n";
     reportData.projectSummaries.forEach(project => {
-      text += `${project.project_name}: ${formatTime(project.total_duration)} (${project.percentage}%)\n`;
+      text += `${project.project.name}: ${formatTime(project.total_duration)} (${project.percentage}%)\n`;
     });
     
     text += `\nВсего: ${formatFullTime(reportData.totalDuration)}`;
@@ -168,10 +168,10 @@ function ReportsPage() {
     if (!reportData) return;
     
     const rows = [
-      ['Тип проекта', 'Название', 'Длительность (мин)', 'Процент'],
+      ['ID проекта', 'Название', 'Длительность (мин)', 'Процент'],
       ...reportData.projectSummaries.map(project => [
-        project.project_type,
-        project.project_name,
+        project.project.id,
+        project.project.name,
         (project.total_duration / 60000).toFixed(2),
         project.percentage.toString()
       ]),
@@ -259,20 +259,17 @@ function ReportsPage() {
                   <h2 className="mb-4 text-lg font-semibold text-foreground">Проекты</h2>
                   <div className="space-y-4">
                     {reportData && reportData.projectSummaries.map((project, index) => (
-                      <div key={project.project_type}>
+                      <div key={project.project.id}>
                         <div className="mb-1 flex items-center justify-between">
-                          <span className="text-sm font-medium text-foreground">{project.project_name}</span>
+                          <span className="text-sm font-medium text-foreground">{project.project.name}</span>
                           <span className="text-sm text-muted-foreground">{formatTime(project.total_duration)}</span>
                         </div>
                         <div className="h-2 overflow-hidden rounded-full bg-muted">
-                          <div 
-                            className="h-full rounded-full" 
+                          <div
+                            className="h-full rounded-full"
                             style={{
-                              width: `${project.percentage}%`, 
-                              backgroundColor: index === 0 ? 'hsl(230 74% 62%)' : 
-                                              index === 1 ? 'hsl(142 71% 45%)' : 
-                                              index === 2 ? 'hsl(38 92% 50%)' : 
-                                              'hsl(199 89% 48%)'
+                              width: `${project.percentage}%`,
+                              backgroundColor: project.project.color
                             }}
                           ></div>
                         </div>

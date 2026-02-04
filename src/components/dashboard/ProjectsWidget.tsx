@@ -8,7 +8,7 @@ import projectsService, { Project, PROJECT_COLORS } from '../../lib/projectsServ
 import { useLanguage } from '../../contexts/LanguageContext';
 
 interface ProjectsWidgetProps {
-  onStartTimer?: (projectName: string) => void;
+  onStartTimer?: (projectId: string, projectName: string) => void;
   searchQuery?: string;
 }
 
@@ -53,12 +53,19 @@ export function ProjectsWidget({ onStartTimer, searchQuery = '' }: ProjectsWidge
     }
   };
 
-  const handleStartTimer = (project: Project) => {
+  const handleStartTimer = async (project: Project) => {
+    // Activate this project
+    try {
+      await projectsService.activateProject(project.id);
+    } catch (error) {
+      console.error('Error activating project:', error);
+    }
+
     if (onStartTimer) {
-      onStartTimer(project.name);
+      onStartTimer(project.id, project.name);
     } else {
       // Navigate to timer page with project preselected
-      router.push(`/timer?project=${encodeURIComponent(project.name)}`);
+      router.push(`/timer?projectId=${encodeURIComponent(project.id)}`);
     }
   };
 
@@ -155,19 +162,6 @@ export function ProjectsWidget({ onStartTimer, searchQuery = '' }: ProjectsWidge
                   {project.todayTimeMs !== undefined && project.todayTimeMs > 0 && (
                     <div className="text-xs text-muted-foreground">
                       {t('dashboard.today') || 'Today'}: {projectsService.formatDuration(project.todayTimeMs)}
-                    </div>
-                  )}
-                  {project.timeGoalMs && (
-                    <div className="mt-1">
-                      <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
-                        <div
-                          className="h-full rounded-full transition-all"
-                          style={{
-                            width: `${projectsService.calculateProgress(project.todayTimeMs || 0, project.timeGoalMs)}%`,
-                            backgroundColor: project.color
-                          }}
-                        />
-                      </div>
                     </div>
                   )}
                 </div>

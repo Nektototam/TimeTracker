@@ -1,24 +1,50 @@
 import { api, ApiTimeEntry } from './api';
 
-// Типы данных для отчетов
+// Типы данных для отчетов (используем новую модель с проектами и типами работ)
 export interface TimeEntry {
   id: string;
-  user_id: string;
-  project_type: string;
+  project_id: string;
+  work_type_id?: string;
   start_time: string;
   end_time: string;
   duration: number;
   description?: string;
   created_at?: string;
   time_limit?: number;
+  // Связанные объекты
+  project?: {
+    id: string;
+    name: string;
+    color: string;
+  };
+  work_type?: {
+    id: string;
+    name: string;
+    color: string;
+  };
+}
+
+export interface WorkTypeSummary {
+  work_type: {
+    id: string;
+    name: string;
+    color: string;
+  };
+  duration: number;
+  percentage: number;
+  entries_count: number;
 }
 
 export interface ProjectSummary {
-  project_type: string;
-  project_name: string;
+  project: {
+    id: string;
+    name: string;
+    color: string;
+  };
   total_duration: number;
   percentage: number;
-  entries: TimeEntry[];
+  work_types: WorkTypeSummary[];
+  entries_count: number;
 }
 
 export interface DailySummary {
@@ -38,44 +64,28 @@ export interface ReportData {
 export type PeriodType = 'week' | 'month' | 'quarter' | 'custom';
 
 class ReportService {
-  private standardProjectNames: Record<string, string> = {
-    development: 'Веб-разработка',
-    design: 'Дизайн',
-    marketing: 'Маркетинг',
-    meeting: 'Совещание',
-    other: 'Другое'
-  };
-
   private mapEntry(entry: ApiTimeEntry): TimeEntry {
     return {
       id: entry.id,
-      user_id: entry.userId,
-      project_type: entry.projectType,
+      project_id: entry.projectId,
+      work_type_id: entry.workTypeId || undefined,
       start_time: entry.startTime,
       end_time: entry.endTime,
       duration: entry.durationMs,
       description: entry.description || undefined,
       created_at: entry.createdAt,
-      time_limit: entry.timeLimitMs || undefined
+      time_limit: entry.timeLimitMs || undefined,
+      project: entry.project ? {
+        id: entry.project.id,
+        name: entry.project.name,
+        color: entry.project.color
+      } : undefined,
+      work_type: entry.workType ? {
+        id: entry.workType.id,
+        name: entry.workType.name,
+        color: entry.workType.color
+      } : undefined
     };
-  }
-
-  private async getProjectNameMap(projectTypes: string[]) {
-    const names: Record<string, string> = { ...this.standardProjectNames };
-    const customIds = projectTypes.filter(type => !names[type]);
-
-    if (customIds.length === 0) {
-      return names;
-    }
-
-    const { items } = await api.projectTypes.list();
-    items
-      .filter(item => customIds.includes(item.id))
-      .forEach(item => {
-        names[item.id] = item.name;
-      });
-
-    return names;
   }
 
   async getReportData(
@@ -94,14 +104,19 @@ class ReportService {
     const projectSummaries = response?.projectSummaries ?? [];
     const totalDuration = response?.totalDuration ?? 0;
 
-    const mappedEntries = entries.map(this.mapEntry);
-    const nameMap = await this.getProjectNameMap(projectSummaries.map(summary => summary.projectType));
+    const mappedEntries = entries.map((entry) => this.mapEntry(entry));
+
     const mappedSummaries: ProjectSummary[] = projectSummaries.map((summary) => ({
-      project_type: summary.projectType,
-      project_name: nameMap[summary.projectType] || summary.projectType,
+      project: summary.project,
       total_duration: summary.totalDuration,
       percentage: summary.percentage,
-      entries: (summary.entries ?? []).map(this.mapEntry)
+      work_types: summary.workTypes.map((wt) => ({
+        work_type: wt.workType,
+        duration: wt.duration,
+        percentage: wt.percentage,
+        entries_count: wt.entriesCount
+      })),
+      entries_count: summary.entriesCount
     }));
 
     const start = response?.startDate ?? new Date().toISOString();

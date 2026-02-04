@@ -22,9 +22,9 @@ export default function DashboardPage() {
     }
   }, [user, isLoading, router]);
 
-  const handleStartTimer = (projectName?: string) => {
-    if (projectName) {
-      router.push(`/timer?project=${encodeURIComponent(projectName)}`);
+  const handleStartTimer = (projectId?: string, projectName?: string) => {
+    if (projectId) {
+      router.push(`/timer?projectId=${encodeURIComponent(projectId)}`);
     } else {
       router.push('/timer');
     }

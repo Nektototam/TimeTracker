@@ -2,7 +2,7 @@
 
 import React from 'react';
 import NavBar from '../../components/NavBar';
-import ProjectSelect from '../../components/ProjectSelect';
+import { ProjectSwitcher } from '../../components/ProjectSwitcher';
 import TimerCircle from '../../components/TimerCircle';
 import TimerButton from '../../components/TimerButton';
 import { useTimer } from '../../contexts/TimerContext';
@@ -11,17 +11,17 @@ import { useTranslation } from 'react-i18next';
 
 function TimerApp() {
   const { t } = useTranslation();
-  const { 
-    project, 
-    projectText, 
+  const {
+    projectId,
+    projectName,
     isRunning,
-    isPaused, 
-    startTime, 
-    elapsedTime, 
-    timerStatus, 
-    timerValue, 
-    dailyTotal, 
-    setProject, 
+    isPaused,
+    startTime,
+    elapsedTime,
+    timerStatus,
+    timerValue,
+    dailyTotal,
+    setProjectId,
     toggleTimer,
     finishTask,
     formatTime
@@ -50,7 +50,12 @@ function TimerApp() {
         </aside>
 
         <main className="space-y-6">
-          <ProjectSelect value={project} onChange={setProject} />
+          <div className="rounded-2xl border border-border bg-card p-4 shadow-app-sm">
+            <ProjectSwitcher
+              activeProjectId={projectId}
+              onProjectChange={(newProjectId) => setProjectId(newProjectId)}
+            />
+          </div>
 
           <div className="rounded-2xl border border-border bg-card p-6 shadow-app-sm">
             <TimerCircle
@@ -59,7 +64,7 @@ function TimerApp() {
               elapsedTime={elapsedTime}
               status={timerStatus}
               timeValue={timerValue}
-              project={projectText}
+              project={projectName}
             />
 
             <div className="mt-4">
@@ -74,7 +79,7 @@ function TimerApp() {
 
           <div className="rounded-2xl border border-border bg-card p-5 text-center shadow-app-sm">
             <div className="text-sm text-muted-foreground">{t('timer.dailyTotal')}</div>
-            <div className="mt-2 text-2xl font-semibold text-foreground">{dailyTotal}</div>
+            <div className="mt-2 text-2xl font-semibold text-foreground">{formatTime(dailyTotal)}</div>
             <div className="mt-3 flex items-center justify-center gap-2 text-sm text-muted-foreground">
               <span>📅</span>
               {new Date().toLocaleDateString()}
