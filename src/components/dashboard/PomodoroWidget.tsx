@@ -28,11 +28,11 @@ export function PomodoroWidget({ className }: PomodoroWidgetProps) {
   const modeBg = isWorkMode ? 'bg-primary/10' : 'bg-success/10';
 
   return (
-    <Card className={className}>
+    <Card className={cn("h-full flex flex-col", className)}>
       <CardHeader>
         <CardTitle>Pomodoro</CardTitle>
       </CardHeader>
-      <CardContent className="flex h-full flex-col justify-between">
+      <CardContent className="flex flex-1 flex-col justify-between">
         {/* Mode indicator */}
         <div className={cn("rounded-lg p-2 text-center text-xs font-medium", modeBg, modeColor)}>
           {isWorkMode ? t('pomodoro.work') : t('pomodoro.rest')}

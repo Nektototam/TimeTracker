@@ -34,7 +34,7 @@ export function DashboardLayout() {
 
   return (
     <>
-      <div className="grid gap-6 lg:auto-rows-[180px] lg:grid-cols-3">
+      <div className="grid gap-6 lg:auto-rows-[minmax(180px,auto)] lg:grid-cols-3">
         {/* Timer Widget - Hero (2x2) */}
         <div className="lg:col-span-2 lg:row-span-2">
           <TimerWidget />

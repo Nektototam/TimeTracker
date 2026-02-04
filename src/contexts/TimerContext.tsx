@@ -6,6 +6,20 @@ import { useAuth } from './AuthContext';
 import { api } from '../lib/api';
 import { useTranslation } from 'react-i18next';
 
+// Тип для состояния таймера одного проекта
+interface ProjectTimerState {
+  isRunning: boolean;
+  isPaused: boolean;
+  startTime: number;
+  elapsedTime: number;
+  pausedElapsedTime: number;
+  workTypeId: string | null;
+  workTypeName: string;
+  lastHourMark: number;
+  last15MinMark: number;
+  timeLimit: number | null;
+}
+
 // Тип для контекста таймера
 interface TimerContextType {
   // Состояние таймера
@@ -37,12 +51,49 @@ interface TimerContextType {
 // Создание контекста с начальными значениями
 const TimerContext = createContext<TimerContextType | undefined>(undefined);
 
+// Ключ для хранения состояний таймеров всех проектов
+const TIMER_STATES_KEY = 'timetracker-project-timers';
+
+// Функции для работы с localStorage
+function loadProjectTimerStates(): Record<string, ProjectTimerState> {
+  if (typeof window === 'undefined') return {};
+  try {
+    const saved = localStorage.getItem(TIMER_STATES_KEY);
+    return saved ? JSON.parse(saved) : {};
+  } catch {
+    return {};
+  }
+}
+
+function saveProjectTimerStates(states: Record<string, ProjectTimerState>) {
+  if (typeof window === 'undefined') return;
+  localStorage.setItem(TIMER_STATES_KEY, JSON.stringify(states));
+}
+
+function getDefaultTimerState(): ProjectTimerState {
+  return {
+    isRunning: false,
+    isPaused: false,
+    startTime: 0,
+    elapsedTime: 0,
+    pausedElapsedTime: 0,
+    workTypeId: null,
+    workTypeName: '',
+    lastHourMark: 0,
+    last15MinMark: 0,
+    timeLimit: null,
+  };
+}
+
 // Провайдер контекста
 export function TimerProvider({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
   const userId = user?.id || '';
 
-  // Состояние таймера
+  // Храним состояния таймеров для всех проектов
+  const projectTimerStatesRef = useRef<Record<string, ProjectTimerState>>(loadProjectTimerStates());
+
+  // Состояние таймера текущего проекта
   const [projectId, setProjectId] = useState<string | null>(null);
   const [projectName, setProjectName] = useState('');
   const [workTypeId, setWorkTypeId] = useState<string | null>(null);
@@ -72,114 +123,72 @@ export function TimerProvider({ children }: { children: React.ReactNode }) {
   // Получаем функцию перевода
   const { t } = useTranslation();
 
+  // Форматирование времени (определяем рано для использования в useEffect)
+  const formatTime = useCallback((milliseconds: number) => {
+    const totalSeconds = Math.floor(milliseconds / 1000);
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+
+    return [
+      hours.toString().padStart(2, '0'),
+      minutes.toString().padStart(2, '0'),
+      seconds.toString().padStart(2, '0')
+    ].join(':');
+  }, []);
+
   // Обновляем значения переводов после инициализации
   useEffect(() => {
     setTimerStatus(t('timer.status.ready'));
   }, [t]);
 
-  // Загрузка activeProjectId при старте
+  // Загрузка activeProjectId при старте и восстановление состояния таймера
   useEffect(() => {
     async function loadActiveProject() {
       if (!userId) return;
       try {
         const { settings } = await api.settings.get();
         if (settings.activeProjectId) {
-          setProjectId(settings.activeProjectId);
+          const activeProjectId = settings.activeProjectId;
+          setProjectId(activeProjectId);
+
           // Загружаем информацию о проекте
-          const { item } = await api.projects.get(settings.activeProjectId);
+          const { item } = await api.projects.get(activeProjectId);
           setProjectName(item.name);
+
+          // Загружаем состояние таймера для этого проекта
+          const savedState = projectTimerStatesRef.current[activeProjectId];
+          if (savedState) {
+            if (savedState.isRunning && savedState.startTime > 0) {
+              const currentElapsed = Date.now() - savedState.startTime;
+              setIsRunning(true);
+              setIsPaused(false);
+              setStartTime(savedState.startTime);
+              setElapsedTime(currentElapsed);
+              setTimerValue(formatTime(currentElapsed));
+              setTimerStatus(t('timer.status.running'));
+            } else if (savedState.isPaused) {
+              setIsRunning(false);
+              setIsPaused(true);
+              setElapsedTime(savedState.pausedElapsedTime);
+              setPausedElapsedTime(savedState.pausedElapsedTime);
+              setTimerValue(formatTime(savedState.pausedElapsedTime));
+              setTimerStatus(t('timer.status.paused'));
+            }
+
+            setWorkTypeId(savedState.workTypeId);
+            setWorkTypeName(savedState.workTypeName);
+            setLastHourMark(savedState.lastHourMark);
+            setLast15MinMark(savedState.last15MinMark);
+            setTimeLimit(savedState.timeLimit);
+          }
         }
       } catch (err) {
         console.error('Ошибка при загрузке активного проекта:', err);
       }
     }
     loadActiveProject();
-  }, [userId]);
-
-  // Инициализация аудио элементов и загрузка сохраненного состояния
-  useEffect(() => {
-    workCompleteAudioRef.current = new Audio('/sounds/work-complete.mp3');
-    bigBenAudioRef.current = new Audio('/sounds/work-complete.mp3');
-    work15AudioRef.current = new Audio('/sounds/work-15.mp3');
-    pomodoroStartAudioRef.current = new Audio('/sounds/pomodoro-start.mp3');
-    pomodoroCompleteAudioRef.current = new Audio('/sounds/pomodoro-complete.mp3');
-
-    // Проверяем, есть ли сохраненное состояние таймера в localStorage
-    const savedTimer = localStorage.getItem('timetracker-timer-state');
-    if (savedTimer) {
-      try {
-        const timerState = JSON.parse(savedTimer);
-        if (timerState.isRunning) {
-          setProjectId(timerState.projectId);
-          setProjectName(timerState.projectName || '');
-          setWorkTypeId(timerState.workTypeId || null);
-          setWorkTypeName(timerState.workTypeName || '');
-          setIsRunning(true);
-
-          const savedStartTime = timerState.startTime;
-          setStartTime(savedStartTime);
-
-          const currentElapsed = Date.now() - savedStartTime;
-          setElapsedTime(currentElapsed);
-          setTimerValue(formatTime(currentElapsed));
-
-          setLastHourMark(timerState.lastHourMark || 0);
-          setLast15MinMark(timerState.last15MinMark || 0);
-          if (timerState.timeLimit) {
-            setTimeLimit(timerState.timeLimit);
-          }
-
-          setTimerStatus(t('timer.status.running'));
-        } else if (timerState.isPaused) {
-          setProjectId(timerState.projectId);
-          setProjectName(timerState.projectName || '');
-          setWorkTypeId(timerState.workTypeId || null);
-          setWorkTypeName(timerState.workTypeName || '');
-          setIsPaused(true);
-          setPausedElapsedTime(timerState.pausedElapsedTime || 0);
-          setElapsedTime(timerState.pausedElapsedTime || 0);
-          setTimerValue(formatTime(timerState.pausedElapsedTime || 0));
-          if (timerState.timeLimit) {
-            setTimeLimit(timerState.timeLimit);
-          }
-          setTimerStatus(t('timer.status.paused'));
-        }
-      } catch (error) {
-        console.error('Ошибка при восстановлении состояния таймера:', error);
-      }
-    }
-
-    return () => {
-      if (isRunning) {
-        const timerState = {
-          isRunning,
-          projectId,
-          projectName,
-          workTypeId,
-          workTypeName,
-          startTime,
-          lastHourMark,
-          last15MinMark,
-          timeLimit
-        };
-        localStorage.setItem('timetracker-timer-state', JSON.stringify(timerState));
-      } else if (isPaused) {
-        const timerState = {
-          isRunning: false,
-          isPaused: true,
-          projectId,
-          projectName,
-          workTypeId,
-          workTypeName,
-          pausedElapsedTime,
-          timeLimit
-        };
-        localStorage.setItem('timetracker-timer-state', JSON.stringify(timerState));
-      } else {
-        localStorage.removeItem('timetracker-timer-state');
-      }
-    };
-  }, [t]);
+  }, [userId, formatTime, t]);
 
   // Загрузка базового времени за день
   const updateCompletedTimeTotal = async () => {
@@ -203,19 +212,81 @@ export function TimerProvider({ children }: { children: React.ReactNode }) {
     }
   }, [userId]);
 
-  // Форматирование времени
-  const formatTime = useCallback((milliseconds: number) => {
-    const totalSeconds = Math.floor(milliseconds / 1000);
-    const hours = Math.floor(totalSeconds / 3600);
-    const minutes = Math.floor((totalSeconds % 3600) / 60);
-    const seconds = totalSeconds % 60;
+  // Сохранить текущее состояние таймера для проекта
+  const saveCurrentTimerState = useCallback((forProjectId: string) => {
+    if (!forProjectId) return;
 
-    return [
-      hours.toString().padStart(2, '0'),
-      minutes.toString().padStart(2, '0'),
-      seconds.toString().padStart(2, '0')
-    ].join(':');
-  }, []);
+    const currentState: ProjectTimerState = {
+      isRunning,
+      isPaused,
+      startTime,
+      elapsedTime,
+      pausedElapsedTime,
+      workTypeId,
+      workTypeName,
+      lastHourMark,
+      last15MinMark,
+      timeLimit,
+    };
+
+    projectTimerStatesRef.current[forProjectId] = currentState;
+    saveProjectTimerStates(projectTimerStatesRef.current);
+  }, [isRunning, isPaused, startTime, elapsedTime, pausedElapsedTime, workTypeId, workTypeName, lastHourMark, last15MinMark, timeLimit]);
+
+  // Загрузить состояние таймера для проекта
+  const loadTimerStateForProject = useCallback((forProjectId: string) => {
+    const savedState = projectTimerStatesRef.current[forProjectId];
+
+    if (savedState) {
+      // Если таймер был запущен, нужно пересчитать elapsed time
+      if (savedState.isRunning && savedState.startTime > 0) {
+        const currentElapsed = Date.now() - savedState.startTime;
+        setIsRunning(true);
+        setIsPaused(false);
+        setStartTime(savedState.startTime);
+        setElapsedTime(currentElapsed);
+        setTimerValue(formatTime(currentElapsed));
+        setTimerStatus(t('timer.status.running'));
+      } else if (savedState.isPaused) {
+        setIsRunning(false);
+        setIsPaused(true);
+        setStartTime(0);
+        setElapsedTime(savedState.pausedElapsedTime);
+        setPausedElapsedTime(savedState.pausedElapsedTime);
+        setTimerValue(formatTime(savedState.pausedElapsedTime));
+        setTimerStatus(t('timer.status.paused'));
+      } else {
+        // Таймер остановлен
+        setIsRunning(false);
+        setIsPaused(false);
+        setStartTime(0);
+        setElapsedTime(0);
+        setPausedElapsedTime(0);
+        setTimerValue('00:00:00');
+        setTimerStatus(t('timer.status.ready'));
+      }
+
+      setWorkTypeId(savedState.workTypeId);
+      setWorkTypeName(savedState.workTypeName);
+      setLastHourMark(savedState.lastHourMark);
+      setLast15MinMark(savedState.last15MinMark);
+      setTimeLimit(savedState.timeLimit);
+    } else {
+      // Нет сохранённого состояния - сбросить к начальным значениям
+      setIsRunning(false);
+      setIsPaused(false);
+      setStartTime(0);
+      setElapsedTime(0);
+      setPausedElapsedTime(0);
+      setTimerValue('00:00:00');
+      setTimerStatus(t('timer.status.ready'));
+      setWorkTypeId(null);
+      setWorkTypeName('');
+      setLastHourMark(0);
+      setLast15MinMark(0);
+      setTimeLimit(null);
+    }
+  }, [formatTime, t]);
 
   // Воспроизведение звука с визуальным уведомлением
   const playSound = (audioRef: React.RefObject<HTMLAudioElement | null>, title: string, message: string) => {
@@ -280,64 +351,70 @@ export function TimerProvider({ children }: { children: React.ReactNode }) {
   const switchProject = async (newProjectId: string, newProjectName: string): Promise<void> => {
     if (projectId === newProjectId) return;
 
-    await saveCurrentEntry();
+    // Сохраняем запись времени если таймер работал
+    if (isRunning && projectId) {
+      await saveCurrentEntry();
+    }
 
+    // Сохраняем текущее состояние таймера для старого проекта
+    if (projectId) {
+      // При переключении ставим таймер на паузу
+      if (isRunning) {
+        const pauseState: ProjectTimerState = {
+          isRunning: false,
+          isPaused: true,
+          startTime: 0,
+          elapsedTime: elapsedTime,
+          pausedElapsedTime: elapsedTime,
+          workTypeId,
+          workTypeName,
+          lastHourMark,
+          last15MinMark,
+          timeLimit,
+        };
+        projectTimerStatesRef.current[projectId] = pauseState;
+      } else {
+        saveCurrentTimerState(projectId);
+      }
+      saveProjectTimerStates(projectTimerStatesRef.current);
+    }
+
+    // Переключаемся на новый проект
     setProjectId(newProjectId);
     setProjectName(newProjectName);
-    setWorkTypeId(null);
-    setWorkTypeName('');
 
-    setStartTime(Date.now());
-    setElapsedTime(0);
-    setTimerValue('00:00:00');
-    setTimeLimit(null);
+    // Загружаем состояние таймера для нового проекта
+    loadTimerStateForProject(newProjectId);
 
-    // Активируем проект
+    // Активируем проект в API
     try {
       await api.projects.activate(newProjectId);
     } catch (err) {
       console.error('Ошибка при активации проекта:', err);
     }
-
-    if (isRunning) {
-      setTimerStatus(t('timer.status.running'));
-      setLastHourMark(0);
-      setLast15MinMark(0);
-
-      playSound(pomodoroStartAudioRef, "Новая задача", `Начало работы над "${newProjectName}"`);
-
-      const timerState = {
-        isRunning,
-        projectId: newProjectId,
-        projectName: newProjectName,
-        workTypeId: null,
-        workTypeName: '',
-        startTime: Date.now(),
-        lastHourMark: 0,
-        last15MinMark: 0,
-        timeLimit: null
-      };
-      localStorage.setItem('timetracker-timer-state', JSON.stringify(timerState));
-    } else {
-      setTimerStatus(t('timer.status.ready'));
-    }
   };
 
   // Завершение текущей задачи
   const finishTask = async (): Promise<void> => {
-    if (!isRunning) return;
+    if (!isRunning && !isPaused) return;
 
     await saveCurrentEntry(true);
 
     setIsRunning(false);
+    setIsPaused(false);
     setTimerStatus(t('timer.status.ready'));
     setElapsedTime(0);
+    setPausedElapsedTime(0);
     setTimerValue('00:00:00');
     setStartTime(0);
     setLastHourMark(0);
     setLast15MinMark(0);
 
-    localStorage.removeItem('timetracker-timer-state');
+    // Очищаем состояние таймера для этого проекта
+    if (projectId) {
+      delete projectTimerStatesRef.current[projectId];
+      saveProjectTimerStates(projectTimerStatesRef.current);
+    }
   };
 
   // Переключение запуска таймера
@@ -356,6 +433,7 @@ export function TimerProvider({ children }: { children: React.ReactNode }) {
         setIsPaused(true);
         setPausedElapsedTime(elapsedTime);
         setTimerStatus(t('timer.status.paused'));
+        saveCurrentTimerState(projectId);
         return;
       }
 
@@ -370,40 +448,48 @@ export function TimerProvider({ children }: { children: React.ReactNode }) {
       setPausedElapsedTime(elapsedTime);
       setTimerStatus(t('timer.status.paused'));
 
-      const timerState = {
+      // Сохраняем состояние для этого проекта
+      const pauseState: ProjectTimerState = {
         isRunning: false,
         isPaused: true,
-        projectId,
-        projectName,
+        startTime: 0,
+        elapsedTime: elapsedTime,
+        pausedElapsedTime: elapsedTime,
         workTypeId,
         workTypeName,
-        pausedElapsedTime: elapsedTime,
-        timeLimit
+        lastHourMark,
+        last15MinMark,
+        timeLimit,
       };
-      localStorage.setItem('timetracker-timer-state', JSON.stringify(timerState));
+      projectTimerStatesRef.current[projectId] = pauseState;
+      saveProjectTimerStates(projectTimerStatesRef.current);
     } else {
       if (isPaused) {
+        const newStartTime = Date.now() - pausedElapsedTime;
         setIsRunning(true);
         setIsPaused(false);
-        setStartTime(Date.now() - pausedElapsedTime);
+        setStartTime(newStartTime);
         setTimerStatus(t('timer.status.resumed'));
 
-        const timerState = {
+        // Сохраняем состояние для этого проекта
+        const runningState: ProjectTimerState = {
           isRunning: true,
           isPaused: false,
-          projectId,
-          projectName,
+          startTime: newStartTime,
+          elapsedTime: pausedElapsedTime,
+          pausedElapsedTime: 0,
           workTypeId,
           workTypeName,
-          startTime: Date.now() - pausedElapsedTime,
           lastHourMark,
           last15MinMark,
-          timeLimit
+          timeLimit,
         };
-        localStorage.setItem('timetracker-timer-state', JSON.stringify(timerState));
+        projectTimerStatesRef.current[projectId] = runningState;
+        saveProjectTimerStates(projectTimerStatesRef.current);
       } else {
+        const newStartTime = Date.now();
         setIsRunning(true);
-        setStartTime(Date.now());
+        setStartTime(newStartTime);
         setElapsedTime(0);
         setPausedElapsedTime(0);
         setTimerStatus(t('timer.status.running'));
@@ -412,19 +498,21 @@ export function TimerProvider({ children }: { children: React.ReactNode }) {
 
         playSound(pomodoroStartAudioRef, "Начало работы", `Начало работы над "${projectName}"`);
 
-        const timerState = {
+        // Сохраняем состояние для этого проекта
+        const runningState: ProjectTimerState = {
           isRunning: true,
           isPaused: false,
-          projectId,
-          projectName,
+          startTime: newStartTime,
+          elapsedTime: 0,
+          pausedElapsedTime: 0,
           workTypeId,
           workTypeName,
-          startTime: Date.now(),
           lastHourMark: 0,
           last15MinMark: 0,
-          timeLimit
+          timeLimit,
         };
-        localStorage.setItem('timetracker-timer-state', JSON.stringify(timerState));
+        projectTimerStatesRef.current[projectId] = runningState;
+        saveProjectTimerStates(projectTimerStatesRef.current);
       }
     }
   };
@@ -459,18 +547,23 @@ export function TimerProvider({ children }: { children: React.ReactNode }) {
       finishTask();
     }
 
-    const timerState = {
-      isRunning,
-      projectId,
-      projectName,
-      workTypeId,
-      workTypeName,
-      startTime,
-      lastHourMark,
-      last15MinMark,
-      timeLimit
-    };
-    localStorage.setItem('timetracker-timer-state', JSON.stringify(timerState));
+    // Сохраняем состояние для текущего проекта
+    if (projectId) {
+      const runningState: ProjectTimerState = {
+        isRunning: true,
+        isPaused: false,
+        startTime,
+        elapsedTime: newElapsedTime,
+        pausedElapsedTime: 0,
+        workTypeId,
+        workTypeName,
+        lastHourMark,
+        last15MinMark,
+        timeLimit,
+      };
+      projectTimerStatesRef.current[projectId] = runningState;
+      saveProjectTimerStates(projectTimerStatesRef.current);
+    }
   };
 
   useEffect(() => {

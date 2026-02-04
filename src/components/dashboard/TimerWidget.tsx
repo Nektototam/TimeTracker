@@ -74,10 +74,10 @@ export function TimerWidget({ className, compact = false }: TimerWidgetProps) {
             onClick={toggleTimer}
             variant={isPaused ? 'success' : 'timer'}
             size="lg"
-            className="flex-1 max-w-[140px]"
+            className="flex-1 max-w-xs"
           >
             {getButtonText()}
-            <span className="ml-2 text-xs opacity-70">[Space]</span>
+            <kbd className="ml-2 hidden text-xs opacity-70 sm:inline">Space</kbd>
           </Button>
 
           {(isRunning || isPaused) && (
@@ -85,7 +85,7 @@ export function TimerWidget({ className, compact = false }: TimerWidgetProps) {
               onClick={finishTask}
               variant="timerStop"
               size="lg"
-              className="flex-1 max-w-[140px]"
+              className="flex-1 max-w-xs"
             >
               {t('timer.stop')}
             </Button>

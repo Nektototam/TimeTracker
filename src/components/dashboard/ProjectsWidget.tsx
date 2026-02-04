@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import { useAuth } from '../../contexts/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/Card';
 import { Button } from '../ui/Button';
 import projectsService, { Project, PROJECT_COLORS } from '../../lib/projectsService';
@@ -21,8 +22,10 @@ export function ProjectsWidget({ onStartTimer, searchQuery = '' }: ProjectsWidge
   const { translationInstance } = useLanguage();
   const { t } = translationInstance;
   const router = useRouter();
+  const { user } = useAuth();
 
   const loadProjects = useCallback(async () => {
+    if (!user) return;
     try {
       const data = await projectsService.getProjectsWithStats();
       setProjects(data);
@@ -31,7 +34,7 @@ export function ProjectsWidget({ onStartTimer, searchQuery = '' }: ProjectsWidge
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [user]);
 
   useEffect(() => {
     loadProjects();

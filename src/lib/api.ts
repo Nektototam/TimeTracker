@@ -155,7 +155,9 @@ export const api = {
       clearAccessToken();
     },
     async me() {
-      return apiRequest<{ user: { id: string; email: string } | null }>("/auth/me");
+      return apiRequest<{ user: { id: string; email: string } | null }>("/auth/me", {
+        headers: { "Cache-Control": "no-store" }
+      });
     }
   },
 

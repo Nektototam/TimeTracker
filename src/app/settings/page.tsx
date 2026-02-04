@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import NavBar from '../../components/NavBar';
+import AppShell from '../../components/AppShell';
 import ProtectedRoute from '../../components/ProtectedRoute';
 import { useAuth } from '../../contexts/AuthContext';
 import LanguageSwitcher from '../../components/LanguageSwitcher';
@@ -158,16 +158,12 @@ function SettingsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="mx-auto grid max-w-7xl gap-6 px-4 py-6 lg:grid-cols-[240px_1fr]">
-        <aside className="hidden lg:block">
-          <NavBar variant="sidebar" />
-        </aside>
-        <div className="space-y-6 pb-24">
-          <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-semibold text-foreground">{translate('title')}</h1>
-            {isLoading && <div className="text-sm text-muted-foreground">{translate('loading')}</div>}
-          </div>
+    <AppShell title={translate('title')}>
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <h1 className="text-2xl font-semibold text-foreground">{translate('title')}</h1>
+          {isLoading && <div className="text-sm text-muted-foreground">{translate('loading')}</div>}
+        </div>
           
           <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
             <h2 className="mb-4 text-lg font-semibold text-foreground">{translate('profile')}</h2>
@@ -421,12 +417,8 @@ function SettingsPage() {
               </div>
             )}
           </div>
-        </div>
       </div>
-      <div className="lg:hidden">
-        <NavBar />
-      </div>
-    </div>
+    </AppShell>
   );
 }
 

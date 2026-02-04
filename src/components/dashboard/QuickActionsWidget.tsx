@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/Card';
 import { Button } from '../ui/Button';
+import { cn } from '../../lib/utils';
 
 interface QuickActionsWidgetProps {
   className?: string;
@@ -32,11 +33,11 @@ export function QuickActionsWidget({ className, onOpenCommandPalette }: QuickAct
   ];
 
   return (
-    <Card className={className}>
+    <Card className={cn("h-full flex flex-col", className)}>
       <CardHeader>
         <CardTitle>{t('dashboard.quickActions')}</CardTitle>
       </CardHeader>
-      <CardContent className="flex h-full flex-col gap-2">
+      <CardContent className="flex flex-1 flex-col gap-2">
         {actions.map((action) => (
           <Button
             key={action.href}

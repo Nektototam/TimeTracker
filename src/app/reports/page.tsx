@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import NavBar from '../../components/NavBar';
+import AppShell from '../../components/AppShell';
 import ProtectedRoute from '../../components/ProtectedRoute';
 import ActivityChart from '../../components/ActivityChart';
 import DailyTimelineView from '../../components/DailyTimelineView';
@@ -192,12 +192,8 @@ function ReportsPage() {
   };
   
   return (
-    <div className="min-h-screen bg-background">
-      <div className="mx-auto grid max-w-7xl gap-6 px-4 py-6 lg:grid-cols-[240px_1fr]">
-        <aside className="hidden lg:block">
-          <NavBar variant="sidebar" />
-        </aside>
-        <div className="space-y-6">
+    <AppShell title="Отчеты">
+      <div className="space-y-6">
           <div className="flex flex-col gap-1">
             <h1 className="text-2xl font-semibold text-foreground">Отчеты</h1>
             <p className="text-sm text-muted-foreground">{dateRange}</p>
@@ -327,12 +323,8 @@ function ReportsPage() {
               Экспорт
             </Button>
           </div>
-        </div>
       </div>
-      <div className="lg:hidden">
-        <NavBar />
-      </div>
-    </div>
+    </AppShell>
   );
 }
 

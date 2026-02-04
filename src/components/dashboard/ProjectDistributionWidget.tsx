@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/Card';
+import { cn } from '../../lib/utils';
 import reportService, { ProjectSummary } from '../../lib/reportService';
 
 interface ProjectDistributionWidgetProps {
@@ -52,7 +53,7 @@ export function ProjectDistributionWidget({ className }: ProjectDistributionWidg
 
 
   return (
-    <Card className={className}>
+    <Card className={cn("h-full", className)}>
       <CardHeader>
         <CardTitle>{t('statistics.byProject')}</CardTitle>
       </CardHeader>

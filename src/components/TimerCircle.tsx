@@ -9,6 +9,7 @@ interface TimerCircleProps {
   status: string;
   timeValue: string;
   project: string;
+  workTypeName?: string;
 }
 
 export default function TimerCircle({
@@ -18,6 +19,7 @@ export default function TimerCircle({
   status,
   timeValue,
   project,
+  workTypeName,
 }: TimerCircleProps) {
   const { timeLimit, formatTime } = useTimer();
   const { t } = useTranslation();
@@ -77,6 +79,11 @@ export default function TimerCircle({
           <div className="mt-1 text-sm font-medium text-muted-foreground" data-testid="project-name">
             {project || t('timer.notSelected')}
           </div>
+          {workTypeName && (
+             <div className="mt-0.5 text-xs text-muted-foreground/80">
+              {workTypeName}
+            </div>
+          )}
           <div className="mt-3">{getTimeLimitDisplay()}</div>
         </div>
       </div>

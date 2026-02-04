@@ -7,10 +7,11 @@ import { cn } from '@/lib/utils';
 
 interface NavBarProps {
   variant?: 'bottom' | 'sidebar';
+  collapsed?: boolean;
   className?: string;
 }
 
-export default function NavBar({ variant = 'bottom', className }: NavBarProps) {
+export default function NavBar({ variant = 'bottom', collapsed = false, className }: NavBarProps) {
   const pathname = usePathname();
   const { signOut } = useAuth();
   const { currentLanguage } = useLanguage();
@@ -77,6 +78,7 @@ export default function NavBar({ variant = 'bottom', className }: NavBarProps) {
   ];
 
   const isSidebar = variant === 'sidebar';
+  const showLabels = !(isSidebar && collapsed);
 
   return (
     <nav
@@ -102,14 +104,23 @@ export default function NavBar({ variant = 'bottom', className }: NavBarProps) {
             className={cn(
               "group gap-2 text-muted-foreground transition-colors",
               isSidebar
-                ? "h-10 w-full justify-start rounded-xl px-3 text-sm"
+                ? collapsed
+                  ? "h-10 w-full justify-center rounded-xl px-2 text-sm"
+                  : "h-10 w-full justify-start rounded-xl px-3 text-sm"
                 : "h-12 flex-1 flex-col justify-center rounded-xl px-2 text-[11px]",
               isActive && "bg-muted text-foreground font-semibold"
             )}
           >
-            <Link href={item.href} aria-current={isActive ? 'page' : undefined}>
+            <Link
+              href={item.href}
+              aria-current={isActive ? 'page' : undefined}
+              aria-label={item.label}
+              className={cn("inline-flex items-center", collapsed && isSidebar && "justify-center w-full")}
+            >
               <span className={cn("text-base", !isSidebar && "text-lg")}>{item.icon}</span>
-              <span className={cn(isSidebar ? "text-sm" : "text-[11px]", "leading-tight")}>{item.label}</span>
+              {showLabels && (
+                <span className={cn(isSidebar ? "text-sm" : "text-[11px]", "leading-tight")}>{item.label}</span>
+              )}
             </Link>
           </Button>
         );
@@ -122,12 +133,16 @@ export default function NavBar({ variant = 'bottom', className }: NavBarProps) {
         className={cn(
           "gap-2 text-destructive hover:text-destructive",
           isSidebar
-            ? "h-10 w-full justify-start rounded-xl px-3"
+            ? collapsed
+              ? "h-10 w-full justify-center rounded-xl px-2"
+              : "h-10 w-full justify-start rounded-xl px-3"
             : "h-12 flex-1 flex-col justify-center rounded-xl px-2 text-[11px]"
         )}
       >
         <span className={cn("text-base", !isSidebar && "text-lg")}>{navIcons.logout}</span>
-        <span className={cn(isSidebar ? "text-sm" : "text-[11px]", "leading-tight")}>{t('nav.logout')}</span>
+        {showLabels && (
+          <span className={cn(isSidebar ? "text-sm" : "text-[11px]", "leading-tight")}>{t('nav.logout')}</span>
+        )}
       </Button>
     </nav>
   );
