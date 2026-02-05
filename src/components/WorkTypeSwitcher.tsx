@@ -5,6 +5,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useTranslation } from "react-i18next";
 import { api, ApiWorkType } from "@/lib/api";
 import { ChevronDown, Plus, Check, Briefcase } from "lucide-react";
+import { SkeletonWorkTypeSwitcher } from "./ui/Skeleton";
 
 interface WorkTypeSwitcherProps {
   projectId: string | null;
@@ -72,9 +73,7 @@ export function WorkTypeSwitcher({ projectId, activeWorkTypeId, onWorkTypeChange
   }
 
   if (loading && workTypes.length === 0) {
-    return (
-      <div className="h-10 w-48 bg-muted rounded-lg animate-pulse" />
-    );
+    return <SkeletonWorkTypeSwitcher />;
   }
 
   return (

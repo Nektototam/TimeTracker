@@ -2,6 +2,9 @@
 
 import React from 'react';
 import { TimeEntry } from '../lib/reportService';
+import { parseDate, toDateKey, formatTimeOfDay as formatTime24, formatDisplayDate, differenceInMilliseconds } from '../lib/dateUtils';
+import { useLanguage } from '../contexts/LanguageContext';
+import { useTranslation } from 'react-i18next';
 
 interface TimeBlock {
   id: string;
@@ -30,6 +33,9 @@ const DailyTimelineView: React.FC<DailyTimelineViewProps> = ({
   entries,
   formatTime
 }) => {
+  const { currentLanguage } = useLanguage();
+  const { t } = useTranslation();
+
   // Группируем записи по дням с предварительной фильтрацией
   const groupEntriesByDay = (): DayData[] => {
     // Расширенная фильтрация для коротких интервалов с гибким подходом
@@ -45,9 +51,9 @@ const DailyTimelineView: React.FC<DailyTimelineViewProps> = ({
       }
 
       // Проверка реальной разницы между метками времени (минимум 60 секунд)
-      const startTime = new Date(entry.startTime).getTime();
-      const endTime = new Date(entry.endTime).getTime();
-      const diffInSeconds = (endTime - startTime) / 1000;
+      const startTime = parseDate(entry.startTime);
+      const endTime = parseDate(entry.endTime);
+      const diffInSeconds = differenceInMilliseconds(endTime, startTime) / 1000;
 
       return diffInSeconds >= 60;
     });
@@ -60,7 +66,7 @@ const DailyTimelineView: React.FC<DailyTimelineViewProps> = ({
     const dayGroups: { [key: string]: TimeEntry[] } = {};
 
     validEntries.forEach(entry => {
-      const dateKey = new Date(entry.startTime).toISOString().split('T')[0];
+      const dateKey = toDateKey(entry.startTime);
       if (!dayGroups[dateKey]) {
         dayGroups[dateKey] = [];
       }
@@ -82,11 +88,11 @@ const DailyTimelineView: React.FC<DailyTimelineViewProps> = ({
       // Создаем блоки активности
       const blocks: TimeBlock[] = dayEntries.map(entry => ({
         id: entry.id,
-        startTime: new Date(entry.startTime),
-        endTime: new Date(entry.endTime),
+        startTime: parseDate(entry.startTime),
+        endTime: parseDate(entry.endTime),
         duration: entry.durationMs,
         projectId: entry.projectId,
-        projectName: entry.project?.name || 'Без проекта',
+        projectName: entry.project?.name || t('reports.noProject', 'No project'),
         projectColor: entry.project?.color || '#6366f1',
         workTypeName: entry.workType?.name,
         workTypeColor: entry.workType?.color
@@ -94,7 +100,7 @@ const DailyTimelineView: React.FC<DailyTimelineViewProps> = ({
 
       // Добавляем день в список
       days.push({
-        date: new Date(dateKey),
+        date: parseDate(dateKey),
         blocks,
         totalDuration
       });
@@ -108,15 +114,12 @@ const DailyTimelineView: React.FC<DailyTimelineViewProps> = ({
 
   // Форматирование времени для отображения (HH:MM)
   const formatTimeOfDay = (date: Date): string => {
-    return `${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
+    return formatTime24(date);
   };
 
   // Форматирование даты (день недели, число месяца)
   const formatDate = (date: Date): string => {
-    const weekdays = ['Воскресенье', 'Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота'];
-    const months = ['янв', 'фев', 'мар', 'апр', 'май', 'июн', 'июл', 'авг', 'сен', 'окт', 'ноя', 'дек'];
-
-    return `${weekdays[date.getDay()]}, ${date.getDate()} ${months[date.getMonth()]}`;
+    return formatDisplayDate(date, currentLanguage);
   };
 
   const getProjectBackground = (color: string): string => {
@@ -140,7 +143,7 @@ const DailyTimelineView: React.FC<DailyTimelineViewProps> = ({
 
               <div className="flex items-center justify-between rounded-xl border border-border bg-card px-4 py-3 shadow-sm">
                 <div className="text-base font-semibold text-foreground">{formatDate(day.date)}</div>
-                <div className="text-sm font-medium text-primary">Всего: {formatTime(day.totalDuration)}</div>
+                <div className="text-sm font-medium text-primary">{t('reports.totalTime')}: {formatTime(day.totalDuration)}</div>
               </div>
 
               {/* Список активностей по дню */}
@@ -205,7 +208,7 @@ const DailyTimelineView: React.FC<DailyTimelineViewProps> = ({
           ))
       ) : (
         <div className="py-6 text-center text-sm text-muted-foreground">
-          Нет данных за выбранный период
+          {t('reports.noData')}
         </div>
       )}
     </div>

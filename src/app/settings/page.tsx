@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
+import { useTheme } from 'next-themes';
 import AppShell from '../../components/AppShell';
 import ProtectedRoute from '../../components/ProtectedRoute';
 import { useAuth } from '../../contexts/AuthContext';
@@ -32,7 +33,9 @@ function SettingsPage() {
   const { user } = useAuth();
   const { translationInstance } = useLanguage();
   const { t } = translationInstance;
-  
+  const { theme: currentTheme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
   // Состояния для всех настроек
   const [settings, setSettings] = useState<Settings>({
     // DB настройки
@@ -44,15 +47,20 @@ function SettingsPage() {
     language: 'ru',
     data_retention_period: 3, // По умолчанию 3 месяца
     // Локальные настройки
-    theme: 'light',
+    theme: 'system',
     timeFormat: '24h',
     soundNotifications: true,
     browserNotifications: true
   });
-  
+
   const [isLoading, setIsLoading] = useState(true);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'success' | 'error'>('idle');
   const [cleaningStatus, setCleaningStatus] = useState<'idle' | 'cleaning' | 'success' | 'error'>('idle');
+
+  // Prevent hydration mismatch
+  useEffect(() => {
+    setMounted(true);
+  }, []);
   
   // Функция перевода
   const translate = (key: string): string => {
@@ -273,13 +281,16 @@ function SettingsPage() {
                 <div className="text-xs text-muted-foreground">{translate('deviceOnly')}</div>
                 <Select
                   className="mt-2 w-full"
-                  value={settings.theme}
-                  onChange={(e) => updateSettings('theme', e.target.value)}
-                  disabled={isLoading}
+                  value={mounted ? currentTheme : 'system'}
+                  onChange={(e) => {
+                    setTheme(e.target.value);
+                    updateSettings('theme', e.target.value);
+                  }}
+                  disabled={isLoading || !mounted}
                 >
-                  <option value="light">{translate('lightTheme')}</option>
-                  <option value="dark">{translate('darkTheme')}</option>
-                  <option value="system">{translate('systemTheme')}</option>
+                  <option value="light">{t('themes.light')}</option>
+                  <option value="dark">{t('themes.dark')}</option>
+                  <option value="system">{t('themes.system')}</option>
                 </Select>
               </div>
               <div className="border-b border-border pb-4">

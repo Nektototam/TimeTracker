@@ -4,7 +4,8 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTranslation } from "react-i18next";
 import { api, ApiProject } from "@/lib/api";
-import { ChevronDown, Plus, FolderKanban, Check } from "lucide-react";
+import { ChevronDown, Plus, Check } from "lucide-react";
+import { SkeletonProjectSwitcher } from "./ui/Skeleton";
 
 interface ProjectSwitcherProps {
   activeProjectId: string | null;
@@ -64,9 +65,7 @@ export function ProjectSwitcher({ activeProjectId, onProjectChange, onProjectCre
   }
 
   if (loading) {
-    return (
-      <div className="h-10 w-48 bg-muted rounded-lg animate-pulse" />
-    );
+    return <SkeletonProjectSwitcher />;
   }
 
   return (
