@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef, useCallback } from 'react';
 
 // Типы для таймера Помидора
 type TimerMode = 'work' | 'rest';
@@ -41,6 +41,14 @@ export function PomodoroProvider({ children }: { children: React.ReactNode }) {
   // Ссылки на аудио элементы для сигналов
   const workCompleteSound = useRef<HTMLAudioElement | null>(null);
   const restCompleteSound = useRef<HTMLAudioElement | null>(null);
+
+  // Refs для сохранения последних значений состояния (для cleanup)
+  const stateRef = useRef({ workDuration, restDuration, mode, isRunning, timeLeft, cycles });
+
+  // Обновляем ref при изменении состояния
+  useEffect(() => {
+    stateRef.current = { workDuration, restDuration, mode, isRunning, timeLeft, cycles };
+  }, [workDuration, restDuration, mode, isRunning, timeLeft, cycles]);
   
   // Инициализация аудио при монтировании компонента
   useEffect(() => {
@@ -82,8 +90,8 @@ export function PomodoroProvider({ children }: { children: React.ReactNode }) {
           const remainingTime = Math.max(0, pomodoroState.timeLeft - elapsedSeconds);
           
           if (remainingTime <= 0) {
-            // Если время истекло, переключаем режим
-            handleTimerComplete();
+            // Если время истекло, устанавливаем 0 - второй useEffect обработает completion
+            setTimeLeft(0);
           } else {
             setTimeLeft(remainingTime);
           }
@@ -105,18 +113,20 @@ export function PomodoroProvider({ children }: { children: React.ReactNode }) {
     // Очистка ресурсов при размонтировании
     return () => {
       // Сохраняем состояние таймера при размонтировании компонента
+      // Используем ref для получения актуальных значений
+      const currentState = stateRef.current;
       const pomodoroState = {
-        workDuration,
-        restDuration,
-        mode,
-        isRunning,
-        timeLeft,
-        cycles,
+        workDuration: currentState.workDuration,
+        restDuration: currentState.restDuration,
+        mode: currentState.mode,
+        isRunning: currentState.isRunning,
+        timeLeft: currentState.timeLeft,
+        cycles: currentState.cycles,
         lastUpdated: Date.now()
       };
-      
+
       localStorage.setItem('timetracker-pomodoro-state', JSON.stringify(pomodoroState));
-      
+
       workCompleteSound.current = null;
       restCompleteSound.current = null;
     };
@@ -129,18 +139,18 @@ export function PomodoroProvider({ children }: { children: React.ReactNode }) {
       const oscillator = audioContext.createOscillator();
       oscillator.type = 'sine';
       oscillator.frequency.setValueAtTime(frequency, audioContext.currentTime);
-      
+
       const gainNode = audioContext.createGain();
       gainNode.gain.setValueAtTime(0, audioContext.currentTime);
       gainNode.gain.linearRampToValueAtTime(1, audioContext.currentTime + 0.01);
       gainNode.gain.linearRampToValueAtTime(0, audioContext.currentTime + 0.5);
-      
+
       oscillator.connect(gainNode);
       gainNode.connect(audioContext.destination);
-      
+
       oscillator.start();
       oscillator.stop(audioContext.currentTime + 0.5);
-      
+
       // Создаем фиктивный аудио элемент для совместимости с API
       return new Audio();
     } catch (e) {
@@ -148,43 +158,32 @@ export function PomodoroProvider({ children }: { children: React.ReactNode }) {
       return new Audio();
     }
   };
-  
-  // Обновление состояния таймера при запуске/остановке
-  useEffect(() => {
-    let interval: NodeJS.Timeout;
-    
-    if (isRunning && timeLeft > 0) {
-      interval = setInterval(() => {
-        setTimeLeft(prevTime => {
-          const newTime = prevTime - 1;
-          
-          // Сохраняем текущее состояние в localStorage
-          const pomodoroState = {
-            workDuration,
-            restDuration,
-            mode,
-            isRunning,
-            timeLeft: newTime,
-            cycles,
-            lastUpdated: Date.now()
-          };
-          localStorage.setItem('timetracker-pomodoro-state', JSON.stringify(pomodoroState));
-          
-          return newTime;
+
+  // Форматирование времени в формат MM:SS
+  const formatTime = useCallback((seconds: number): string => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  }, []);
+
+  // Показ браузерного уведомления при поддержке
+  const showNotification = useCallback(() => {
+    if (typeof window !== 'undefined' && 'Notification' in window) {
+      if (Notification.permission === 'granted') {
+        new Notification(mode === 'work' ? 'Время отдохнуть!' : 'Время работать!', {
+          body: mode === 'work'
+            ? `Вы завершили ${cycles + 1}-й рабочий период. Отдохните ${restDuration} минут.`
+            : `Отдых завершен. Начните новый ${workDuration}-минутный рабочий период.`,
+          icon: '/icons/pomodoro-icon.png'
         });
-      }, 1000);
-    } else if (isRunning && timeLeft === 0) {
-      // Переключение между режимами работы и отдыха
-      handleTimerComplete();
+      } else if (Notification.permission !== 'denied') {
+        Notification.requestPermission();
+      }
     }
-    
-    return () => {
-      if (interval) clearInterval(interval);
-    };
-  }, [isRunning, timeLeft, mode, workDuration, restDuration, cycles]);
-  
+  }, [mode, cycles, restDuration, workDuration]);
+
   // Обработка окончания таймера и переход к следующему режиму
-  const handleTimerComplete = () => {
+  const handleTimerComplete = useCallback(() => {
     if (mode === 'work') {
       // Работа завершена, переход к отдыху
       if (workCompleteSound.current) {
@@ -202,10 +201,10 @@ export function PomodoroProvider({ children }: { children: React.ReactNode }) {
       setMode('work');
       setTimeLeft(workDuration * 60);
     }
-    
+
     // Показываем уведомление
     showNotification();
-    
+
     // Обновляем состояние в localStorage
     const pomodoroState = {
       workDuration,
@@ -217,30 +216,41 @@ export function PomodoroProvider({ children }: { children: React.ReactNode }) {
       lastUpdated: Date.now()
     };
     localStorage.setItem('timetracker-pomodoro-state', JSON.stringify(pomodoroState));
-  };
-  
-  // Показ браузерного уведомления при поддержке
-  const showNotification = () => {
-    if (typeof window !== 'undefined' && 'Notification' in window) {
-      if (Notification.permission === 'granted') {
-        new Notification(mode === 'work' ? 'Время отдохнуть!' : 'Время работать!', {
-          body: mode === 'work' 
-            ? `Вы завершили ${cycles + 1}-й рабочий период. Отдохните ${restDuration} минут.` 
-            : `Отдых завершен. Начните новый ${workDuration}-минутный рабочий период.`,
-          icon: '/icons/pomodoro-icon.png'
+  }, [mode, restDuration, workDuration, isRunning, cycles, showNotification]);
+
+  // Обновление состояния таймера при запуске/остановке
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+
+    if (isRunning && timeLeft > 0) {
+      interval = setInterval(() => {
+        setTimeLeft(prevTime => {
+          const newTime = prevTime - 1;
+
+          // Сохраняем текущее состояние в localStorage
+          const pomodoroState = {
+            workDuration,
+            restDuration,
+            mode,
+            isRunning,
+            timeLeft: newTime,
+            cycles,
+            lastUpdated: Date.now()
+          };
+          localStorage.setItem('timetracker-pomodoro-state', JSON.stringify(pomodoroState));
+
+          return newTime;
         });
-      } else if (Notification.permission !== 'denied') {
-        Notification.requestPermission();
-      }
+      }, 1000);
+    } else if (isRunning && timeLeft === 0) {
+      // Переключение между режимами работы и отдыха
+      handleTimerComplete();
     }
-  };
-  
-  // Форматирование времени в формат MM:SS
-  const formatTime = (seconds: number): string => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-  };
+
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [isRunning, timeLeft, mode, workDuration, restDuration, cycles, handleTimerComplete]);
   
   // Управление таймером
   const startTimer = () => {
