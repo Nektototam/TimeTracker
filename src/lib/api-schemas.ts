@@ -13,8 +13,8 @@ export const ApiProjectSchema = z.object({
   createdAt: z.string().optional(),
   updatedAt: z.string().optional(),
   _count: z.object({
-    timeEntries: z.number(),
-    workTypes: z.number(),
+    timeEntries: z.number().optional(),
+    workTypes: z.number().optional(),
   }).optional(),
 }).passthrough();
 
