@@ -5,6 +5,8 @@ import { AuthProvider } from '../contexts/AuthContext';
 import { TimerProvider } from '../contexts/TimerContext';
 import { PomodoroProvider } from '../contexts/PomodoroContext';
 import { LanguageProvider } from '../contexts/LanguageContext';
+import { ToastProvider } from '../contexts/ToastContext';
+import { ToastContainer } from './ui/Toast';
 
 interface ProvidersProps {
   children: ReactNode;
@@ -12,14 +14,17 @@ interface ProvidersProps {
 
 export function Providers({ children }: ProvidersProps) {
   return (
-    <AuthProvider>
-      <LanguageProvider>
-        <TimerProvider>
-          <PomodoroProvider>
-            {children}
-          </PomodoroProvider>
-        </TimerProvider>
-      </LanguageProvider>
-    </AuthProvider>
+    <ToastProvider>
+      <AuthProvider>
+        <LanguageProvider>
+          <TimerProvider>
+            <PomodoroProvider>
+              {children}
+              <ToastContainer />
+            </PomodoroProvider>
+          </TimerProvider>
+        </LanguageProvider>
+      </AuthProvider>
+    </ToastProvider>
   );
 }
