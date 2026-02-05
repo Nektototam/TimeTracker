@@ -31,14 +31,14 @@ export function WeekChartWidget({ className }: WeekChartWidgetProps) {
         // Group entries by date to create daily summaries
         const dailyMap = new Map<string, number>();
         report.entries.forEach(entry => {
-          const date = new Date(entry.start_time).toISOString().split('T')[0];
+          const date = new Date(entry.startTime).toISOString().split('T')[0];
           const current = dailyMap.get(date) || 0;
-          dailyMap.set(date, current + entry.duration);
+          dailyMap.set(date, current + entry.durationMs);
         });
 
         // Convert to array and sort by date
         const dailySummaries: DailySummary[] = Array.from(dailyMap.entries())
-          .map(([date, total_duration]) => ({ date, total_duration }))
+          .map(([date, totalDuration]) => ({ date, totalDuration }))
           .sort((a, b) => a.date.localeCompare(b.date));
 
         setWeekData(dailySummaries);

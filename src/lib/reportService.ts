@@ -3,21 +3,21 @@ import { api, ApiTimeEntry } from './api';
 // Типы данных для отчетов (используем новую модель с проектами и типами работ)
 export interface TimeEntry {
   id: string;
-  project_id: string;
-  work_type_id?: string;
-  start_time: string;
-  end_time: string;
-  duration: number;
+  projectId: string;
+  workTypeId?: string;
+  startTime: string;
+  endTime: string;
+  durationMs: number;
   description?: string;
-  created_at?: string;
-  time_limit?: number;
+  createdAt?: string;
+  timeLimitMs?: number;
   // Связанные объекты
   project?: {
     id: string;
     name: string;
     color: string;
   };
-  work_type?: {
+  workType?: {
     id: string;
     name: string;
     color: string;
@@ -25,14 +25,14 @@ export interface TimeEntry {
 }
 
 export interface WorkTypeSummary {
-  work_type: {
+  workType: {
     id: string;
     name: string;
     color: string;
   };
   duration: number;
   percentage: number;
-  entries_count: number;
+  entriesCount: number;
 }
 
 export interface ProjectSummary {
@@ -41,15 +41,15 @@ export interface ProjectSummary {
     name: string;
     color: string;
   };
-  total_duration: number;
+  totalDuration: number;
   percentage: number;
-  work_types: WorkTypeSummary[];
-  entries_count: number;
+  workTypes: WorkTypeSummary[];
+  entriesCount: number;
 }
 
 export interface DailySummary {
   date: string;
-  total_duration: number;
+  totalDuration: number;
 }
 
 export interface ReportData {
@@ -67,20 +67,20 @@ class ReportService {
   private mapEntry(entry: ApiTimeEntry): TimeEntry {
     return {
       id: entry.id,
-      project_id: entry.projectId,
-      work_type_id: entry.workTypeId || undefined,
-      start_time: entry.startTime,
-      end_time: entry.endTime,
-      duration: entry.durationMs,
+      projectId: entry.projectId,
+      workTypeId: entry.workTypeId || undefined,
+      startTime: entry.startTime,
+      endTime: entry.endTime,
+      durationMs: entry.durationMs,
       description: entry.description || undefined,
-      created_at: entry.createdAt,
-      time_limit: entry.timeLimitMs || undefined,
+      createdAt: entry.createdAt,
+      timeLimitMs: entry.timeLimitMs || undefined,
       project: entry.project ? {
         id: entry.project.id,
         name: entry.project.name,
         color: entry.project.color
       } : undefined,
-      work_type: entry.workType ? {
+      workType: entry.workType ? {
         id: entry.workType.id,
         name: entry.workType.name,
         color: entry.workType.color
@@ -108,15 +108,15 @@ class ReportService {
 
     const mappedSummaries: ProjectSummary[] = projectSummaries.map((summary) => ({
       project: summary.project,
-      total_duration: summary.totalDuration,
+      totalDuration: summary.totalDuration,
       percentage: summary.percentage,
-      work_types: summary.workTypes.map((wt) => ({
-        work_type: wt.workType,
+      workTypes: summary.workTypes.map((wt) => ({
+        workType: wt.workType,
         duration: wt.duration,
         percentage: wt.percentage,
-        entries_count: wt.entriesCount
+        entriesCount: wt.entriesCount
       })),
-      entries_count: summary.entriesCount
+      entriesCount: summary.entriesCount
     }));
 
     const start = response?.startDate ?? new Date().toISOString();

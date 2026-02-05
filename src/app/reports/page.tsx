@@ -117,22 +117,22 @@ function ReportsPage() {
   // Подготовка данных для графика активности
   const getDailyChartData = () => {
     if (!reportData || !reportData.entries) return [];
-    
+
     // Группируем записи по дням
     const dailyMap = new Map<string, number>();
-    
+
     reportData.entries.forEach(entry => {
-      const date = new Date(entry.start_time).toISOString().split('T')[0];
+      const date = new Date(entry.startTime).toISOString().split('T')[0];
       const current = dailyMap.get(date) || 0;
-      dailyMap.set(date, current + entry.duration);
+      dailyMap.set(date, current + entry.durationMs);
     });
-    
+
     // Преобразуем в массив объектов для графика
     const dailyData = Array.from(dailyMap.entries()).map(([date, duration]) => ({
       date,
-      total_duration: duration
+      totalDuration: duration
     }));
-    
+
     // Сортируем по дате
     return dailyData.sort((a, b) => a.date.localeCompare(b.date));
   };
@@ -150,7 +150,7 @@ function ReportsPage() {
     
     text += "Проекты:\n";
     reportData.projectSummaries.forEach(project => {
-      text += `${project.project.name}: ${formatTime(project.total_duration)} (${project.percentage}%)\n`;
+      text += `${project.project.name}: ${formatTime(project.totalDuration)} (${project.percentage}%)\n`;
     });
     
     text += `\nВсего: ${formatFullTime(reportData.totalDuration)}`;
@@ -172,7 +172,7 @@ function ReportsPage() {
       ...reportData.projectSummaries.map(project => [
         project.project.id,
         project.project.name,
-        (project.total_duration / 60000).toFixed(2),
+        (project.totalDuration / 60000).toFixed(2),
         project.percentage.toString()
       ]),
       [],
@@ -258,7 +258,7 @@ function ReportsPage() {
                       <div key={project.project.id}>
                         <div className="mb-1 flex items-center justify-between">
                           <span className="text-sm font-medium text-foreground">{project.project.name}</span>
-                          <span className="text-sm text-muted-foreground">{formatTime(project.total_duration)}</span>
+                          <span className="text-sm text-muted-foreground">{formatTime(project.totalDuration)}</span>
                         </div>
                         <div className="h-2 overflow-hidden rounded-full bg-muted">
                           <div

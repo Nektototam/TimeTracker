@@ -35,18 +35,18 @@ const DailyTimelineView: React.FC<DailyTimelineViewProps> = ({
     // Расширенная фильтрация для коротких интервалов с гибким подходом
     const validEntries = entries.filter(entry => {
       // Проверка продолжительности из базы данных
-      if (!entry || entry.duration < 60) {
+      if (!entry || entry.durationMs < 60) {
         return false;
       }
 
       // Проверка наличия временных меток
-      if (!entry.start_time || !entry.end_time) {
+      if (!entry.startTime || !entry.endTime) {
         return false;
       }
 
       // Проверка реальной разницы между метками времени (минимум 60 секунд)
-      const startTime = new Date(entry.start_time).getTime();
-      const endTime = new Date(entry.end_time).getTime();
+      const startTime = new Date(entry.startTime).getTime();
+      const endTime = new Date(entry.endTime).getTime();
       const diffInSeconds = (endTime - startTime) / 1000;
 
       return diffInSeconds >= 60;
@@ -60,7 +60,7 @@ const DailyTimelineView: React.FC<DailyTimelineViewProps> = ({
     const dayGroups: { [key: string]: TimeEntry[] } = {};
 
     validEntries.forEach(entry => {
-      const dateKey = new Date(entry.start_time).toISOString().split('T')[0];
+      const dateKey = new Date(entry.startTime).toISOString().split('T')[0];
       if (!dayGroups[dateKey]) {
         dayGroups[dateKey] = [];
       }
@@ -72,7 +72,7 @@ const DailyTimelineView: React.FC<DailyTimelineViewProps> = ({
 
     Object.entries(dayGroups).forEach(([dateKey, dayEntries]) => {
       // Считаем общую продолжительность дня
-      const totalDuration = dayEntries.reduce((sum, entry) => sum + entry.duration, 0);
+      const totalDuration = dayEntries.reduce((sum, entry) => sum + entry.durationMs, 0);
 
       // Пропускаем дни с продолжительностью меньше минуты
       if (totalDuration < 60) {
@@ -82,14 +82,14 @@ const DailyTimelineView: React.FC<DailyTimelineViewProps> = ({
       // Создаем блоки активности
       const blocks: TimeBlock[] = dayEntries.map(entry => ({
         id: entry.id,
-        startTime: new Date(entry.start_time),
-        endTime: new Date(entry.end_time),
-        duration: entry.duration,
-        projectId: entry.project_id,
+        startTime: new Date(entry.startTime),
+        endTime: new Date(entry.endTime),
+        duration: entry.durationMs,
+        projectId: entry.projectId,
         projectName: entry.project?.name || 'Без проекта',
         projectColor: entry.project?.color || '#6366f1',
-        workTypeName: entry.work_type?.name,
-        workTypeColor: entry.work_type?.color
+        workTypeName: entry.workType?.name,
+        workTypeColor: entry.workType?.color
       }));
 
       // Добавляем день в список

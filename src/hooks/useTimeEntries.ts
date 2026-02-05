@@ -4,13 +4,13 @@ import { TimeEntry } from '../types/supabase';
 import { useApiError } from './useApiError';
 
 interface AddEntryParams {
-  project_id: string;
-  work_type_id?: string;
-  start_time: Date;
-  end_time: Date;
-  duration: number;
+  projectId: string;
+  workTypeId?: string;
+  startTime: Date;
+  endTime: Date;
+  durationMs: number;
   description?: string;
-  time_limit?: number;
+  timeLimitMs?: number;
 }
 
 interface UseTimeEntriesReturn {
@@ -61,34 +61,34 @@ export function useTimeEntries(): UseTimeEntriesReturn {
   function mapToTimeEntry(entry: ApiTimeEntry): TimeEntry {
     return {
       id: entry.id,
-      project_id: entry.projectId,
-      work_type_id: entry.workTypeId || undefined,
-      start_time: entry.startTime,
-      end_time: entry.endTime,
-      duration: entry.durationMs,
+      projectId: entry.projectId,
+      workTypeId: entry.workTypeId || undefined,
+      startTime: entry.startTime,
+      endTime: entry.endTime,
+      durationMs: entry.durationMs,
       description: entry.description || undefined,
-      created_at: entry.createdAt,
-      time_limit: entry.timeLimitMs || undefined,
+      createdAt: entry.createdAt,
+      timeLimitMs: entry.timeLimitMs || undefined,
       project: entry.project ? {
         id: entry.project.id,
-        user_id: entry.project.userId,
+        userId: entry.project.userId,
         name: entry.project.name,
         color: entry.project.color,
         description: entry.project.description || undefined,
         status: entry.project.status,
-        created_at: entry.project.createdAt,
-        updated_at: entry.project.updatedAt
+        createdAt: entry.project.createdAt,
+        updatedAt: entry.project.updatedAt
       } : undefined,
-      work_type: entry.workType ? {
+      workType: entry.workType ? {
         id: entry.workType.id,
-        project_id: entry.workType.projectId,
+        projectId: entry.workType.projectId,
         name: entry.workType.name,
         color: entry.workType.color,
         description: entry.workType.description || undefined,
         status: entry.workType.status,
-        time_goal_ms: entry.workType.timeGoalMs || undefined,
-        created_at: entry.workType.createdAt,
-        updated_at: entry.workType.updatedAt
+        timeGoalMs: entry.workType.timeGoalMs || undefined,
+        createdAt: entry.workType.createdAt,
+        updatedAt: entry.workType.updatedAt
       } : undefined
     };
   }
@@ -97,13 +97,13 @@ export function useTimeEntries(): UseTimeEntriesReturn {
   const addTimeEntry = useCallback(async (entry: AddEntryParams): Promise<TimeEntry | null> => {
     try {
       const payload = {
-        projectId: entry.project_id,
-        workTypeId: entry.work_type_id,
-        startTime: new Date(entry.start_time).toISOString(),
-        endTime: new Date(entry.end_time).toISOString(),
-        durationMs: entry.duration,
+        projectId: entry.projectId,
+        workTypeId: entry.workTypeId,
+        startTime: new Date(entry.startTime).toISOString(),
+        endTime: new Date(entry.endTime).toISOString(),
+        durationMs: entry.durationMs,
         description: entry.description,
-        timeLimitMs: entry.time_limit
+        timeLimitMs: entry.timeLimitMs
       };
 
       const { item } = await api.timeEntries.create(payload);
@@ -123,12 +123,12 @@ export function useTimeEntries(): UseTimeEntriesReturn {
   const updateTimeEntry = useCallback(async (id: string, entry: Partial<TimeEntry>): Promise<TimeEntry | null> => {
     try {
       const payload = {
-        workTypeId: entry.work_type_id,
-        startTime: entry.start_time ? new Date(entry.start_time).toISOString() : undefined,
-        endTime: entry.end_time ? new Date(entry.end_time).toISOString() : undefined,
-        durationMs: entry.duration,
+        workTypeId: entry.workTypeId,
+        startTime: entry.startTime ? new Date(entry.startTime).toISOString() : undefined,
+        endTime: entry.endTime ? new Date(entry.endTime).toISOString() : undefined,
+        durationMs: entry.durationMs,
         description: entry.description,
-        timeLimitMs: entry.time_limit
+        timeLimitMs: entry.timeLimitMs
       };
 
       const { item } = await api.timeEntries.update(id, payload);

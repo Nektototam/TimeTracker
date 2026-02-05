@@ -199,7 +199,7 @@ export function TimerProvider({ children }: { children: React.ReactNode }) {
     try {
       const todayEntries = await getTodayEntries();
       const totalMilliseconds = todayEntries.reduce(
-        (total, entry) => total + entry.duration,
+        (total, entry) => total + entry.durationMs,
         0
       );
       setDailyTotal(totalMilliseconds);
@@ -229,16 +229,16 @@ export function TimerProvider({ children }: { children: React.ReactNode }) {
 
     const now = new Date();
     const entryData = {
-      project_id: projectId,
-      work_type_id: workTypeId || undefined,
-      start_time: new Date(startTime),
-      end_time: now,
-      duration: elapsedTime
+      projectId: projectId,
+      workTypeId: workTypeId || undefined,
+      startTime: new Date(startTime),
+      endTime: now,
+      durationMs: elapsedTime
     };
 
     try {
-      const startMs = new Date(entryData.start_time).getTime();
-      const endMs = new Date(entryData.end_time).getTime();
+      const startMs = new Date(entryData.startTime).getTime();
+      const endMs = new Date(entryData.endTime).getTime();
 
       if (startMs >= endMs) {
         console.error('Некорректный интервал времени:', entryData);
