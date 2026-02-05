@@ -1,9 +1,9 @@
 import React, { act } from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
 import { TimerProvider, useTimer } from '../../contexts/TimerContext';
 import { Button } from '../../components/ui/Button';
+import { TIMER_STATES_STORAGE_KEY } from '../../lib/constants/time';
 
 // Устанавливаем увеличенный таймаут для всех тестов в файле
 jest.setTimeout(30000);
@@ -26,30 +26,24 @@ jest.mock('../../hooks/useTimeEntries', () => ({
   }),
 }));
 
-// Мок для settingsService
-jest.mock('../../lib/settingsService', () => ({
-  __esModule: true,
-  default: {
-    getSettings: jest.fn().mockResolvedValue({}),
-    updateSettings: jest.fn().mockResolvedValue({}),
+// Мок для api
+jest.mock('../../lib/api', () => ({
+  api: {
+    settings: {
+      get: jest.fn().mockResolvedValue({ settings: {} }),
+    },
+    projects: {
+      get: jest.fn().mockResolvedValue({ item: { name: 'Test Project' } }),
+      activate: jest.fn().mockResolvedValue({ ok: true }),
+    },
   },
 }));
-
-// Мокируем внутренние функции TimerContext, но экспортируем оригинальные типы и хук
-jest.mock('../../contexts/TimerContext', () => {
-  const originalModule = jest.requireActual('../../contexts/TimerContext');
-  return {
-    ...originalModule,
-    TimerProvider: originalModule.TimerProvider,
-    useTimer: originalModule.useTimer,
-  };
-});
 
 // Компонент для тестирования хука
 const TestComponent: React.FC = () => {
   const {
-    project,
-    projectText,
+    projectId,
+    projectName,
     isRunning,
     isPaused,
     elapsedTime,
@@ -60,28 +54,38 @@ const TestComponent: React.FC = () => {
     switchProject,
     formatTime,
     setTimeLimit,
+    setProjectId,
+    setProjectName,
   } = useTimer();
+
+  // Устанавливаем проект при монтировании для тестов
+  React.useEffect(() => {
+    if (!projectId) {
+      setProjectId('test-project-id');
+      setProjectName('Test Project');
+    }
+  }, [projectId, setProjectId, setProjectName]);
 
   return (
     <div data-testid="test-component">
-      <div data-testid="project">{project}</div>
-      <div data-testid="project-text">{projectText}</div>
+      <div data-testid="project-id">{projectId || ''}</div>
+      <div data-testid="project-name">{projectName}</div>
       <div data-testid="is-running">{isRunning ? 'running' : 'not-running'}</div>
       <div data-testid="is-paused">{isPaused ? 'paused' : 'not-paused'}</div>
       <div data-testid="elapsed-time">{elapsedTime}</div>
       <div data-testid="timer-value">{timerValue}</div>
       <div data-testid="daily-total">{formatTime(dailyTotal)}</div>
-      <Button data-testid="toggle-timer" onClick={() => toggleTimer('development')} variant="outline" size="sm">
+      <Button data-testid="toggle-timer" onClick={() => toggleTimer()} variant="outline" size="sm">
         Toggle
       </Button>
       <Button data-testid="finish-task" onClick={() => finishTask()} variant="outline" size="sm">
         Finish
       </Button>
-      <Button data-testid="switch-project" onClick={() => switchProject('new-project')} variant="outline" size="sm">
+      <Button data-testid="switch-project" onClick={() => switchProject('new-project-id', 'New Project')} variant="outline" size="sm">
         Switch
       </Button>
       <div data-testid="format-time">{formatTime(3661000)}</div>
-      <Button data-testid="set-time-limit" onClick={() => setTimeLimit(3600)} variant="outline" size="sm">
+      <Button data-testid="set-time-limit" onClick={() => setTimeLimit(3600000)} variant="outline" size="sm">
         Set Limit
       </Button>
     </div>
@@ -94,10 +98,8 @@ describe('TimerContext', () => {
     jest.useFakeTimers();
 
     // Мокируем play для всех <audio> элементов
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (window.HTMLMediaElement.prototype as any).play = jest.fn(() => Promise.resolve());
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (window.HTMLMediaElement.prototype as any).pause = jest.fn();
+    (window.HTMLMediaElement.prototype as unknown as { play: jest.Mock }).play = jest.fn(() => Promise.resolve());
+    (window.HTMLMediaElement.prototype as unknown as { pause: jest.Mock }).pause = jest.fn();
 
     // Очищаем localStorage перед каждым тестом
     localStorage.clear();
@@ -122,7 +124,10 @@ describe('TimerContext', () => {
       );
     });
 
-    expect(screen.getByTestId('project')).toHaveTextContent('development');
+    // Ждём пока useEffect установит project
+    await waitFor(() => {
+      expect(screen.getByTestId('project-id')).toHaveTextContent('test-project-id');
+    });
     expect(screen.getByTestId('is-running')).toHaveTextContent('not-running');
     expect(screen.getByTestId('is-paused')).toHaveTextContent('not-paused');
     expect(screen.getByTestId('timer-value')).toHaveTextContent('00:00:00');
@@ -136,6 +141,11 @@ describe('TimerContext', () => {
           <TestComponent />
         </TimerProvider>
       );
+    });
+
+    // Ждём установки проекта
+    await waitFor(() => {
+      expect(screen.getByTestId('project-id')).toHaveTextContent('test-project-id');
     });
 
     const toggleButton = screen.getByTestId('toggle-timer');
@@ -170,15 +180,18 @@ describe('TimerContext', () => {
       );
     });
 
+    await waitFor(() => {
+      expect(screen.getByTestId('project-id')).toHaveTextContent('test-project-id');
+    });
+
     const toggleButton = screen.getByTestId('toggle-timer');
 
     // Запускаем таймер
     await act(async () => {
       toggleButton.click();
-      jest.advanceTimersByTime(100); // Даём время на обработку
+      jest.advanceTimersByTime(100);
     });
 
-    // Проверяем, что таймер запущен
     expect(screen.getByTestId('is-running')).toHaveTextContent('running');
 
     // Перематываем время на 5 секунд вперед
@@ -186,27 +199,23 @@ describe('TimerContext', () => {
       jest.advanceTimersByTime(5000);
     });
 
-    // Паузим таймер - нажимаем на тот же проект
+    // Паузим таймер
     await act(async () => {
       toggleButton.click();
-      jest.advanceTimersByTime(100); // Даём время на обработку
+      jest.advanceTimersByTime(100);
     });
 
-    // Проверяем, что таймер на паузе
     await waitFor(() => {
       expect(screen.getByTestId('is-running')).toHaveTextContent('not-running');
       expect(screen.getByTestId('is-paused')).toHaveTextContent('paused');
     });
 
-    // Получаем значение времени на момент паузы
     const pausedTime = parseInt(screen.getByTestId('elapsed-time').textContent || '0');
 
-    // Перематываем время вперед еще на 5 секунд
     await act(async () => {
       jest.advanceTimersByTime(5000);
     });
 
-    // Проверяем, что время не изменилось (таймер на паузе)
     const currentTime = parseInt(screen.getByTestId('elapsed-time').textContent || '0');
     expect(currentTime).toBe(pausedTime);
   });
@@ -222,36 +231,33 @@ describe('TimerContext', () => {
       );
     });
 
-    // Проверяем начальное состояние
+    await waitFor(() => {
+      expect(screen.getByTestId('project-id')).toHaveTextContent('test-project-id');
+    });
+
     expect(screen.getByTestId('is-running')).toHaveTextContent('not-running');
 
-    // Нажимаем кнопку запуска таймера
     const toggleButton = screen.getByTestId('toggle-timer');
     await act(async () => {
       toggleButton.click();
       jest.advanceTimersByTime(100);
     });
 
-    // Проверяем, что таймер запущен
     expect(screen.getByTestId('is-running')).toHaveTextContent('running');
 
-    // Продвигаем время на 65 секунд (>60 секунд минимального порога)
     await act(async () => {
       jest.advanceTimersByTime(65000);
     });
 
-    // Проверяем, что время пошло
     expect(screen.getByTestId('timer-value')).toHaveTextContent('00:01:05');
 
     const finishButton = screen.getByTestId('finish-task');
 
-    // Нажимаем кнопку завершения задачи
     await act(async () => {
       finishButton.click();
-      jest.advanceTimersByTime(1000); // Даём время на обработку без runAllTimers
+      jest.advanceTimersByTime(1000);
     });
 
-    // Проверяем сброс состояния
     await waitFor(() => {
       expect(screen.getByTestId('is-running')).toHaveTextContent('not-running');
       expect(screen.getByTestId('is-paused')).toHaveTextContent('not-paused');
@@ -270,33 +276,32 @@ describe('TimerContext', () => {
       );
     });
 
+    await waitFor(() => {
+      expect(screen.getByTestId('project-id')).toHaveTextContent('test-project-id');
+    });
+
     const toggleButton = screen.getByTestId('toggle-timer');
     const switchButton = screen.getByTestId('switch-project');
 
-    // Запускаем таймер
     await act(async () => {
       toggleButton.click();
       jest.advanceTimersByTime(100);
     });
 
-    // Перематываем время на 5 секунд
     await act(async () => {
       jest.advanceTimersByTime(5000);
     });
 
-    // Проверяем, что время пошло (используем числовое сравнение)
     const elapsedBefore = parseInt(screen.getByTestId('elapsed-time').textContent || '0');
     expect(elapsedBefore).toBeGreaterThan(0);
 
-    // Переключаем проект
     await act(async () => {
       switchButton.click();
-      jest.advanceTimersByTime(1000); // Используем advanceTimersByTime вместо runAllTimers
+      jest.advanceTimersByTime(1000);
     });
 
-    // Проверяем, что проект изменился и таймер сбросился
     await waitFor(() => {
-      expect(screen.getByTestId('project')).toHaveTextContent('new-project');
+      expect(screen.getByTestId('project-id')).toHaveTextContent('new-project-id');
       expect(screen.getByTestId('is-running')).toHaveTextContent('not-running');
       expect(screen.getByTestId('is-paused')).toHaveTextContent('not-paused');
       const elapsedAfter = parseInt(screen.getByTestId('elapsed-time').textContent || '0');
@@ -347,6 +352,11 @@ describe('TimerContext', () => {
       );
     });
 
+    // Ждём установки проекта
+    await waitFor(() => {
+      expect(screen.getByTestId('project-id')).toHaveTextContent('test-project-id');
+    });
+
     const toggleButton = screen.getByTestId('toggle-timer');
 
     // Запускаем таймер
@@ -359,10 +369,10 @@ describe('TimerContext', () => {
       jest.advanceTimersByTime(5000);
     });
 
-    // Проверяем запись в localStorage
-    const savedState = JSON.parse(localStorage.getItem('timetracker-timer-state') || '{}');
-    expect(savedState.isRunning).toBe(true);
-    expect(savedState.project).toBe('development');
+    // Проверяем запись в localStorage (используем новый ключ)
+    const savedStates = JSON.parse(localStorage.getItem(TIMER_STATES_STORAGE_KEY) || '{}');
+    expect(savedStates['test-project-id']).toBeDefined();
+    expect(savedStates['test-project-id'].isRunning).toBe(true);
   });
 
   // Тест 9: Проверка обновления dailyTotal
