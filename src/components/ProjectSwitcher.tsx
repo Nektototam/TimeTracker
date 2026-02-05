@@ -74,15 +74,20 @@ export function ProjectSwitcher({ activeProjectId, onProjectChange, onProjectCre
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="flex items-center gap-2 px-3 py-2 bg-card border border-border hover:bg-muted/50 rounded-lg transition-colors min-w-[200px] text-foreground"
+        aria-haspopup="listbox"
+        aria-expanded={isOpen}
+        aria-controls="project-listbox"
+        aria-label={t("dashboard.selectProject", "Select project")}
       >
         <div
           className="w-3 h-3 rounded-full border border-border"
           style={{ backgroundColor: activeProject?.color || "#6366f1" }}
+          aria-hidden="true"
         />
         <span className="flex-1 text-left truncate">
           {activeProject?.name || t("dashboard.selectProject", "Select project")}
         </span>
-        <ChevronDown className={`w-4 h-4 transition-transform ${isOpen ? "rotate-180" : ""}`} />
+        <ChevronDown className={`w-4 h-4 transition-transform ${isOpen ? "rotate-180" : ""}`} aria-hidden="true" />
       </button>
 
       {isOpen && (
@@ -94,7 +99,12 @@ export function ProjectSwitcher({ activeProjectId, onProjectChange, onProjectCre
               setIsCreating(false);
             }}
           />
-          <div className="absolute top-full left-0 mt-1 w-64 bg-card border border-border rounded-lg shadow-xl z-50 overflow-hidden text-foreground">
+          <div
+            id="project-listbox"
+            role="listbox"
+            aria-label={t("dashboard.projectList", "Project list")}
+            className="absolute top-full left-0 mt-1 w-64 bg-card border border-border rounded-lg shadow-xl z-50 overflow-hidden text-foreground"
+          >
             <div className="max-h-64 overflow-y-auto">
               {projects.length === 0 && !isCreating ? (
                 <div className="p-4 text-center text-muted-foreground text-sm">
@@ -104,16 +114,19 @@ export function ProjectSwitcher({ activeProjectId, onProjectChange, onProjectCre
                 projects.map(project => (
                   <button
                     key={project.id}
+                    role="option"
+                    aria-selected={project.id === activeProjectId}
                     onClick={() => handleSelectProject(project.id)}
                     className="w-full flex items-center gap-3 px-3 py-2 hover:bg-muted transition-colors"
                   >
                     <div
                       className="w-3 h-3 rounded-full flex-shrink-0"
                       style={{ backgroundColor: project.color }}
+                      aria-hidden="true"
                     />
                     <span className="flex-1 text-left truncate">{project.name}</span>
                     {project.id === activeProjectId && (
-                      <Check className="w-4 h-4 text-primary" />
+                      <Check className="w-4 h-4 text-primary" aria-hidden="true" />
                     )}
                   </button>
                 ))
@@ -122,7 +135,7 @@ export function ProjectSwitcher({ activeProjectId, onProjectChange, onProjectCre
 
             <div className="border-t border-border">
               {isCreating ? (
-                <div className="p-2">
+                <div className="p-2" role="form" aria-label={t("dashboard.createProject", "Create project")}>
                   <input
                     type="text"
                     value={newProjectName}
@@ -135,6 +148,7 @@ export function ProjectSwitcher({ activeProjectId, onProjectChange, onProjectCre
                       }
                     }}
                     placeholder={t("dashboard.newProjectName")}
+                    aria-label={t("dashboard.newProjectName", "New project name")}
                     className="w-full px-3 py-2 bg-muted/30 border border-input rounded text-sm focus:outline-none focus:border-primary text-foreground"
                     autoFocus
                   />

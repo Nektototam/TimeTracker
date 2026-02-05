@@ -82,20 +82,25 @@ export function WorkTypeSwitcher({ projectId, activeWorkTypeId, onWorkTypeChange
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="flex items-center gap-2 px-3 py-2 bg-card border border-border hover:bg-muted/50 rounded-lg transition-colors min-w-[200px] text-foreground"
+        aria-haspopup="listbox"
+        aria-expanded={isOpen}
+        aria-controls="worktype-listbox"
+        aria-label={t("timer.selectWorkType", "Select work type")}
       >
         {activeWorkType ? (
            <div
             className="w-3 h-3 rounded-full border border-border"
             style={{ backgroundColor: activeWorkType.color || "#6366f1" }}
+            aria-hidden="true"
           />
         ) : (
-           <Briefcase className="w-4 h-4 text-muted-foreground" />
+           <Briefcase className="w-4 h-4 text-muted-foreground" aria-hidden="true" />
         )}
-        
+
         <span className="flex-1 text-left truncate text-sm">
           {activeWorkType?.name || t("timer.selectWorkType", "Select work type")}
         </span>
-        <ChevronDown className={`w-4 h-4 transition-transform ${isOpen ? "rotate-180" : ""}`} />
+        <ChevronDown className={`w-4 h-4 transition-transform ${isOpen ? "rotate-180" : ""}`} aria-hidden="true" />
       </button>
 
       {isOpen && (
@@ -108,22 +113,26 @@ export function WorkTypeSwitcher({ projectId, activeWorkTypeId, onWorkTypeChange
             }}
           />
           <div
+            id="worktype-listbox"
+            role="listbox"
+            aria-label={t("timer.workTypeList", "Work type list")}
             className="absolute top-full left-0 mt-1 w-64 bg-card border border-border rounded-lg shadow-xl z-50 overflow-hidden text-foreground"
             onClick={(e) => e.stopPropagation()}
           >
-             
             <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleSelectWorkType(null, undefined);
-                }}
-                className="w-full flex items-center gap-3 px-3 py-2 hover:bg-muted transition-colors border-b border-border"
-              >
-                 <Briefcase className="w-4 h-4 text-muted-foreground" />
-                <span className="flex-1 text-left truncate text-sm italic text-muted-foreground">{t("timer.noWorkType", "No work type")}</span>
-                {!activeWorkTypeId && (
-                  <Check className="w-4 h-4 text-primary" />
-                )}
+              role="option"
+              aria-selected={!activeWorkTypeId}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleSelectWorkType(null, undefined);
+              }}
+              className="w-full flex items-center gap-3 px-3 py-2 hover:bg-muted transition-colors border-b border-border"
+            >
+              <Briefcase className="w-4 h-4 text-muted-foreground" aria-hidden="true" />
+              <span className="flex-1 text-left truncate text-sm italic text-muted-foreground">{t("timer.noWorkType", "No work type")}</span>
+              {!activeWorkTypeId && (
+                <Check className="w-4 h-4 text-primary" aria-hidden="true" />
+              )}
             </button>
 
             <div className="max-h-64 overflow-y-auto">
@@ -135,6 +144,8 @@ export function WorkTypeSwitcher({ projectId, activeWorkTypeId, onWorkTypeChange
                 workTypes.map(wt => (
                   <button
                     key={wt.id}
+                    role="option"
+                    aria-selected={wt.id === activeWorkTypeId}
                     onClick={(e) => {
                       e.stopPropagation();
                       handleSelectWorkType(wt.id, wt.name);
@@ -144,10 +155,11 @@ export function WorkTypeSwitcher({ projectId, activeWorkTypeId, onWorkTypeChange
                     <div
                       className="w-3 h-3 rounded-full flex-shrink-0"
                       style={{ backgroundColor: wt.color }}
+                      aria-hidden="true"
                     />
                     <span className="flex-1 text-left truncate text-sm">{wt.name}</span>
                     {wt.id === activeWorkTypeId && (
-                      <Check className="w-4 h-4 text-primary" />
+                      <Check className="w-4 h-4 text-primary" aria-hidden="true" />
                     )}
                   </button>
                 ))
@@ -156,7 +168,7 @@ export function WorkTypeSwitcher({ projectId, activeWorkTypeId, onWorkTypeChange
 
             <div className="border-t border-border">
               {isCreating ? (
-                <div className="p-2">
+                <div className="p-2" role="form" aria-label={t("timer.createWorkType", "Create work type")}>
                   <input
                     type="text"
                     value={newWorkTypeName}
@@ -169,6 +181,7 @@ export function WorkTypeSwitcher({ projectId, activeWorkTypeId, onWorkTypeChange
                       }
                     }}
                     placeholder={t("timer.newWorkTypeName", "Work type name")}
+                    aria-label={t("timer.newWorkTypeName", "Work type name")}
                     className="w-full px-3 py-2 bg-muted/30 border border-input rounded text-sm focus:outline-none focus:border-primary text-foreground"
                     autoFocus
                   />
