@@ -16,7 +16,7 @@ export const ApiProjectSchema = z.object({
     timeEntries: z.number(),
     workTypes: z.number(),
   }).optional(),
-});
+}).passthrough();
 
 export const ApiWorkTypeSchema = z.object({
   id: z.string(),
@@ -28,7 +28,7 @@ export const ApiWorkTypeSchema = z.object({
   timeGoalMs: z.number().nullable().optional(),
   createdAt: z.string().optional(),
   updatedAt: z.string().optional(),
-});
+}).passthrough();
 
 export const ApiTimeEntrySchema = z.object({
   id: z.string(),
@@ -42,7 +42,7 @@ export const ApiTimeEntrySchema = z.object({
   createdAt: z.string().optional(),
   project: ApiProjectSchema.optional(),
   workType: ApiWorkTypeSchema.nullable().optional(),
-});
+}).passthrough();
 
 export const ApiUserSettingsSchema = z.object({
   pomodoroWorkTime: z.number(),
@@ -53,7 +53,7 @@ export const ApiUserSettingsSchema = z.object({
   language: z.string(),
   dataRetentionPeriod: z.number(),
   activeProjectId: z.string().nullable().optional(),
-});
+}).passthrough();
 
 export const UserSchema = z.object({
   id: z.string(),

@@ -100,10 +100,14 @@ async function validatedApiRequest<T>(
   const result = schema.safeParse(data);
 
   if (!result.success) {
-    console.error('API response validation failed:', result.error.format());
+    console.error(`API validation failed for ${path}:`, {
+      errors: result.error.issues,
+      receivedData: data
+    });
     // In development, throw to catch validation issues early
     if (process.env.NODE_ENV === 'development') {
-      throw new Error(`API validation failed: ${result.error.message}`);
+      const errorDetails = result.error.issues.map(i => `${i.path.join('.')}: ${i.message}`).join(', ');
+      throw new Error(`API validation failed for ${path}: ${errorDetails}`);
     }
     // In production, return data as-is to avoid breaking the app
     return data as T;
