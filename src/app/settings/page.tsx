@@ -373,7 +373,7 @@ function SettingsPage() {
               <p className="text-sm text-muted-foreground">{translate('workTypesDesc')}</p>
             </div>
             <p className="text-sm text-muted-foreground">
-              Управление типами работ доступно в настройках проекта на странице дашборда.
+              {translate('workTypesLocation')}
             </p>
           </div>
           

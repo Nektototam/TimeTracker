@@ -180,6 +180,7 @@
     "workTypes": "Work Types",
     "addWorkType": "Add Work Type",
     "workTypesDesc": "Manage your work types and projects",
+    "workTypesLocation": "Work type management is available in project settings on the dashboard page.",
     "standardTypes": "Standard Types",
     "customTypes": "Custom Types",
     "standard": "Standard",

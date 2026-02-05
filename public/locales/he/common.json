@@ -132,7 +132,10 @@
     "cleanError": "שגיאה בניקוי",
     "saving": "שומר...",
     "saveSuccess": "נשמר בהצלחה",
-    "saveError": "שגיאה בשמירה"
+    "saveError": "שגיאה בשמירה",
+    "workTypes": "סוגי עבודה",
+    "workTypesDesc": "ניהול סוגי עבודה ופרויקטים",
+    "workTypesLocation": "ניהול סוגי עבודה זמין בהגדרות הפרויקט בדף הראשי."
   },
   
   "languages": {
