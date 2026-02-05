@@ -4,13 +4,10 @@ import React, { createContext, useContext, useState, useEffect, useRef, useCallb
 import {
   SECONDS_PER_MINUTE,
   MS_PER_SECOND,
-  POMODORO_STATE_STORAGE_KEY,
   DEFAULT_POMODORO_WORK_MINUTES,
   DEFAULT_POMODORO_REST_MINUTES,
 } from '../lib/constants/time';
-
-// Типы для таймера Помидора
-type TimerMode = 'work' | 'rest';
+import { usePomodoroPersistence, TimerMode } from '../hooks/usePomodoroPersistence';
 
 interface PomodoroContextType {
   // Состояние таймера
@@ -20,7 +17,7 @@ interface PomodoroContextType {
   isRunning: boolean;
   timeLeft: number;
   cycles: number;
-  
+
   // Методы
   setWorkDuration: (minutes: number) => void;
   setRestDuration: (minutes: number) => void;
@@ -35,6 +32,9 @@ const PomodoroContext = createContext<PomodoroContextType | undefined>(undefined
 
 // Провайдер контекста
 export function PomodoroProvider({ children }: { children: React.ReactNode }) {
+  // Persistence hook
+  const persistence = usePomodoroPersistence();
+
   // Настройки таймера по умолчанию (в минутах)
   const [workDuration, setWorkDuration] = useState(DEFAULT_POMODORO_WORK_MINUTES);
   const [restDuration, setRestDuration] = useState(DEFAULT_POMODORO_REST_MINUTES);
@@ -42,9 +42,9 @@ export function PomodoroProvider({ children }: { children: React.ReactNode }) {
   // Состояние таймера
   const [mode, setMode] = useState<TimerMode>('work');
   const [isRunning, setIsRunning] = useState(false);
-  const [timeLeft, setTimeLeft] = useState(workDuration * SECONDS_PER_MINUTE); // в секундах
+  const [timeLeft, setTimeLeft] = useState(workDuration * SECONDS_PER_MINUTE);
   const [cycles, setCycles] = useState(0);
-  
+
   // Ссылки на аудио элементы для сигналов
   const workCompleteSound = useRef<HTMLAudioElement | null>(null);
   const restCompleteSound = useRef<HTMLAudioElement | null>(null);
@@ -56,13 +56,19 @@ export function PomodoroProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     stateRef.current = { workDuration, restDuration, mode, isRunning, timeLeft, cycles };
   }, [workDuration, restDuration, mode, isRunning, timeLeft, cycles]);
-  
-  // Инициализация аудио при монтировании компонента
+
+  // Helper to save current state
+  const saveCurrentState = useCallback((overrides: Partial<typeof stateRef.current> = {}) => {
+    const current = { ...stateRef.current, ...overrides };
+    persistence.saveState(persistence.createState(current));
+  }, [persistence]);
+
+  // Инициализация аудио и загрузка состояния при монтировании
   useEffect(() => {
     if (typeof window !== 'undefined') {
       workCompleteSound.current = new Audio('/sounds/work-complete.mp3');
       restCompleteSound.current = new Audio('/sounds/pomodoro-complete.mp3');
-      
+
       // Заменяем на базовые звуки, если файлы не найдены
       workCompleteSound.current.onerror = () => {
         console.warn('Work complete sound not found, using default');
@@ -70,7 +76,7 @@ export function PomodoroProvider({ children }: { children: React.ReactNode }) {
           workCompleteSound.current = createBeepSound(800);
         }
       };
-      
+
       restCompleteSound.current.onerror = () => {
         console.warn('Rest complete sound not found, using default');
         if (restCompleteSound.current) {
@@ -78,71 +84,46 @@ export function PomodoroProvider({ children }: { children: React.ReactNode }) {
         }
       };
     }
-    
-    // Проверяем, есть ли сохраненное состояние таймера в localStorage
-    const savedPomodoro = localStorage.getItem(POMODORO_STATE_STORAGE_KEY);
-    if (savedPomodoro) {
-      try {
-        const pomodoroState = JSON.parse(savedPomodoro);
-        
-        // Восстанавливаем состояние, если таймер был запущен
-        if (pomodoroState.isRunning) {
-          setWorkDuration(pomodoroState.workDuration);
-          setRestDuration(pomodoroState.restDuration);
-          setMode(pomodoroState.mode);
-          setIsRunning(true);
-          
-          // Вычисляем оставшееся время с учетом прошедшего времени
-          const elapsedSeconds = Math.floor((Date.now() - pomodoroState.lastUpdated) / MS_PER_SECOND);
-          const remainingTime = Math.max(0, pomodoroState.timeLeft - elapsedSeconds);
-          
-          if (remainingTime <= 0) {
-            // Если время истекло, устанавливаем 0 - второй useEffect обработает completion
-            setTimeLeft(0);
-          } else {
-            setTimeLeft(remainingTime);
-          }
-          
-          setCycles(pomodoroState.cycles);
-        } else {
-          // Если таймер был на паузе, просто восстанавливаем состояние
-          setWorkDuration(pomodoroState.workDuration);
-          setRestDuration(pomodoroState.restDuration);
-          setMode(pomodoroState.mode);
-          setTimeLeft(pomodoroState.timeLeft);
-          setCycles(pomodoroState.cycles);
-        }
-      } catch (err) {
-        console.error('Ошибка при загрузке состояния таймера Помидора:', err);
+
+    // Загружаем сохраненное состояние
+    const savedState = persistence.loadState();
+    if (savedState) {
+      if (savedState.isRunning) {
+        setWorkDuration(savedState.workDuration);
+        setRestDuration(savedState.restDuration);
+        setMode(savedState.mode);
+        setIsRunning(true);
+
+        // Вычисляем оставшееся время с учетом прошедшего времени
+        const elapsedSeconds = Math.floor((Date.now() - savedState.lastUpdated) / MS_PER_SECOND);
+        const remainingTime = Math.max(0, savedState.timeLeft - elapsedSeconds);
+        setTimeLeft(remainingTime);
+        setCycles(savedState.cycles);
+      } else {
+        // Если таймер был на паузе, просто восстанавливаем состояние
+        setWorkDuration(savedState.workDuration);
+        setRestDuration(savedState.restDuration);
+        setMode(savedState.mode);
+        setTimeLeft(savedState.timeLeft);
+        setCycles(savedState.cycles);
       }
     }
-    
+
     // Очистка ресурсов при размонтировании
     return () => {
-      // Сохраняем состояние таймера при размонтировании компонента
-      // Используем ref для получения актуальных значений
+      // Сохраняем состояние при размонтировании, используя ref для актуальных значений
       const currentState = stateRef.current;
-      const pomodoroState = {
-        workDuration: currentState.workDuration,
-        restDuration: currentState.restDuration,
-        mode: currentState.mode,
-        isRunning: currentState.isRunning,
-        timeLeft: currentState.timeLeft,
-        cycles: currentState.cycles,
-        lastUpdated: Date.now()
-      };
-
-      localStorage.setItem(POMODORO_STATE_STORAGE_KEY, JSON.stringify(pomodoroState));
+      persistence.saveState(persistence.createState(currentState));
 
       workCompleteSound.current = null;
       restCompleteSound.current = null;
     };
-  }, []);
-  
+  }, [persistence]);
+
   // Создание простого звукового сигнала, если файлы не найдены
   const createBeepSound = (frequency: number): HTMLAudioElement => {
     try {
-      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const audioContext = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
       const oscillator = audioContext.createOscillator();
       oscillator.type = 'sine';
       oscillator.frequency.setValueAtTime(frequency, audioContext.currentTime);
@@ -158,7 +139,6 @@ export function PomodoroProvider({ children }: { children: React.ReactNode }) {
       oscillator.start();
       oscillator.stop(audioContext.currentTime + 0.5);
 
-      // Создаем фиктивный аудио элемент для совместимости с API
       return new Audio();
     } catch (e) {
       console.error('Failed to create beep sound:', e);
@@ -191,39 +171,34 @@ export function PomodoroProvider({ children }: { children: React.ReactNode }) {
 
   // Обработка окончания таймера и переход к следующему режиму
   const handleTimerComplete = useCallback(() => {
+    const newMode = mode === 'work' ? 'rest' : 'work';
+    const newTimeLeft = mode === 'work' ? restDuration * SECONDS_PER_MINUTE : workDuration * SECONDS_PER_MINUTE;
+    const newCycles = mode === 'work' ? cycles + 1 : cycles;
+
     if (mode === 'work') {
-      // Работа завершена, переход к отдыху
       if (workCompleteSound.current) {
         workCompleteSound.current.play().catch(e => console.error('Failed to play work complete sound:', e));
       }
-      setMode('rest');
-      setTimeLeft(restDuration * SECONDS_PER_MINUTE);
-      // Увеличиваем счетчик циклов только после завершения работы
-      setCycles(prevCycles => prevCycles + 1);
     } else {
-      // Отдых завершен, переход к работе
       if (restCompleteSound.current) {
         restCompleteSound.current.play().catch(e => console.error('Failed to play rest complete sound:', e));
       }
-      setMode('work');
-      setTimeLeft(workDuration * SECONDS_PER_MINUTE);
     }
 
-    // Показываем уведомление
+    setMode(newMode);
+    setTimeLeft(newTimeLeft);
+    if (mode === 'work') {
+      setCycles(prevCycles => prevCycles + 1);
+    }
+
     showNotification();
 
-    // Обновляем состояние в localStorage
-    const pomodoroState = {
-      workDuration,
-      restDuration,
-      mode: mode === 'work' ? 'rest' : 'work',
-      isRunning,
-      timeLeft: mode === 'work' ? restDuration * SECONDS_PER_MINUTE : workDuration * SECONDS_PER_MINUTE,
-      cycles: mode === 'work' ? cycles + 1 : cycles,
-      lastUpdated: Date.now()
-    };
-    localStorage.setItem(POMODORO_STATE_STORAGE_KEY, JSON.stringify(pomodoroState));
-  }, [mode, restDuration, workDuration, isRunning, cycles, showNotification]);
+    saveCurrentState({
+      mode: newMode,
+      timeLeft: newTimeLeft,
+      cycles: newCycles,
+    });
+  }, [mode, restDuration, workDuration, cycles, showNotification, saveCurrentState]);
 
   // Обновление состояния таймера при запуске/остановке
   useEffect(() => {
@@ -233,127 +208,75 @@ export function PomodoroProvider({ children }: { children: React.ReactNode }) {
       interval = setInterval(() => {
         setTimeLeft(prevTime => {
           const newTime = prevTime - 1;
-
-          // Сохраняем текущее состояние в localStorage
-          const pomodoroState = {
-            workDuration,
-            restDuration,
-            mode,
-            isRunning,
-            timeLeft: newTime,
-            cycles,
-            lastUpdated: Date.now()
-          };
-          localStorage.setItem(POMODORO_STATE_STORAGE_KEY, JSON.stringify(pomodoroState));
-
+          saveCurrentState({ timeLeft: newTime });
           return newTime;
         });
       }, MS_PER_SECOND);
     } else if (isRunning && timeLeft === 0) {
-      // Переключение между режимами работы и отдыха
       handleTimerComplete();
     }
 
     return () => {
       if (interval) clearInterval(interval);
     };
-  }, [isRunning, timeLeft, mode, workDuration, restDuration, cycles, handleTimerComplete]);
-  
+  }, [isRunning, timeLeft, handleTimerComplete, saveCurrentState]);
+
   // Управление таймером
-  const startTimer = () => {
+  const startTimer = useCallback(() => {
     setIsRunning(true);
-    
-    // Сохраняем состояние в localStorage
-    const pomodoroState = {
-      workDuration,
-      restDuration,
-      mode,
-      isRunning: true,
-      timeLeft,
-      cycles,
-      lastUpdated: Date.now()
-    };
-    localStorage.setItem(POMODORO_STATE_STORAGE_KEY, JSON.stringify(pomodoroState));
-  };
-  
-  const pauseTimer = () => {
+    saveCurrentState({ isRunning: true });
+  }, [saveCurrentState]);
+
+  const pauseTimer = useCallback(() => {
     setIsRunning(false);
-    
-    // Сохраняем состояние в localStorage
-    const pomodoroState = {
-      workDuration,
-      restDuration,
-      mode,
-      isRunning: false,
-      timeLeft,
-      cycles,
-      lastUpdated: Date.now()
-    };
-    localStorage.setItem(POMODORO_STATE_STORAGE_KEY, JSON.stringify(pomodoroState));
-  };
-  
-  const resetTimer = () => {
+    saveCurrentState({ isRunning: false });
+  }, [saveCurrentState]);
+
+  const resetTimer = useCallback(() => {
     setIsRunning(false);
     setMode('work');
     setTimeLeft(workDuration * SECONDS_PER_MINUTE);
     setCycles(0);
-    
-    // Сохраняем состояние в localStorage
-    const pomodoroState = {
-      workDuration,
-      restDuration,
-      mode: 'work',
+
+    saveCurrentState({
       isRunning: false,
+      mode: 'work',
       timeLeft: workDuration * SECONDS_PER_MINUTE,
       cycles: 0,
-      lastUpdated: Date.now()
-    };
-    localStorage.setItem(POMODORO_STATE_STORAGE_KEY, JSON.stringify(pomodoroState));
-  };
-  
+    });
+  }, [workDuration, saveCurrentState]);
+
   // Методы для изменения настроек
-  const updateWorkDuration = (minutes: number) => {
+  const updateWorkDuration = useCallback((minutes: number) => {
     if (!isNaN(minutes) && minutes > 0) {
       setWorkDuration(minutes);
+      const newTimeLeft = mode === 'work' && !isRunning ? minutes * SECONDS_PER_MINUTE : timeLeft;
       if (mode === 'work' && !isRunning) {
-        setTimeLeft(minutes * SECONDS_PER_MINUTE);
+        setTimeLeft(newTimeLeft);
       }
-      
-      // Обновляем состояние в localStorage
-      const pomodoroState = {
+
+      saveCurrentState({
         workDuration: minutes,
-        restDuration,
-        mode,
-        isRunning,
-        timeLeft: mode === 'work' && !isRunning ? minutes * SECONDS_PER_MINUTE : timeLeft,
-        cycles,
-        lastUpdated: Date.now()
-      };
-      localStorage.setItem(POMODORO_STATE_STORAGE_KEY, JSON.stringify(pomodoroState));
+        timeLeft: newTimeLeft,
+      });
     }
-  };
-  
-  const updateRestDuration = (minutes: number) => {
+  }, [mode, isRunning, timeLeft, saveCurrentState]);
+
+  const updateRestDuration = useCallback((minutes: number) => {
     if (!isNaN(minutes) && minutes > 0) {
       setRestDuration(minutes);
+      const newTimeLeft = mode === 'rest' && !isRunning ? minutes * SECONDS_PER_MINUTE : timeLeft;
       if (mode === 'rest' && !isRunning) {
-        setTimeLeft(minutes * SECONDS_PER_MINUTE);
+        setTimeLeft(newTimeLeft);
       }
-      
-      // Обновляем состояние в localStorage
-      const pomodoroState = {
-        workDuration,
+
+      saveCurrentState({
         restDuration: minutes,
-        mode,
-        isRunning,
-        timeLeft: mode === 'rest' && !isRunning ? minutes * SECONDS_PER_MINUTE : timeLeft,
-        cycles,
-        lastUpdated: Date.now()
-      };
-      localStorage.setItem(POMODORO_STATE_STORAGE_KEY, JSON.stringify(pomodoroState));
+        timeLeft: newTimeLeft,
+      });
     }
-  };
-  
+  }, [mode, isRunning, timeLeft, saveCurrentState]);
+
   // Возвращаем провайдер контекста
   return (
     <PomodoroContext.Provider
@@ -384,4 +307,4 @@ export function usePomodoro() {
     throw new Error('usePomodoro must be used within a PomodoroProvider');
   }
   return context;
-} 
+}
