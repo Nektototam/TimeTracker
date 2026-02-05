@@ -8,8 +8,11 @@ import { useTranslation } from 'react-i18next';
 import { useTimerPersistence, ProjectTimerState } from '../hooks/useTimerPersistence';
 import { useTimerNotifications } from '../hooks/useTimerNotifications';
 import {
+  MS_PER_SECOND,
   MS_PER_HOUR,
   MS_PER_15_MINUTES,
+  SECONDS_PER_MINUTE,
+  SECONDS_PER_HOUR,
   MIN_ENTRY_DURATION_MS,
   QUICK_TOGGLE_THRESHOLD_MS,
   DEFAULT_TIMER_VALUE,
@@ -83,10 +86,10 @@ export function TimerProvider({ children }: { children: React.ReactNode }) {
 
   // Форматирование времени
   const formatTime = useCallback((milliseconds: number) => {
-    const totalSeconds = Math.floor(milliseconds / 1000);
-    const hours = Math.floor(totalSeconds / 3600);
-    const minutes = Math.floor((totalSeconds % 3600) / 60);
-    const seconds = totalSeconds % 60;
+    const totalSeconds = Math.floor(milliseconds / MS_PER_SECOND);
+    const hours = Math.floor(totalSeconds / SECONDS_PER_HOUR);
+    const minutes = Math.floor((totalSeconds % SECONDS_PER_HOUR) / SECONDS_PER_MINUTE);
+    const seconds = totalSeconds % SECONDS_PER_MINUTE;
 
     return [
       hours.toString().padStart(2, '0'),
@@ -446,7 +449,7 @@ export function TimerProvider({ children }: { children: React.ReactNode }) {
         }
       };
 
-      interval = setInterval(updateTimer, 1000);
+      interval = setInterval(updateTimer, MS_PER_SECOND);
     }
 
     return () => {

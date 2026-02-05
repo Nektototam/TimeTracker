@@ -1,6 +1,13 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, useRef, useCallback } from 'react';
+import {
+  SECONDS_PER_MINUTE,
+  MS_PER_SECOND,
+  POMODORO_STATE_STORAGE_KEY,
+  DEFAULT_POMODORO_WORK_MINUTES,
+  DEFAULT_POMODORO_REST_MINUTES,
+} from '../lib/constants/time';
 
 // Типы для таймера Помидора
 type TimerMode = 'work' | 'rest';
@@ -29,13 +36,13 @@ const PomodoroContext = createContext<PomodoroContextType | undefined>(undefined
 // Провайдер контекста
 export function PomodoroProvider({ children }: { children: React.ReactNode }) {
   // Настройки таймера по умолчанию (в минутах)
-  const [workDuration, setWorkDuration] = useState(25);
-  const [restDuration, setRestDuration] = useState(5);
-  
+  const [workDuration, setWorkDuration] = useState(DEFAULT_POMODORO_WORK_MINUTES);
+  const [restDuration, setRestDuration] = useState(DEFAULT_POMODORO_REST_MINUTES);
+
   // Состояние таймера
   const [mode, setMode] = useState<TimerMode>('work');
   const [isRunning, setIsRunning] = useState(false);
-  const [timeLeft, setTimeLeft] = useState(workDuration * 60); // в секундах
+  const [timeLeft, setTimeLeft] = useState(workDuration * SECONDS_PER_MINUTE); // в секундах
   const [cycles, setCycles] = useState(0);
   
   // Ссылки на аудио элементы для сигналов
@@ -73,7 +80,7 @@ export function PomodoroProvider({ children }: { children: React.ReactNode }) {
     }
     
     // Проверяем, есть ли сохраненное состояние таймера в localStorage
-    const savedPomodoro = localStorage.getItem('timetracker-pomodoro-state');
+    const savedPomodoro = localStorage.getItem(POMODORO_STATE_STORAGE_KEY);
     if (savedPomodoro) {
       try {
         const pomodoroState = JSON.parse(savedPomodoro);
@@ -86,7 +93,7 @@ export function PomodoroProvider({ children }: { children: React.ReactNode }) {
           setIsRunning(true);
           
           // Вычисляем оставшееся время с учетом прошедшего времени
-          const elapsedSeconds = Math.floor((Date.now() - pomodoroState.lastUpdated) / 1000);
+          const elapsedSeconds = Math.floor((Date.now() - pomodoroState.lastUpdated) / MS_PER_SECOND);
           const remainingTime = Math.max(0, pomodoroState.timeLeft - elapsedSeconds);
           
           if (remainingTime <= 0) {
@@ -125,7 +132,7 @@ export function PomodoroProvider({ children }: { children: React.ReactNode }) {
         lastUpdated: Date.now()
       };
 
-      localStorage.setItem('timetracker-pomodoro-state', JSON.stringify(pomodoroState));
+      localStorage.setItem(POMODORO_STATE_STORAGE_KEY, JSON.stringify(pomodoroState));
 
       workCompleteSound.current = null;
       restCompleteSound.current = null;
@@ -161,8 +168,8 @@ export function PomodoroProvider({ children }: { children: React.ReactNode }) {
 
   // Форматирование времени в формат MM:SS
   const formatTime = useCallback((seconds: number): string => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
+    const mins = Math.floor(seconds / SECONDS_PER_MINUTE);
+    const secs = seconds % SECONDS_PER_MINUTE;
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   }, []);
 
@@ -190,7 +197,7 @@ export function PomodoroProvider({ children }: { children: React.ReactNode }) {
         workCompleteSound.current.play().catch(e => console.error('Failed to play work complete sound:', e));
       }
       setMode('rest');
-      setTimeLeft(restDuration * 60);
+      setTimeLeft(restDuration * SECONDS_PER_MINUTE);
       // Увеличиваем счетчик циклов только после завершения работы
       setCycles(prevCycles => prevCycles + 1);
     } else {
@@ -199,7 +206,7 @@ export function PomodoroProvider({ children }: { children: React.ReactNode }) {
         restCompleteSound.current.play().catch(e => console.error('Failed to play rest complete sound:', e));
       }
       setMode('work');
-      setTimeLeft(workDuration * 60);
+      setTimeLeft(workDuration * SECONDS_PER_MINUTE);
     }
 
     // Показываем уведомление
@@ -211,11 +218,11 @@ export function PomodoroProvider({ children }: { children: React.ReactNode }) {
       restDuration,
       mode: mode === 'work' ? 'rest' : 'work',
       isRunning,
-      timeLeft: mode === 'work' ? restDuration * 60 : workDuration * 60,
+      timeLeft: mode === 'work' ? restDuration * SECONDS_PER_MINUTE : workDuration * SECONDS_PER_MINUTE,
       cycles: mode === 'work' ? cycles + 1 : cycles,
       lastUpdated: Date.now()
     };
-    localStorage.setItem('timetracker-pomodoro-state', JSON.stringify(pomodoroState));
+    localStorage.setItem(POMODORO_STATE_STORAGE_KEY, JSON.stringify(pomodoroState));
   }, [mode, restDuration, workDuration, isRunning, cycles, showNotification]);
 
   // Обновление состояния таймера при запуске/остановке
@@ -237,11 +244,11 @@ export function PomodoroProvider({ children }: { children: React.ReactNode }) {
             cycles,
             lastUpdated: Date.now()
           };
-          localStorage.setItem('timetracker-pomodoro-state', JSON.stringify(pomodoroState));
+          localStorage.setItem(POMODORO_STATE_STORAGE_KEY, JSON.stringify(pomodoroState));
 
           return newTime;
         });
-      }, 1000);
+      }, MS_PER_SECOND);
     } else if (isRunning && timeLeft === 0) {
       // Переключение между режимами работы и отдыха
       handleTimerComplete();
@@ -266,7 +273,7 @@ export function PomodoroProvider({ children }: { children: React.ReactNode }) {
       cycles,
       lastUpdated: Date.now()
     };
-    localStorage.setItem('timetracker-pomodoro-state', JSON.stringify(pomodoroState));
+    localStorage.setItem(POMODORO_STATE_STORAGE_KEY, JSON.stringify(pomodoroState));
   };
   
   const pauseTimer = () => {
@@ -282,13 +289,13 @@ export function PomodoroProvider({ children }: { children: React.ReactNode }) {
       cycles,
       lastUpdated: Date.now()
     };
-    localStorage.setItem('timetracker-pomodoro-state', JSON.stringify(pomodoroState));
+    localStorage.setItem(POMODORO_STATE_STORAGE_KEY, JSON.stringify(pomodoroState));
   };
   
   const resetTimer = () => {
     setIsRunning(false);
     setMode('work');
-    setTimeLeft(workDuration * 60);
+    setTimeLeft(workDuration * SECONDS_PER_MINUTE);
     setCycles(0);
     
     // Сохраняем состояние в localStorage
@@ -297,11 +304,11 @@ export function PomodoroProvider({ children }: { children: React.ReactNode }) {
       restDuration,
       mode: 'work',
       isRunning: false,
-      timeLeft: workDuration * 60,
+      timeLeft: workDuration * SECONDS_PER_MINUTE,
       cycles: 0,
       lastUpdated: Date.now()
     };
-    localStorage.setItem('timetracker-pomodoro-state', JSON.stringify(pomodoroState));
+    localStorage.setItem(POMODORO_STATE_STORAGE_KEY, JSON.stringify(pomodoroState));
   };
   
   // Методы для изменения настроек
@@ -309,7 +316,7 @@ export function PomodoroProvider({ children }: { children: React.ReactNode }) {
     if (!isNaN(minutes) && minutes > 0) {
       setWorkDuration(minutes);
       if (mode === 'work' && !isRunning) {
-        setTimeLeft(minutes * 60);
+        setTimeLeft(minutes * SECONDS_PER_MINUTE);
       }
       
       // Обновляем состояние в localStorage
@@ -318,11 +325,11 @@ export function PomodoroProvider({ children }: { children: React.ReactNode }) {
         restDuration,
         mode,
         isRunning,
-        timeLeft: mode === 'work' && !isRunning ? minutes * 60 : timeLeft,
+        timeLeft: mode === 'work' && !isRunning ? minutes * SECONDS_PER_MINUTE : timeLeft,
         cycles,
         lastUpdated: Date.now()
       };
-      localStorage.setItem('timetracker-pomodoro-state', JSON.stringify(pomodoroState));
+      localStorage.setItem(POMODORO_STATE_STORAGE_KEY, JSON.stringify(pomodoroState));
     }
   };
   
@@ -330,7 +337,7 @@ export function PomodoroProvider({ children }: { children: React.ReactNode }) {
     if (!isNaN(minutes) && minutes > 0) {
       setRestDuration(minutes);
       if (mode === 'rest' && !isRunning) {
-        setTimeLeft(minutes * 60);
+        setTimeLeft(minutes * SECONDS_PER_MINUTE);
       }
       
       // Обновляем состояние в localStorage
@@ -339,11 +346,11 @@ export function PomodoroProvider({ children }: { children: React.ReactNode }) {
         restDuration: minutes,
         mode,
         isRunning,
-        timeLeft: mode === 'rest' && !isRunning ? minutes * 60 : timeLeft,
+        timeLeft: mode === 'rest' && !isRunning ? minutes * SECONDS_PER_MINUTE : timeLeft,
         cycles,
         lastUpdated: Date.now()
       };
-      localStorage.setItem('timetracker-pomodoro-state', JSON.stringify(pomodoroState));
+      localStorage.setItem(POMODORO_STATE_STORAGE_KEY, JSON.stringify(pomodoroState));
     }
   };
   
