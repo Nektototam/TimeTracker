@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { useTimeEntries } from '../hooks/useTimeEntries';
 import { useAuth } from './AuthContext';
 import { api } from '../lib/api';
@@ -56,6 +56,9 @@ const TimerContext = createContext<TimerContextType | undefined>(undefined);
 export function TimerProvider({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
   const userId = user?.id || '';
+
+  // Ref для отслеживания начальной загрузки (предотвращает повторные вызовы при изменении зависимостей)
+  const initialLoadUserIdRef = useRef<string | null>(null);
 
   // Используем хуки для persistence и notifications
   const persistence = useTimerPersistence();
@@ -170,9 +173,17 @@ export function TimerProvider({ children }: { children: React.ReactNode }) {
   }, [t]);
 
   // Загрузка activeProjectId при старте и восстановление состояния таймера
+  // Используем ref чтобы предотвратить повторные вызовы при изменении applyTimerState
   useEffect(() => {
+    // Пропускаем если уже загружали для этого userId
+    if (initialLoadUserIdRef.current === userId) return;
+
     const loadActiveProject = async () => {
       if (!userId) return;
+
+      // Помечаем что загрузили для этого userId
+      initialLoadUserIdRef.current = userId;
+
       try {
         const { settings } = await api.settings.get();
         if (settings.activeProjectId) {

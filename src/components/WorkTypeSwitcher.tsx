@@ -107,10 +107,16 @@ export function WorkTypeSwitcher({ projectId, activeWorkTypeId, onWorkTypeChange
               setIsCreating(false);
             }}
           />
-          <div className="absolute top-full left-0 mt-1 w-64 bg-card border border-border rounded-lg shadow-xl z-50 overflow-hidden text-foreground">
+          <div
+            className="absolute top-full left-0 mt-1 w-64 bg-card border border-border rounded-lg shadow-xl z-50 overflow-hidden text-foreground"
+            onClick={(e) => e.stopPropagation()}
+          >
              
             <button
-                onClick={() => handleSelectWorkType(null, undefined)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleSelectWorkType(null, undefined);
+                }}
                 className="w-full flex items-center gap-3 px-3 py-2 hover:bg-muted transition-colors border-b border-border"
               >
                  <Briefcase className="w-4 h-4 text-muted-foreground" />
@@ -129,7 +135,10 @@ export function WorkTypeSwitcher({ projectId, activeWorkTypeId, onWorkTypeChange
                 workTypes.map(wt => (
                   <button
                     key={wt.id}
-                    onClick={() => handleSelectWorkType(wt.id, wt.name)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleSelectWorkType(wt.id, wt.name);
+                    }}
                     className="w-full flex items-center gap-3 px-3 py-2 hover:bg-muted transition-colors"
                   >
                     <div
