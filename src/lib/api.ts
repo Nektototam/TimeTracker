@@ -23,21 +23,18 @@ export type { ApiProject, ApiWorkType, ApiTimeEntry, ApiUserSettings };
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 
-const accessTokenKey = "timetracker_access_token";
+// Store access token in memory for security (prevents XSS attacks from stealing tokens)
+// The token will be refreshed via HTTP-only cookie when needed
+let accessToken: string | null = null;
 
-const getAccessToken = () => {
-  if (typeof window === "undefined") return null;
-  return window.localStorage.getItem(accessTokenKey);
-};
+const getAccessToken = () => accessToken;
 
 const setAccessToken = (token: string) => {
-  if (typeof window === "undefined") return;
-  window.localStorage.setItem(accessTokenKey, token);
+  accessToken = token;
 };
 
 const clearAccessToken = () => {
-  if (typeof window === "undefined") return;
-  window.localStorage.removeItem(accessTokenKey);
+  accessToken = null;
 };
 
 async function refreshAccessToken(): Promise<string | null> {
