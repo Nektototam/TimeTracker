@@ -9,6 +9,7 @@ import { reportService, ReportData, ProjectSummary, PeriodType } from '../../lib
 import { useAuth } from '../../contexts/AuthContext';
 import { Button } from '../../components/ui/Button';
 import { Select } from '../../components/ui/Select';
+import { ErrorBoundary } from '../../components/ErrorBoundary';
 
 // Вспомогательные функции для форматирования времени
 const formatTime = (milliseconds: number): string => {
@@ -193,7 +194,8 @@ function ReportsPage() {
   
   return (
     <AppShell title="Отчеты">
-      <div className="space-y-6">
+      <ErrorBoundary sectionName="Reports">
+        <div className="space-y-6">
           <div className="flex flex-col gap-1">
             <h1 className="text-2xl font-semibold text-foreground">Отчеты</h1>
             <p className="text-sm text-muted-foreground">{dateRange}</p>
@@ -323,7 +325,8 @@ function ReportsPage() {
               Экспорт
             </Button>
           </div>
-      </div>
+        </div>
+      </ErrorBoundary>
     </AppShell>
   );
 }

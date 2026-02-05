@@ -6,6 +6,7 @@ import ProtectedRoute from '../../components/ProtectedRoute';
 import ActivityChart from '../../components/ActivityChart';
 import { reportService, ReportData, ProjectSummary } from '../../lib/reportService';
 import { useAuth } from '../../contexts/AuthContext';
+import { ErrorBoundary } from '../../components/ErrorBoundary';
 
 interface RecentEntry {
   id: string;
@@ -148,12 +149,13 @@ function StatisticsPage() {
 
   return (
     <AppShell title="Статистика">
-      <div className="space-y-6">
-        <div className="flex flex-col gap-1">
-          <h1 className="text-2xl font-semibold text-foreground">Статистика</h1>
-        </div>
+      <ErrorBoundary sectionName="Statistics">
+        <div className="space-y-6">
+          <div className="flex flex-col gap-1">
+            <h1 className="text-2xl font-semibold text-foreground">Статистика</h1>
+          </div>
 
-        {isLoading ? (
+          {isLoading ? (
           <div className="flex h-40 items-center justify-center rounded-2xl border border-border bg-card text-sm text-muted-foreground">
             Загрузка статистики...
           </div>
@@ -255,8 +257,9 @@ function StatisticsPage() {
               )}
             </div>
           </>
-        )}
-      </div>
+          )}
+        </div>
+      </ErrorBoundary>
     </AppShell>
   );
 }

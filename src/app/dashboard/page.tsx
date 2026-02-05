@@ -8,6 +8,7 @@ import { ProjectsWidget } from '../../components/dashboard/ProjectsWidget';
 import AppShell from '../../components/AppShell';
 import { Button } from '../../components/ui/Button';
 import { useLanguage } from '../../contexts/LanguageContext';
+import { ErrorBoundary } from '../../components/ErrorBoundary';
 
 export default function DashboardPage() {
   const { user, isLoading } = useAuth();
@@ -86,7 +87,9 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      <DashboardLayout />
+      <ErrorBoundary sectionName="Dashboard">
+        <DashboardLayout />
+      </ErrorBoundary>
     </AppShell>
   );
 }
