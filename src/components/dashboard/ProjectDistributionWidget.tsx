@@ -29,7 +29,7 @@ export function ProjectDistributionWidget({ className }: ProjectDistributionWidg
         const report = await reportService.getWeeklyReport(user.id);
         // Top 5 projects by time
         const topProjects = report.projectSummaries
-          .sort((a, b) => b.total_duration - a.total_duration)
+          .sort((a, b) => b.totalDuration - a.totalDuration)
           .slice(0, 5);
         setProjects(topProjects);
       } catch (error) {
@@ -66,7 +66,7 @@ export function ProjectDistributionWidget({ className }: ProjectDistributionWidg
               <div key={project.project.id} className="space-y-1">
                 <div className="flex justify-between text-sm">
                   <span className="truncate text-foreground">{project.project.name}</span>
-                  <span className="ml-2 text-muted-foreground">{formatDuration(project.total_duration)}</span>
+                  <span className="ml-2 text-muted-foreground">{formatDuration(project.totalDuration)}</span>
                 </div>
                 <div className="h-2 overflow-hidden rounded-full bg-muted">
                   <div

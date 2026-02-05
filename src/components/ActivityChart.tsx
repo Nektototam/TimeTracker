@@ -56,7 +56,7 @@ const ActivityChart: React.FC<ActivityChartProps> = ({
     ctx.clearRect(0, 0, width, height);
     
     // Вычисляем максимальную продолжительность для масштабирования
-    const calculatedMaxDuration = maxDuration || Math.max(...data.map(d => d.total_duration));
+    const calculatedMaxDuration = maxDuration || Math.max(...data.map(d => d.totalDuration));
     
     // Вычисляем размеры столбцов
     const barWidth = Math.floor(width / (data.length * 2)); // Половина доступной ширины для отступов
@@ -107,7 +107,7 @@ const ActivityChart: React.FC<ActivityChartProps> = ({
     // Рисуем столбцы и подписи
     data.forEach((item, index) => {
       const x = paddingLeft + barSpacing/2 + (barWidth + barSpacing) * index;
-      const barHeight = (item.total_duration / calculatedMaxDuration) * chartHeight;
+      const barHeight = (item.totalDuration / calculatedMaxDuration) * chartHeight;
       const y = height - paddingBottom - barHeight;
       
       // Рисуем столбец
@@ -120,10 +120,10 @@ const ActivityChart: React.FC<ActivityChartProps> = ({
       ctx.fillText(formatDate(item.date), x + barWidth/2, height - paddingBottom + 15);
       
       // Значения над столбцами
-      if (item.total_duration > 0) {
+      if (item.totalDuration > 0) {
         ctx.fillStyle = '#333';
         ctx.textAlign = 'center';
-        ctx.fillText(formatDuration(item.total_duration), x + barWidth/2, y - 5);
+        ctx.fillText(formatDuration(item.totalDuration), x + barWidth/2, y - 5);
       }
     });
   };

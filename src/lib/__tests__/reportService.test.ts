@@ -6,7 +6,7 @@ jest.mock('@/lib/api', () => ({
     reports: {
       get: jest.fn()
     },
-    projectTypes: {
+    workTypes: {
       list: jest.fn()
     }
   }
@@ -25,6 +25,6 @@ describe('reportService.getReportData', () => {
     expect(result.entries).toEqual([]);
     expect(result.projectSummaries).toEqual([]);
     expect(result.totalDuration).toBe(0);
-    expect(api.projectTypes.list).not.toHaveBeenCalled();
+    expect(api.workTypes.list).not.toHaveBeenCalled();
   });
 });

@@ -51,10 +51,10 @@ function StatisticsPage() {
 
         setRecentEntries(weekReport.entries.slice(0, 5).map(entry => ({
           id: entry.id,
-          date: new Date(entry.start_time),
+          date: new Date(entry.startTime),
           projectName: entry.project?.name || 'Без проекта',
           projectColor: entry.project?.color || '#6366f1',
-          duration: entry.duration
+          duration: entry.durationMs
         })));
       } catch (error) {
         console.error('Ошибка загрузки статистики:', error);
@@ -185,17 +185,17 @@ function StatisticsPage() {
               <ActivityChart
                 data={weekData?.entries ?
                   weekData.entries.reduce((acc, entry) => {
-                    const date = new Date(entry.start_time).toISOString().split('T')[0];
+                    const date = new Date(entry.startTime).toISOString().split('T')[0];
                     const existingDay = acc.find(day => day.date === date);
 
                     if (existingDay) {
-                      existingDay.total_duration += entry.duration;
+                      existingDay.totalDuration += entry.durationMs;
                     } else {
-                      acc.push({ date, total_duration: entry.duration });
+                      acc.push({ date, totalDuration: entry.durationMs });
                     }
 
                     return acc;
-                  }, [] as {date: string, total_duration: number}[])
+                  }, [] as {date: string, totalDuration: number}[])
                 : []}
                 height={180}
                 barColor="hsl(230 74% 62%)"
@@ -209,7 +209,7 @@ function StatisticsPage() {
                   <div key={project.project.id}>
                     <div className="mb-2 flex justify-between">
                       <span className="text-sm font-medium text-foreground">{project.project.name}</span>
-                      <span className="text-sm font-medium text-primary">{formatTime(project.total_duration)}</span>
+                      <span className="text-sm font-medium text-primary">{formatTime(project.totalDuration)}</span>
                     </div>
                     <div className="h-2.5 overflow-hidden rounded-full bg-muted">
                       <div
