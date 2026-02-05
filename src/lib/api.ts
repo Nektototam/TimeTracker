@@ -1,58 +1,29 @@
+import { z } from 'zod';
+import {
+  ProjectListResponseSchema,
+  ProjectResponseSchema,
+  WorkTypeListResponseSchema,
+  WorkTypeResponseSchema,
+  TimeEntryListResponseSchema,
+  TimeEntryResponseSchema,
+  SettingsResponseSchema,
+  OkResponseSchema,
+  ActivateProjectResponseSchema,
+  ReportResponseSchema,
+  AuthResponseSchema,
+  MeResponseSchema,
+  type ApiProject,
+  type ApiWorkType,
+  type ApiTimeEntry,
+  type ApiUserSettings,
+} from './api-schemas';
+
+// Re-export types for consumers
+export type { ApiProject, ApiWorkType, ApiTimeEntry, ApiUserSettings };
+
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 
 const accessTokenKey = "timetracker_access_token";
-
-export interface ApiProject {
-  id: string;
-  userId: string;
-  name: string;
-  color: string;
-  description?: string | null;
-  status: "active" | "archived";
-  createdAt?: string;
-  updatedAt?: string;
-  _count?: {
-    timeEntries: number;
-    workTypes: number;
-  };
-}
-
-export interface ApiWorkType {
-  id: string;
-  projectId: string;
-  name: string;
-  color: string;
-  description?: string | null;
-  status: "active" | "archived";
-  timeGoalMs?: number | null;
-  createdAt?: string;
-  updatedAt?: string;
-}
-
-export interface ApiTimeEntry {
-  id: string;
-  projectId: string;
-  workTypeId?: string | null;
-  startTime: string;
-  endTime: string;
-  durationMs: number;
-  description?: string | null;
-  timeLimitMs?: number | null;
-  createdAt?: string;
-  project?: ApiProject;
-  workType?: ApiWorkType | null;
-}
-
-export interface ApiUserSettings {
-  pomodoroWorkTime: number;
-  pomodoroRestTime: number;
-  pomodoroLongRestTime: number;
-  autoStart: boolean;
-  roundTimes: string;
-  language: string;
-  dataRetentionPeriod: number;
-  activeProjectId?: string | null;
-}
 
 const getAccessToken = () => {
   if (typeof window === "undefined") return null;
@@ -122,11 +93,34 @@ async function apiRequest<T>(path: string, options: RequestInit = {}, retry = tr
   return response.json() as Promise<T>;
 }
 
+async function validatedApiRequest<T>(
+  path: string,
+  schema: z.ZodSchema<T>,
+  options: RequestInit = {},
+  retry = true
+): Promise<T> {
+  const data = await apiRequest<unknown>(path, options, retry);
+  const result = schema.safeParse(data);
+
+  if (!result.success) {
+    console.error('API response validation failed:', result.error.format());
+    // In development, throw to catch validation issues early
+    if (process.env.NODE_ENV === 'development') {
+      throw new Error(`API validation failed: ${result.error.message}`);
+    }
+    // In production, return data as-is to avoid breaking the app
+    return data as T;
+  }
+
+  return result.data;
+}
+
 export const api = {
   auth: {
     async register(email: string, password: string) {
-      const data = await apiRequest<{ accessToken: string; user: { id: string; email: string } }>(
+      const data = await validatedApiRequest(
         "/auth/register",
+        AuthResponseSchema,
         {
           method: "POST",
           body: JSON.stringify({ email, password })
@@ -138,8 +132,9 @@ export const api = {
       return data;
     },
     async login(email: string, password: string) {
-      const data = await apiRequest<{ accessToken: string; user: { id: string; email: string } }>(
+      const data = await validatedApiRequest(
         "/auth/login",
+        AuthResponseSchema,
         {
           method: "POST",
           body: JSON.stringify({ email, password })
@@ -151,11 +146,11 @@ export const api = {
       return data;
     },
     async logout() {
-      await apiRequest<{ ok: boolean }>("/auth/logout", { method: "POST" });
+      await validatedApiRequest("/auth/logout", OkResponseSchema, { method: "POST" });
       clearAccessToken();
     },
     async me() {
-      return apiRequest<{ user: { id: string; email: string } | null }>("/auth/me", {
+      return validatedApiRequest("/auth/me", MeResponseSchema, {
         headers: { "Cache-Control": "no-store" }
       });
     }
@@ -163,49 +158,49 @@ export const api = {
 
   projects: {
     async list() {
-      return apiRequest<{ items: ApiProject[] }>("/projects");
+      return validatedApiRequest("/projects", ProjectListResponseSchema);
     },
     async get(id: string) {
-      return apiRequest<{ item: ApiProject & { workTypes: ApiWorkType[] } }>(`/projects/${id}`);
+      return validatedApiRequest(`/projects/${id}`, ProjectResponseSchema);
     },
     async create(data: { name: string; color?: string; description?: string }) {
-      return apiRequest<{ item: ApiProject }>("/projects", {
+      return validatedApiRequest("/projects", ProjectResponseSchema, {
         method: "POST",
         body: JSON.stringify(data)
       });
     },
     async update(id: string, data: { name?: string; color?: string; description?: string | null; status?: "active" | "archived" }) {
-      return apiRequest<{ item: ApiProject }>(`/projects/${id}`, {
+      return validatedApiRequest(`/projects/${id}`, ProjectResponseSchema, {
         method: "PATCH",
         body: JSON.stringify(data)
       });
     },
     async delete(id: string) {
-      return apiRequest<{ ok: boolean }>(`/projects/${id}`, { method: "DELETE" });
+      return validatedApiRequest(`/projects/${id}`, OkResponseSchema, { method: "DELETE" });
     },
     async activate(id: string) {
-      return apiRequest<{ ok: boolean; activeProjectId: string }>(`/projects/${id}/activate`, { method: "POST" });
+      return validatedApiRequest(`/projects/${id}/activate`, ActivateProjectResponseSchema, { method: "POST" });
     }
   },
 
   workTypes: {
     async list(projectId: string) {
-      return apiRequest<{ items: ApiWorkType[] }>(`/work-types?projectId=${projectId}`);
+      return validatedApiRequest(`/work-types?projectId=${projectId}`, WorkTypeListResponseSchema);
     },
     async create(data: { projectId: string; name: string; color?: string; description?: string; timeGoalMs?: number }) {
-      return apiRequest<{ item: ApiWorkType }>("/work-types", {
+      return validatedApiRequest("/work-types", WorkTypeResponseSchema, {
         method: "POST",
         body: JSON.stringify(data)
       });
     },
     async update(id: string, data: { name?: string; color?: string; description?: string | null; status?: "active" | "archived"; timeGoalMs?: number | null }) {
-      return apiRequest<{ item: ApiWorkType }>(`/work-types/${id}`, {
+      return validatedApiRequest(`/work-types/${id}`, WorkTypeResponseSchema, {
         method: "PATCH",
         body: JSON.stringify(data)
       });
     },
     async delete(id: string) {
-      return apiRequest<{ ok: boolean }>(`/work-types/${id}`, { method: "DELETE" });
+      return validatedApiRequest(`/work-types/${id}`, OkResponseSchema, { method: "DELETE" });
     }
   },
 
@@ -219,10 +214,10 @@ export const api = {
       if (params?.limit) query.set("limit", String(params.limit));
       if (params?.all) query.set("all", "true");
       const suffix = query.toString() ? `?${query.toString()}` : "";
-      return apiRequest<{ items: ApiTimeEntry[] }>(`/time-entries${suffix}`);
+      return validatedApiRequest(`/time-entries${suffix}`, TimeEntryListResponseSchema);
     },
     async today() {
-      return apiRequest<{ items: ApiTimeEntry[] }>("/time-entries/today");
+      return validatedApiRequest("/time-entries/today", TimeEntryListResponseSchema);
     },
     async create(payload: {
       projectId: string;
@@ -233,7 +228,7 @@ export const api = {
       description?: string;
       timeLimitMs?: number | null;
     }) {
-      return apiRequest<{ item: ApiTimeEntry }>("/time-entries", {
+      return validatedApiRequest("/time-entries", TimeEntryResponseSchema, {
         method: "POST",
         body: JSON.stringify(payload)
       });
@@ -246,28 +241,28 @@ export const api = {
       description?: string | null;
       timeLimitMs?: number | null;
     }) {
-      return apiRequest<{ item: ApiTimeEntry }>(`/time-entries/${id}`, {
+      return validatedApiRequest(`/time-entries/${id}`, TimeEntryResponseSchema, {
         method: "PATCH",
         body: JSON.stringify(payload)
       });
     },
     async delete(id: string) {
-      return apiRequest<{ ok: boolean }>(`/time-entries/${id}`, { method: "DELETE" });
+      return validatedApiRequest(`/time-entries/${id}`, OkResponseSchema, { method: "DELETE" });
     }
   },
 
   settings: {
     async get() {
-      return apiRequest<{ settings: ApiUserSettings }>("/settings");
+      return validatedApiRequest("/settings", SettingsResponseSchema);
     },
     async update(payload: ApiUserSettings) {
-      return apiRequest<{ settings: ApiUserSettings }>("/settings", {
+      return validatedApiRequest("/settings", SettingsResponseSchema, {
         method: "PUT",
         body: JSON.stringify(payload)
       });
     },
     async cleanup() {
-      return apiRequest<{ ok: boolean }>("/settings/cleanup", { method: "POST" });
+      return validatedApiRequest("/settings/cleanup", OkResponseSchema, { method: "POST" });
     }
   },
 
@@ -278,24 +273,7 @@ export const api = {
       if (params.startDate) query.set("startDate", params.startDate);
       if (params.endDate) query.set("endDate", params.endDate);
       const suffix = query.toString() ? `?${query.toString()}` : "";
-      return apiRequest<{
-        startDate: string;
-        endDate: string;
-        totalDuration: number;
-        entries: ApiTimeEntry[];
-        projectSummaries: Array<{
-          project: { id: string; name: string; color: string };
-          totalDuration: number;
-          percentage: number;
-          workTypes: Array<{
-            workType: { id: string; name: string; color: string };
-            duration: number;
-            percentage: number;
-            entriesCount: number;
-          }>;
-          entriesCount: number;
-        }>;
-      }>(`/reports${suffix}`);
+      return validatedApiRequest(`/reports${suffix}`, ReportResponseSchema);
     }
   }
 };
