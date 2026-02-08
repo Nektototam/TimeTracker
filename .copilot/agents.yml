@@ -1,0 +1,255 @@
+# Конфигурация агентов для проекта TimeTracker
+
+version: "1.0"
+
+agents:
+  # Frontend-разработчик
+  frontend:
+    name: "Frontend Developer"
+    description: "Специализируется на React, Next.js, TypeScript, Tailwind CSS"
+    expertise:
+      - Next.js App Router
+      - React 19 с Server Components
+      - TypeScript строгая типизация
+      - Tailwind CSS стилизация
+      - React Query для состояния
+      - i18next для интернационализации
+      - Компоненты на основе Radix UI
+
+    responsibilities:
+      - Разработка UI компонентов
+      - Интеграция с API через React Query
+      - Работа с контекстами (Timer, Pomodoro, Auth)
+      - Адаптивная верстка
+      - Локализация интерфейса
+      - Оптимизация производительности клиента
+
+    codeLocations:
+      - src/app/**
+      - src/components/**
+      - src/hooks/**
+      - src/contexts/**
+
+    commands:
+      - "npm run dev"
+      - "npm run lint"
+      - "npm test -- src/components"
+      - "npx tsc --noEmit"
+
+  # Backend-разработчик
+  backend:
+    name: "Backend Developer"
+    description: "Специализируется на API, базах данных, Prisma, Fastify"
+    expertise:
+      - Fastify фреймворк
+      - Prisma ORM
+      - PostgreSQL / SQLite
+      - JWT авторизация
+      - RESTful API дизайн
+      - SQL миграции
+      - Валидация с Zod
+
+    responsibilities:
+      - Разработка API эндпоинтов
+      - Управление схемой базы данных
+      - Миграции Prisma
+      - Бизнес-логика на сервере
+      - Авторизация и безопасность
+      - Оптимизация запросов к БД
+
+    codeLocations:
+      - apps/api/**
+      - sql/**
+      - db-init.sql
+      - setup-supabase.sql
+
+    commands:
+      - "cd apps/api && npm run dev"
+      - "cd apps/api && npx prisma migrate dev"
+      - "cd apps/api && npx prisma generate"
+      - "cd apps/api && npx prisma studio"
+
+  # DevOps/QA инженер
+  devops:
+    name: "DevOps & QA Engineer"
+    description: "Настройка CI/CD, тестирование, деплой"
+    expertise:
+      - Jest тестирование
+      - GitHub Actions
+      - Netlify деплой
+      - Railway PostgreSQL
+      - Docker контейнеры
+      - Environment конфигурация
+      - Мониторинг и логирование
+
+    responsibilities:
+      - Настройка CI/CD пайплайнов
+      - Написание тестов
+      - Деплой на Netlify/Railway
+      - Управление переменными окружения
+      - Настройка скриптов сборки
+      - Проверка качества кода
+
+    codeLocations:
+      - .github/workflows/**
+      - scripts/**
+      - jest.config.js
+      - jest.setup.js
+      - netlify.toml
+      - Taskfile.yml
+
+    commands:
+      - "npm test"
+      - "npm run build"
+      - "npm run lint -- --fix"
+      - "npx tsc --noEmit"
+      - "task test" # если используется Taskfile
+
+  # Архитектор/Lead Developer
+  architect:
+    name: "Software Architect"
+    description: "Проектирование архитектуры, code review, технические решения"
+    expertise:
+      - Архитектурные паттерны
+      - Масштабируемость
+      - Производительность
+      - Безопасность
+      - Рефакторинг
+      - Документирование
+      - Code review
+
+    responsibilities:
+      - Проектирование архитектуры
+      - Принятие технических решений
+      - Ревью кода
+      - Оптимизация производительности
+      - Создание документации
+      - Планирование рефакторинга
+      - Менторство команды
+
+    codeLocations:
+      - docs/**
+      - "**/*.md"
+      - tsconfig.json
+      - next.config.ts
+      - package.json
+
+    commands:
+      - "bd ready" # Проверить доступные задачи
+      - "bd show <id>" # Посмотреть детали задачи
+      - "npm run lint"
+      - "npm test"
+
+  # Product Owner / Project Manager
+  pm:
+    name: "Product Manager"
+    description: "Управление задачами, планирование, отслеживание прогресса"
+    expertise:
+      - bd (beads) issue tracking
+      - Git workflow
+      - Agile/Scrum методологии
+      - Документирование требований
+      - Планирование спринтов
+
+    responsibilities:
+      - Управление задачами через bd
+      - Планирование работы
+      - Отслеживание прогресса
+      - Приоритизация задач
+      - Синхронизация с командой
+      - Документирование решений
+
+    codeLocations:
+      - docs/**
+      - AGENTS.md
+      - README.md
+
+    commands:
+      - "bd onboard" # Начать работу с bd
+      - "bd ready" # Найти доступные задачи
+      - "bd show <id>" # Детали задачи
+      - "bd update <id> --status in_progress" # Взять задачу в работу
+      - "bd close <id>" # Закрыть задачу
+      - "bd sync" # Синхронизация с git
+
+# Схемы взаимодействия агентов
+workflows:
+  # Разработка новой фичи
+  feature_development:
+    steps:
+      - agent: pm
+        action: "Создать задачу в bd, установить приоритет"
+      - agent: architect
+        action: "Спроектировать архитектуру фичи"
+      - agent: backend
+        action: "Разработать API эндпоинты"
+      - agent: frontend
+        action: "Реализовать UI компоненты"
+      - agent: devops
+        action: "Написать тесты, проверить качество"
+      - agent: pm
+        action: "Закрыть задачу после деплоя"
+
+  # Исправление бага
+  bug_fix:
+    steps:
+      - agent: pm
+        action: "Зарегистрировать баг в bd"
+      - agent: architect
+        action: "Проанализировать причину"
+      - agent: [frontend, backend]
+        action: "Исправить баг"
+      - agent: devops
+        action: "Проверить исправление тестами"
+      - agent: pm
+        action: "Закрыть задачу"
+
+  # Code Review
+  code_review:
+    steps:
+      - agent: architect
+        action: "Проверить архитектурную правильность"
+      - agent: [frontend, backend]
+        action: "Проверить соответствие стандартам кода"
+      - agent: devops
+        action: "Проверить наличие тестов и конфигурации"
+
+# Общие правила для всех агентов
+global_rules:
+  - "Всегда использовать TypeScript со строгой типизацией"
+  - "Следовать руководству в docs/engineering-rules.md"
+  - "Использовать bd для управления задачами"
+  - "Писать тесты для нового кода"
+  - "Проверять линтером перед коммитом"
+  - "Проверять TypeScript типы перед коммитом"
+  - "Следовать Landing the Plane процедуре из AGENTS.md"
+  - "ВСЕГДА делать git push в конце сессии"
+  - "Использовать React Query для состояния сервера"
+  - "Использовать i18next для всех текстов"
+  - "Следовать Tailwind CSS конвенциям"
+
+# Контрольные точки качества
+quality_gates:
+  pre_commit:
+    - command: "npm run lint -- --fix"
+      description: "Исправить проблемы линтера"
+    - command: "npx tsc --noEmit"
+      description: "Проверить TypeScript типы"
+    - command: "npm test"
+      description: "Запустить все тесты"
+
+  pre_push:
+    - command: "npm run build"
+      description: "Проверить сборку production"
+    - command: "bd sync"
+      description: "Синхронизировать с bd"
+    - command: "git status"
+      description: "Проверить, что все закоммичено"
+
+  pre_deploy:
+    - command: "npm run lint"
+      description: "Полная проверка линтером"
+    - command: "npm test -- --coverage"
+      description: "Тесты с покрытием"
+    - command: "npm run build"
+      description: "Production сборка"
